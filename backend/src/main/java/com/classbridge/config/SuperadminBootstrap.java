@@ -7,7 +7,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
@@ -17,14 +16,17 @@ public class SuperadminBootstrap implements CommandLineRunner {
     private static final Logger logger = LoggerFactory.getLogger(SuperadminBootstrap.class);
 
     private final UserAccountRepository userAccountRepository;
+    private final PasswordEncoder passwordEncoder;
     private final String bootstrapUsername;
     private final String bootstrapPassword;
 
     public SuperadminBootstrap(
             UserAccountRepository userAccountRepository,
+            PasswordEncoder passwordEncoder,
             @Value("${BOOTSTRAP_SUPERADMIN_USERNAME:#{null}}") String bootstrapUsername,
             @Value("${BOOTSTRAP_SUPERADMIN_PASSWORD:#{null}}") String bootstrapPassword) {
         this.userAccountRepository = userAccountRepository;
+        this.passwordEncoder = passwordEncoder;
         this.bootstrapUsername = bootstrapUsername;
         this.bootstrapPassword = bootstrapPassword;
     }
@@ -42,7 +44,6 @@ public class SuperadminBootstrap implements CommandLineRunner {
             return;
         }
 
-        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
         
         UserAccount superadmin = new UserAccount();
         superadmin.setUsername(bootstrapUsername.trim());

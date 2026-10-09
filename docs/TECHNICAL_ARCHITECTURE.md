@@ -1,6 +1,6 @@
-# EduConnect — Technical Architecture
+# ClassBridge — Technical Architecture
 
-**Document status:** Initial architecture draft (v0.1)  
+**Document status:** Active
 **Document language:** English
 
 ## 1. Technology choices
@@ -16,7 +16,7 @@ Exact framework and dependency versions will be selected when the new project is
 ## 2. Repository layout
 
 ```text
-EduConnect/
+ClassBridge/
 ├── backend/
 │   ├── pom.xml
 │   └── src/
@@ -59,8 +59,8 @@ The frontend is a React single-page application written in TypeScript. UI areas 
 
 - Users sign in with accounts created by an authorized administrator; public self-registration is not part of the normal flow.
 - Users authenticate with their username and password against the `UserAccount` record. Only active accounts may authenticate, and passwords are verified against their stored one-way hashes.
-- Spring Security protects the REST API using signed JWT bearer access tokens with a 15-minute lifetime. Refresh tokens are out of scope for the first version.
-- The JWT signing secret is supplied through a local, uncommitted environment variable named `JWT_SECRET`. The application must not provide a default secret, log the secret, or commit it to version control.
+- Spring Security protects the REST API using signed JWT bearer access tokens with a 15-minute lifetime. Refresh tokens are out of scope.
+- The JWT signing secret is supplied through a local, uncommitted environment variable named `JWT_SECRET` and must be a Base64-encoded random key of at least 32 bytes. The application uses HS256 for signing and verification. The application must not provide a default secret, log the secret, or commit it to version control.
 - Backend authorization checks the user's role and school membership for every protected operation.
 - Direct-message recipient rules are enforced on the backend, including the selected-child context for parent messages.
 - Database credentials and other secrets are supplied through local environment configuration and are not committed to Git.
@@ -84,7 +84,7 @@ Tenant isolation is a security requirement and must be verified with automated t
 ## 7. Database lifecycle
 
 - The new application starts with a clean PostgreSQL database and a schema created for the new implementation.
-- No records, tables, or database files are migrated or imported from the previous EduConnect project.
+- No records, tables, or database files are migrated or imported from any previous projects.
 - Local development uses a separate database name and configuration from the existing project so existing data remains untouched.
 - Schema changes should be versioned as migration scripts so that a clean database can be created reproducibly.
 - Only intentional new development or demonstration records may be added to the new database.

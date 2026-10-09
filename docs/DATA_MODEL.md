@@ -1,6 +1,6 @@
-# EduConnect — Initial Data Model
+# ClassBridge — Data Model
 
-**Document status:** Draft for review (v0.1)  
+**Document status:** Active
 **Document language:** English
 
 This document translates the agreed project scope into an initial domain model. It describes concepts and relationships, not final database column definitions.
@@ -9,7 +9,7 @@ This document translates the agreed project scope into an initial domain model. 
 
 ### School
 
-Represents one school using EduConnect.
+Represents one school using ClassBridge.
 
 - A school owns its school administrators, teachers, classes, and students.
 - A school has one or more administrator accounts, each assigned to that school.
@@ -23,10 +23,17 @@ Represents login credentials and shared identity information.
 - A single account cannot combine roles. If one person needs both teacher and parent access, they use two separate accounts with separate usernames and credentials.
 - Role-specific information belongs in the corresponding profile or relationship records rather than being duplicated in `UserAccount`. Examples include a student's school number and class assignment in `StudentProfile`, and parent-to-student links.
 - Roles: `SUPERADMIN`, `SCHOOL_ADMIN`, `SCHOOL_VICE_ADMIN`, `TEACHER`, `PARENT`, and `STUDENT`.
-- Superadmin accounts are platform-wide and are not assigned to a school.
-- School administrator, vice-administrator, and teacher accounts belong to one school.
+- Superadmin accounts are platform-wide.
 - A parent account may be linked to children in one or more schools; school access is derived from the linked child rather than assigning the parent to only one school. A parent account may be linked to multiple students, including students from different schools.
 - A student login account is optional and is created only for high-school students in the first version.
+
+### SchoolMembership
+
+Represents the explicit association of a user account with a specific school.
+
+- School administrators, vice-administrators, and teachers each belong to one school through this membership.
+- Superadmins do not have a school membership.
+- Parents do not have a direct school membership; they access students across multiple schools through parent-to-student links.
 
 ### TeacherProfile
 
@@ -86,7 +93,7 @@ Represents one private message from one user to one user.
 ## 2. Relationship overview
 
 ```text
-School 1 ─── * SchoolAdminAccount
+School 1 ─── * SchoolMembership ─── 1 UserAccount (Admins, Teachers)
 School 1 ─── * TeacherProfile ─── 1 UserAccount
 School 1 ─── * Classroom
 School 1 ─── * StudentProfile ─── 1 ParentProfile ─── 1 UserAccount

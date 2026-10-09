@@ -1,18 +1,18 @@
-# EduConnect — Project Scope
+# ClassBridge — Project Scope
 
-**Document status:** Initial scope draft (v0.1)  
+**Document status:** Active
 **Document language:** English  
 **Product type:** Multi-tenant school communication and announcement platform
 
 ## 1. Project purpose
 
-EduConnect helps schools communicate announcements to the right students and families in one place. It reduces the chance that parents miss important school information because it is spread across multiple messaging groups. The platform supports multiple schools, with each school managing its own users, classes, and communication.
+ClassBridge helps schools communicate announcements to the right students and families in one place. It reduces the chance that parents miss important school information because it is spread across multiple messaging groups. The platform supports multiple schools, with each school managing its own users, classes, and communication.
 
 ## 2. Product boundaries
 
-The first version focuses on school administration, class-based announcements, and direct communication between permitted users. It is not intended to be a full school information system. Grading, attendance tracking, exams, and timetables are outside the initial scope.
+The platform focuses on school administration, class-based announcements, and direct communication between permitted users. It is not intended to be a full school information system. Grading, attendance tracking, exams, and timetables are outside the initial scope.
 
-The first version carries forward the existing project's main capabilities: school and account administration, class management, role-specific dashboards, announcements, announcement attachments, direct messages, and profile updates. System audit logs are deferred.
+The platform carries forward the existing project's main capabilities: school and account administration, class management, role-specific dashboards, announcements, announcement attachments, direct messages, and profile updates. System audit logs are deferred.
 
 ## 3. Roles and responsibilities
 
@@ -48,7 +48,7 @@ The first version carries forward the existing project's main capabilities: scho
 - Can select a child to enter that child's view, return to the parent's own profile, or switch to another linked child without signing out.
 - Can update the parent's own profile independently of the selected child's view.
 - Can access a high-school student's information as well as younger students' information.
-- For the first version, each student is linked to one parent account for access. Supporting multiple parent/guardian accounts for one student is deferred.
+- Each student is linked to one parent account for access. Supporting multiple parent/guardian accounts for one student is deferred.
 - Selects a child before sending a message. The parent can message teachers or school administrators at that child's school.
 - Parent messages are sent by the parent's account and clearly identify that the sender is a parent. The selected child is recorded as the context for the message.
 - Cannot message other parents or students.
@@ -63,13 +63,13 @@ The first version carries forward the existing project's main capabilities: scho
 | School administrator or vice-administrator | Superadmin, for platform or system issues |
 | Superadmin | School administrators and vice-administrators, for platform or system issues |
 
-Recipient search and message submission must both enforce these rules. Hiding an unavailable recipient in the interface is not sufficient authorization. Messages between teachers, between students, between parents, and between students and parents are not permitted in the first version.
+Recipient search and message submission must both enforce these rules. Hiding an unavailable recipient in the interface is not sufficient authorization. Messages between teachers, between students, between parents, and between students and parents are not permitted.
 
 ## 5. Announcements
 
 - Teachers can target one or multiple classes they teach.
 - Announcements are visible to the students and parents associated with the targeted class or classes.
-- Announcement read receipts are not included in the first version.
+- Announcement read receipts are not included.
 - Announcement attachments are included as a carry-forward feature from the existing project.
 
 ## 6. Accounts and profiles
@@ -85,7 +85,7 @@ Recipient search and message submission must both enforce these rules. Hiding an
 
 Direct messages support read/unread status. This is separate from announcement read receipts, which are excluded from the first version.
 
-## 8. Initial non-goals
+## 8. Non-goals
 
 - System audit-log screens and a full audit trail.
 - Multiple parent/guardian accounts accessing the same student.
@@ -103,7 +103,7 @@ English is the required language for the project documentation and initial appli
 
 ## 11. School levels and student login
 
-The first version treats school level as one of three distinct values. Each school record represents exactly one level. If a broader institution operates multiple levels, each level is represented as a separate school record (for example, Aktürk Primary School and Aktürk Middle School):
+The platform treats school level as one of three distinct values. Each school record represents exactly one level. If a broader institution operates multiple levels, each level is represented as a separate school record (for example, Aktürk Primary School and Aktürk Middle School):
 
 - **Primary school:** grades 1–4. Students do not sign in; their parent accesses their view.
 - **Middle school:** grades 5–8. Students do not sign in; their parent accesses their view.
@@ -113,4 +113,4 @@ A student's current grade must be valid for the school's level. A student number
 
 ## 12. School identification
 
-School names are not unique across the platform. Every school has a unique system-generated internal ID. School selection screens should display the school name together with its province/city and district so that similarly named schools can be distinguished. A user-managed school code is not required in the first version.
+School names are not unique across the platform. Every school has a unique system-generated internal ID. School selection screens should display the school name together with its province/city and district so that similarly named schools can be distinguished. A user-managed school code is not required.
