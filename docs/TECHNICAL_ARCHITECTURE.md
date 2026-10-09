@@ -63,7 +63,13 @@ The frontend is a React single-page application written in TypeScript. UI areas 
 - Direct-message recipient rules are enforced on the backend, including the selected-child context for parent messages.
 - Passwords are stored only as secure one-way hashes. Secrets and database credentials are supplied through local environment configuration and are not committed to Git.
 
-The first Superadmin must be provisioned through a controlled setup process. The application must not expose an unrestricted public endpoint that allows arbitrary users to become administrators.
+The first Superadmin must be provisioned through a controlled setup process:
+- The backend uses local environment variables named `BOOTSTRAP_SUPERADMIN_USERNAME` and `BOOTSTRAP_SUPERADMIN_PASSWORD`.
+- During startup, the application creates a Superadmin only when the database contains no Superadmin and both variables are configured.
+- The supplied password is hashed before being stored. The plain-text password is never logged or persisted in project files.
+- If a Superadmin already exists, the application does not create another one and does not overwrite its username or password from the environment variables.
+- If the database is reset and the account is gone, the same configured bootstrap credentials recreate it. Note that the recreated account will use the bootstrap password, even if its password was changed after the original bootstrap.
+- Bootstrap variables remain in local, uncommitted configuration. There are no default credentials or public Superadmin registration endpoints.
 
 ## 6. Multi-tenant data isolation
 
