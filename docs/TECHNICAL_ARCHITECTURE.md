@@ -58,10 +58,12 @@ The frontend is a React single-page application written in TypeScript. UI areas 
 ## 5. Authentication and authorization
 
 - Users sign in with accounts created by an authorized administrator; public self-registration is not part of the normal flow.
-- Spring Security protects the REST API and uses JWT-based authentication for the initial implementation.
+- Users authenticate with their username and password against the `UserAccount` record. Only active accounts may authenticate, and passwords are verified against their stored one-way hashes.
+- Spring Security protects the REST API using signed JWT bearer access tokens with a 15-minute lifetime. Refresh tokens are out of scope for the first version.
+- The JWT signing secret is supplied through a local, uncommitted environment variable named `JWT_SECRET`. The application must not provide a default secret, log the secret, or commit it to version control.
 - Backend authorization checks the user's role and school membership for every protected operation.
 - Direct-message recipient rules are enforced on the backend, including the selected-child context for parent messages.
-- Passwords are stored only as secure one-way hashes. Secrets and database credentials are supplied through local environment configuration and are not committed to Git.
+- Database credentials and other secrets are supplied through local environment configuration and are not committed to Git.
 
 The first Superadmin must be provisioned through a controlled setup process:
 - The backend uses local environment variables named `BOOTSTRAP_SUPERADMIN_USERNAME` and `BOOTSTRAP_SUPERADMIN_PASSWORD`.
