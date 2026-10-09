@@ -108,3 +108,7 @@ The first version treats school level as one of three distinct values. Each scho
 - **High school:** grades 9–12. Students may sign in with their own account, and a parent may also access their view.
 
 A student's current grade must be valid for the school's level. A student number is unique within its school. A username is unique across the whole platform. A parent account may be linked to children at different schools and switches to a child's view after selecting that child.
+
+## 12. School identification
+
+School names are not unique across the platform. Every school has a unique system-generated internal ID. School selection screens should display the school name together with its province/city and district so that similarly named schools can be distinguished. A user-managed school code is not required in the first version.

@@ -126,3 +126,11 @@ DirectMessage 0..1 ─── 1 StudentProfile (parent message context)
 - Student profiles store only their current class assignment in the first version; class membership history is not stored.
 
 **Confirmed decision:** Each `School` record represents exactly one school level. If a broader institution operates multiple levels, each level is represented as a separate school record (for example, Aktürk Primary School and Aktürk Middle School).
+
+## 6. School identity and location
+
+- Each `School` has a unique system-generated internal identifier.
+- School names are not globally unique and must not have a unique constraint.
+- Store province/city and district for school identification; address details may also be stored.
+- School selection interfaces display the school name and location together. The internal ID remains the stable identifier used by the API and database.
+- A user-managed school code is outside the first-version scope.
