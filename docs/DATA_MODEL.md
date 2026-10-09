@@ -20,10 +20,11 @@ Represents one school using EduConnect.
 Represents login credentials and shared identity information.
 
 - Contains a unique username, securely stored password, role, contact details, and account status.
+- Every `UserAccount` has exactly one role. A single account cannot combine roles. If one person needs both teacher and parent access, they use two separate accounts with separate usernames and credentials.
 - Roles: `SUPERADMIN`, `SCHOOL_ADMIN`, `SCHOOL_VICE_ADMIN`, `TEACHER`, `PARENT`, and `STUDENT`.
 - Superadmin accounts are platform-wide and are not assigned to a school.
 - School administrator, vice-administrator, and teacher accounts belong to one school.
-- A parent account may be linked to children in one or more schools; school access is derived from the linked child rather than assigning the parent to only one school.
+- A parent account may be linked to children in one or more schools; school access is derived from the linked child rather than assigning the parent to only one school. A parent account may be linked to multiple students, including students from different schools.
 - A student login account is optional and is created only for high-school students in the first version.
 
 ### TeacherProfile

@@ -78,6 +78,8 @@ Recipient search and message submission must both enforce these rules. Hiding an
 - The Superadmin creates school administrator accounts; each school administrator can create accounts for that school.
 - Users can update their own profile information after signing in.
 - The interface may show a first-login reminder to review account information. Whether a password change must be enforced at first login remains to be decided.
+- Every user account has exactly one role. A single account cannot combine roles. If one person needs both teacher and parent access, they use two separate accounts with separate usernames and credentials.
+- A parent account may be linked to multiple students, including students from different schools.
 
 ## 7. Message status
 
