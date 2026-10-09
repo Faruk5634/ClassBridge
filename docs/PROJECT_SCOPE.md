@@ -101,7 +101,7 @@ English is the required language for the project documentation and initial appli
 
 ## 11. School levels and student login
 
-The first version treats school level as one of three distinct values:
+The first version treats school level as one of three distinct values. Each school record represents exactly one level. If a broader institution operates multiple levels, each level is represented as a separate school record (for example, Aktürk Primary School and Aktürk Middle School):
 
 - **Primary school:** grades 1–4. Students do not sign in; their parent accesses their view.
 - **Middle school:** grades 5–8. Students do not sign in; their parent accesses their view.

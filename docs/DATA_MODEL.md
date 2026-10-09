@@ -125,4 +125,4 @@ DirectMessage 0..1 ─── 1 StudentProfile (parent message context)
 - A parent account is not assigned to a single school; access to each school is derived from the linked student profile.
 - Student profiles store only their current class assignment in the first version; class membership history is not stored.
 
-**Initial assumption:** Each `School` record represents one school level. If one institution must manage primary, middle, and high-school classes under one school record, this should be revisited before finalizing the schema.
+**Confirmed decision:** Each `School` record represents exactly one school level. If a broader institution operates multiple levels, each level is represented as a separate school record (for example, Aktürk Primary School and Aktürk Middle School).
