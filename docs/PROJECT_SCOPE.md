@@ -98,3 +98,13 @@ Direct messages support read/unread status. This is separate from announcement r
 ## 10. Language
 
 English is the required language for the project documentation and initial application interface because the course is taught in English. Turkish interface support may be added later.
+
+## 11. School levels and student login
+
+The first version treats school level as one of three distinct values:
+
+- **Primary school:** grades 1–4. Students do not sign in; their parent accesses their view.
+- **Middle school:** grades 5–8. Students do not sign in; their parent accesses their view.
+- **High school:** grades 9–12. Students may sign in with their own account, and a parent may also access their view.
+
+A student's current grade must be valid for the school's level. A student number is unique within its school. A username is unique across the whole platform. A parent account may be linked to children at different schools and switches to a child's view after selecting that child.

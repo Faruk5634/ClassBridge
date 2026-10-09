@@ -114,3 +114,15 @@ DirectMessage 0..1 ─── 1 StudentProfile (parent message context)
 
 - The precise parent notification or first-login credential setup flow.
 - Whether teacher, student, and parent profile details should be kept in role-specific tables or consolidated into a shared profile structure. The domain relationships above remain the same either way.
+
+## 5. School level, grade, and uniqueness constraints
+
+- `School` has one `education_level`: `PRIMARY`, `MIDDLE`, or `HIGH_SCHOOL`.
+- `Classroom.grade_level` is an integer from 1 to 12 and must fall within the school's level: 1–4 for primary, 5–8 for middle, and 9–12 for high school.
+- A student account is permitted only for students in a high-school class. Parent access remains available for students at all levels.
+- `StudentProfile.school_number` is unique within a school, enforced by a composite unique constraint on `(school_id, school_number)`.
+- `UserAccount.username` is globally unique across the platform.
+- A parent account is not assigned to a single school; access to each school is derived from the linked student profile.
+- Student profiles store only their current class assignment in the first version; class membership history is not stored.
+
+**Initial assumption:** Each `School` record represents one school level. If one institution must manage primary, middle, and high-school classes under one school record, this should be revisited before finalizing the schema.
