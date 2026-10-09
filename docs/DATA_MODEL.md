@@ -19,8 +19,9 @@ Represents one school using EduConnect.
 
 Represents login credentials and shared identity information.
 
-- Contains a unique username, securely stored password, role, contact details, and account status.
-- Every `UserAccount` has exactly one role. A single account cannot combine roles. If one person needs both teacher and parent access, they use two separate accounts with separate usernames and credentials.
+- Stores shared identity and account information, including the globally unique username, securely stored password hash, exactly one role, shared contact details, and account status.
+- A single account cannot combine roles. If one person needs both teacher and parent access, they use two separate accounts with separate usernames and credentials.
+- Role-specific information belongs in the corresponding profile or relationship records rather than being duplicated in `UserAccount`. Examples include a student's school number and class assignment in `StudentProfile`, and parent-to-student links.
 - Roles: `SUPERADMIN`, `SCHOOL_ADMIN`, `SCHOOL_VICE_ADMIN`, `TEACHER`, `PARENT`, and `STUDENT`.
 - Superadmin accounts are platform-wide and are not assigned to a school.
 - School administrator, vice-administrator, and teacher accounts belong to one school.
@@ -114,7 +115,6 @@ DirectMessage 0..1 ─── 1 StudentProfile (parent message context)
 ## 4. Open modeling decisions
 
 - The precise parent notification or first-login credential setup flow.
-- Whether teacher, student, and parent profile details should be kept in role-specific tables or consolidated into a shared profile structure. The domain relationships above remain the same either way.
 
 ## 5. School level, grade, and uniqueness constraints
 
