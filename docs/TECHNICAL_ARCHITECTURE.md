@@ -59,6 +59,11 @@ The frontend is a React single-page application written in TypeScript. UI areas 
 
 - Users sign in with accounts created by an authorized administrator; public self-registration is not part of the normal flow.
 - Users authenticate with their username and password against the `UserAccount` record. Only active accounts may authenticate, and passwords are verified against their stored one-way hashes.
+- When the Superadmin creates a school administrator or vice-administrator account, the system generates a cryptographically secure random initial password.
+- That initial password is returned only once in the successful account-creation response to the authenticated Superadmin. It is never stored or logged in plain text; the backend stores only the BCrypt hash.
+- A generated initial password cannot be retrieved after the creation response is lost; an authorized password reset flow will be needed for recovery.
+- Users are not forced to change the initial password on first login. The interface may show an informational reminder about reviewing account credentials, but it must not block the user from continuing.
+- Users may change their password after signing in through an authenticated account flow.
 - Spring Security protects the REST API using signed JWT bearer access tokens with a 15-minute lifetime. Refresh tokens are out of scope.
 - The JWT signing secret is supplied through a local, uncommitted environment variable named `JWT_SECRET` and must be a Base64-encoded random key of at least 32 bytes. The application uses HS256 for signing and verification. The application must not provide a default secret, log the secret, or commit it to version control.
 - Backend authorization checks the user's role and school membership for every protected operation.
@@ -103,6 +108,4 @@ Announcement attachments remain in scope. The storage implementation will be sel
 
 ## 10. Decisions for detailed design
 
-- Choose the exact migration tool and local PostgreSQL setup when initializing the new repository.
 - Decide whether attachments are stored on the local development filesystem initially or through an external object-storage service.
-- Confirm whether a first-login password change is mandatory or whether users receive a reminder.

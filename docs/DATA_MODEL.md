@@ -20,8 +20,13 @@ Represents one school using ClassBridge.
 Represents login credentials and shared identity information.
 
 - Stores shared identity and account information, including the globally unique username, securely stored password hash, exactly one role, shared contact details, and account status.
+- Passwords are never stored or logged in plain text; only the one-way BCrypt hash is persisted.
+- When the Superadmin creates a school administrator or vice-administrator account, the system generates a cryptographically secure random initial password.
+- The initial password is returned only once in the successful creation response to the authenticated Superadmin. It cannot be retrieved after that response is lost; an authorized password reset flow is required for recovery.
+- Users are not forced to change the initial password on first login, and no forced password change flag is stored on the account. An informational reminder to review credentials may be displayed, but it does not block navigation.
+- Users may change their password after signing in through an authenticated account flow.
 - A single account cannot combine roles. If one person needs both teacher and parent access, they use two separate accounts with separate usernames and credentials.
-- Role-specific information belongs in the corresponding profile or relationship records rather than being duplicated in `UserAccount`. Examples include a student's school number and class assignment in `StudentProfile`, and parent-to-student links.
+- Role-specific information belongs in the corresponding profile or relationship records rather than being duplicated in `UserAccount`. Examples include staff member names in `StaffProfile`, a student's school number and class assignment in `StudentProfile`, and parent-to-student links.
 - Roles: `SUPERADMIN`, `SCHOOL_ADMIN`, `SCHOOL_VICE_ADMIN`, `TEACHER`, `PARENT`, and `STUDENT`.
 - Superadmin accounts are platform-wide.
 - A parent account may be linked to children in one or more schools; school access is derived from the linked child rather than assigning the parent to only one school. A parent account may be linked to multiple students, including students from different schools.
@@ -35,9 +40,18 @@ Represents the explicit association of a user account with a specific school.
 - Superadmins do not have a school membership.
 - Parents do not have a direct school membership; they access students across multiple schools through parent-to-student links.
 
-### TeacherProfile
+### StaffProfile
 
-Contains teacher-specific information and references one `UserAccount` with the `TEACHER` role.
+Represents profile information for school staff members.
+
+- Has a one-to-one relationship with `UserAccount`.
+- Stores the staff member's required `firstName` and `lastName`.
+- Applies to `SCHOOL_ADMIN`, `SCHOOL_VICE_ADMIN`, and `TEACHER` accounts.
+- The existing `SchoolMembership` remains responsible for linking each school staff account to exactly one school; do not duplicate the school relationship in `StaffProfile`.
+- Shared contact details such as email and phone number remain in `UserAccount`; do not duplicate them in `StaffProfile`.
+- `SUPERADMIN`, `PARENT`, and `STUDENT` accounts do not use `StaffProfile`.
+- Preserves the rule that each account has exactly one role.
+- School staff accounts—including teachers—use `StaffProfile` for staff identity details; a separate `TeacherProfile` entity is not used.
 
 ### ParentProfile
 
@@ -94,13 +108,13 @@ Represents one private message from one user to one user.
 
 ```text
 School 1 ─── * SchoolMembership ─── 1 UserAccount (Admins, Teachers)
-School 1 ─── * TeacherProfile ─── 1 UserAccount
+UserAccount (Admins, Teachers) 1 ─── 1 StaffProfile
 School 1 ─── * Classroom
 School 1 ─── * StudentProfile ─── 1 ParentProfile ─── 1 UserAccount
 StudentProfile 0..1 ─── 1 Student UserAccount (high-school login only)
 Classroom 1 ─── * StudentProfile
-TeacherProfile * ─── * Classroom (through TeachingAssignment)
-Classroom * ─── 1 HomeroomTeacher (TeacherProfile)
+UserAccount (Teachers) * ─── * Classroom (through TeachingAssignment)
+Classroom * ─── 1 HomeroomTeacher (UserAccount with TEACHER role)
 Announcement * ─── * Classroom
 DirectMessage * ─── 1 Sender UserAccount
 DirectMessage * ─── 1 Recipient UserAccount
@@ -121,7 +135,7 @@ DirectMessage 0..1 ─── 1 StudentProfile (parent message context)
 
 ## 4. Open modeling decisions
 
-- The precise parent notification or first-login credential setup flow.
+- The precise parent notification flow.
 
 ## 5. School level, grade, and uniqueness constraints
 

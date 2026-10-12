@@ -75,9 +75,14 @@ Recipient search and message submission must both enforce these rules. Hiding an
 ## 6. Accounts and profiles
 
 - There is no public self-registration in the normal user flow.
-- The Superadmin creates school administrator accounts; each school administrator can create accounts for that school.
+- The Superadmin creates school administrator and vice-administrator accounts; each school administrator can create accounts for that school.
+- When the Superadmin creates a school administrator or vice-administrator account, the system generates a cryptographically secure random initial password.
+- That initial password is returned only once in the successful account-creation response to the authenticated Superadmin. It is never stored or logged in plain text; only the BCrypt hash is stored.
+- A generated initial password cannot be retrieved after the creation response is lost; an authorized password reset flow will be needed for recovery.
+- Users are not forced to change the initial password on first login. The interface may show an informational reminder about reviewing account credentials, but it must not block the user from continuing.
+- Users may change their password after signing in through an authenticated account flow.
 - Users can update their own profile information after signing in.
-- The interface may show a first-login reminder to review account information. Whether a password change must be enforced at first login remains to be decided.
+- School staff members (school administrators, vice-administrators, and teachers) have a staff profile storing their required first name and last name, while their school linkage is handled via school membership. Superadmin, parent, and student accounts do not use a staff profile.
 - Every user account has exactly one role. A single account cannot combine roles. If one person needs both teacher and parent access, they use two separate accounts with separate usernames and credentials.
 - A parent account may be linked to multiple students, including students from different schools.
 
@@ -94,7 +99,6 @@ Direct messages support read/unread status. This is separate from announcement r
 
 ## 9. Decisions to confirm during detailed design
 
-- Whether first login requires a password change or only displays a reminder.
 - The exact profile fields each role may view and edit.
 
 ## 10. Language
