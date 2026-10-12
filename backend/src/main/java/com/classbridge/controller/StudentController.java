@@ -3,6 +3,8 @@ package com.classbridge.controller;
 import com.classbridge.dto.CreateStudentRequest;
 import com.classbridge.dto.CreateStudentResponse;
 import com.classbridge.dto.ErrorResponse;
+import com.classbridge.dto.PageResponse;
+import com.classbridge.dto.StudentProfileResponse;
 import com.classbridge.exception.DuplicateSchoolNumberException;
 import com.classbridge.exception.DuplicateUsernameException;
 import com.classbridge.exception.ForbiddenOperationException;
@@ -17,9 +19,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -39,6 +44,34 @@ public class StudentController {
         Long actorAccountId = Long.valueOf(jwt.getSubject());
         CreateStudentResponse response = studentService.enrollStudent(actorAccountId, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @GetMapping
+    public ResponseEntity<PageResponse<StudentProfileResponse>> getStudents(
+            @AuthenticationPrincipal Jwt jwt,
+            @RequestParam(required = false) Long classroomId,
+            @RequestParam(defaultValue = "true") boolean active,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        Long actorAccountId = Long.valueOf(jwt.getSubject());
+        PageResponse<StudentProfileResponse> response = studentService.getStudents(
+                actorAccountId, classroomId, active, page, size
+        );
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{studentProfileId}")
+    public ResponseEntity<StudentProfileResponse> getStudent(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable Long studentProfileId) {
+        Long actorAccountId = Long.valueOf(jwt.getSubject());
+        StudentProfileResponse response = studentService.getStudent(actorAccountId, studentProfileId);
+        return ResponseEntity.ok(response);
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalArgument(IllegalArgumentException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse(ex.getMessage()));
     }
 
     @ExceptionHandler(DuplicateSchoolNumberException.class)

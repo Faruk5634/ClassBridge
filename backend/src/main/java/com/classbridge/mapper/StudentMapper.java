@@ -7,6 +7,7 @@ import com.classbridge.domain.StudentProfile;
 import com.classbridge.domain.UserAccount;
 import com.classbridge.dto.CreateStudentRequest;
 import com.classbridge.dto.CreateStudentResponse;
+import com.classbridge.dto.StudentProfileResponse;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -55,6 +56,39 @@ public class StudentMapper {
         }
 
         response.setCreatedAt(profile.getCreatedAt());
+        return response;
+    }
+
+    public StudentProfileResponse toProfileResponse(StudentProfile profile) {
+        StudentProfileResponse response = new StudentProfileResponse();
+        response.setId(profile.getId());
+        response.setSchoolNumber(profile.getSchoolNumber());
+        response.setFirstName(profile.getFirstName());
+        response.setLastName(profile.getLastName());
+        response.setSchoolId(profile.getSchool().getId());
+        response.setClassroomId(profile.getClassroom().getId());
+        response.setGradeLevel(profile.getClassroom().getGradeLevel());
+        response.setSectionName(profile.getClassroom().getSectionName());
+        response.setActive(profile.isActive());
+        response.setCreatedAt(profile.getCreatedAt());
+        response.setUpdatedAt(profile.getUpdatedAt());
+
+        if (profile.getParentProfile() != null) {
+            ParentProfile parent = profile.getParentProfile();
+            response.setParentProfileId(parent.getId());
+            response.setParentFirstName(parent.getFirstName());
+            response.setParentLastName(parent.getLastName());
+            if (parent.getUserAccount() != null) {
+                response.setParentUsername(parent.getUserAccount().getUsername());
+            }
+        }
+
+        if (profile.getUserAccount() != null) {
+            UserAccount studentAccount = profile.getUserAccount();
+            response.setStudentUserAccountId(studentAccount.getId());
+            response.setStudentUsername(studentAccount.getUsername());
+        }
+
         return response;
     }
 }
