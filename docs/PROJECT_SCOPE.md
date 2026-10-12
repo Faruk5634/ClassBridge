@@ -93,7 +93,7 @@ Recipient search and message submission must both enforce these rules. Hiding an
 - Users can update their own profile information after signing in.
 - School staff members (school administrators, vice-administrators, and teachers) have a staff profile storing their required first name and last name, while their school linkage is handled via school membership. Superadmin, parent, and student accounts do not use a staff profile.
 - Parent profiles store the parent's first and last name, referencing a `UserAccount` with the `PARENT` role. Shared contact details remain in `UserAccount`.
-- Student profiles store minimal student data: first name, last name, school number, school, classroom, active/inactive enrollment status, parent association, and student login account reference (for high-school students). Date of birth, home address, and national identity numbers are not collected. Grade level is derived from the assigned classroom.
+- Student profiles store minimal student data: first name, last name, school number (modeled as text up to 50 characters preserving leading zeros, unique within the school), school, classroom, active/inactive enrollment status, parent association, and student login account reference (for high-school students). Date of birth, home address, and national identity numbers are not collected. Grade level is derived from the assigned classroom.
 - When a student leaves a school, their student profile is marked inactive/archived rather than deleted. Any linked high-school student login account is deactivated. Enrolling at another school creates a new student profile under that school and links the existing parent account when applicable.
 - Every user account has exactly one role. A single account cannot combine roles. If one person needs both teacher and parent access, they use two separate accounts with separate usernames and credentials. A student login account cannot also be a parent account.
 - A parent account may be linked to multiple students, including students from different schools. A student has at most one linked parent account in the first version.
@@ -128,7 +128,7 @@ The platform treats school level as one of three distinct values. Each school re
 - **Middle school:** grades 5–8. Students do not sign in; their parent accesses their view. Parent association is required.
 - **High school:** grades 9–12. Every student receives a student login account upon enrollment. A parent may also be linked to the student profile if requested by the parent.
 
-A student's current grade is derived from their assigned classroom and must be valid for the school's level. A student number is unique within its school. A username is unique across the whole platform. A parent account may be linked to children at different schools and switches to a child's view after selecting that child.
+A student's current grade is derived from their assigned classroom and must be valid for the school's level. A student number is unique within its school, modeled as text up to 50 characters to preserve leading zeros. A username is unique across the whole platform. A parent account may be linked to children at different schools and switches to a child's view after selecting that child.
 
 ## 12. School identification
 

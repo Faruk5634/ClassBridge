@@ -75,8 +75,13 @@ Represents an enrolled student at a specific school.
 - A `StudentProfile` is not itself a login account.
 - **Data minimization:** Stores only the student's required `firstName`, `lastName`, `schoolNumber`, `school`, current `classroom`, parent association (required for primary/middle school, optional for high school), student login account reference (for high-school students), and active/inactive enrollment status (`active`). Date of birth, home address, and national identity number are not collected in the first version.
 - The student's current grade level is derived from the assigned classroom's `gradeLevel`; it is not duplicated in `StudentProfile`.
-- `schoolNumber` is unique within a school, enforced by a composite unique constraint on `(school_id, school_number)`.
+- `schoolNumber` is modeled as text up to 50 characters to preserve leading zeros, and is unique within a school (enforced by a composite unique constraint on `(school_id, school_number)`).
 - Student profiles are retained as inactive/archived records when a student leaves a school. A new school enrollment creates a separate `StudentProfile`. Only the current classroom assignment is stored on an active profile; class membership history, academic-year tracking, and automatic promotion/transfer processing remain out of scope for the first version. Archived school enrollment profiles are explicitly retained rather than being out of scope.
+- **Enrollment rules:**
+  - School administrators and vice-administrators enroll students only for their own school, deriving the school from the administrator's membership. The assigned classroom must belong to that school and have a grade level valid for the school's level.
+  - For primary- and middle-school students: student login accounts are prohibited; linking a valid, active parent account with an existing `ParentProfile` is required.
+  - For high-school students: a student login account (`UserAccount` with `STUDENT` role) is created with a globally unique username and a one-time generated initial password under the standard credential policy; linking an existing parent account is optional.
+  - The student profile and (for high-school students) student login account are created atomically in a single transaction.
 - **Student login and parent association rules:**
   - **Primary- and middle-school students:** Primary- and middle-school `StudentProfile` records have no linked student `UserAccount` and no login credentials. Their parent association is required.
   - **High-school students:** Every high-school `StudentProfile` has exactly one linked `UserAccount` with the `STUDENT` role, created upon enrollment. The school creates the username and the system generates an initial password under the existing one-time credential policy. Linking a parent account to a high-school student's profile is optional and configured only upon parent request; the student still uses their own login account.
