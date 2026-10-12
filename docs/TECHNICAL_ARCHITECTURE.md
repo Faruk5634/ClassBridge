@@ -61,7 +61,9 @@ The frontend is a React single-page application written in TypeScript. UI areas 
 - Users authenticate with their username and password against the `UserAccount` record. Only active accounts may authenticate, and passwords are verified against their stored one-way hashes.
 - Whenever an authorized administrator creates a login-enabled account, the system generates a cryptographically secure random initial password.
 - That initial password is returned exactly once in the successful account-creation response to the administrator who created the account: to the Superadmin for school administrator and vice-administrator accounts, and to the school administrator or vice-administrator for teacher, parent, and high-school student accounts.
-- Primary- and middle-school students do not have login accounts.
+- When enrolling a student whose parent does not yet have an account, school staff create a new parent account using this initial credential flow. If the parent already has an account, staff link the student using the parent's existing globally unique username without generating new credentials.
+- Every high-school student receives a login account with the `STUDENT` role upon enrollment, with an initial password generated under this same policy. Primary- and middle-school students do not have login accounts.
+- Deactivated accounts (such as a high-school student account deactivated after leaving a school) cannot authenticate.
 - The backend persists only the BCrypt hash. Never log or store the plain-text password in the database, project files, or other persistent storage.
 - If the successful creation response is lost, the initial password cannot be retrieved; an authorized password-reset flow is required.
 - Users are not forced to change the initial password on first login. The interface may show an informational reminder about reviewing account credentials, but it must not block the user from continuing.

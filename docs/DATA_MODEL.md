@@ -29,8 +29,8 @@ Represents login credentials and shared identity information.
 - Role-specific information belongs in the corresponding profile or relationship records rather than being duplicated in `UserAccount`. Examples include staff member names in `StaffProfile`, a student's school number and class assignment in `StudentProfile`, and parent-to-student links.
 - Roles: `SUPERADMIN`, `SCHOOL_ADMIN`, `SCHOOL_VICE_ADMIN`, `TEACHER`, `PARENT`, and `STUDENT`.
 - Superadmin accounts are platform-wide.
-- A parent account may be linked to children in one or more schools; school access is derived from the linked child rather than assigning the parent to only one school. A parent account may be linked to multiple students, including students from different schools.
-- A student login account is optional and is created only for high-school students in the first version; primary- and middle-school students do not have login accounts.
+- A parent account may be linked to children in one or more schools; school access is derived from the linked child rather than assigning the parent to only one school. A parent account may be linked to multiple students, including students from different schools. A student may have at most one linked parent account in the first version.
+- Every high-school student receives a student login account (`UserAccount` with `STUDENT` role) upon enrollment. Primary- and middle-school students do not have login accounts or credentials.
 
 ### SchoolMembership
 
@@ -55,17 +55,36 @@ Represents profile information for school staff members.
 
 ### ParentProfile
 
-Contains parent-specific information and references one `UserAccount` with the `PARENT` role.
+Represents profile information for parents and guardians.
+
+- Has a one-to-one relationship with `UserAccount` where `role = PARENT`.
+- Stores the parent's required `firstName` and `lastName`.
+- Shared contact details such as email and phone number remain in `UserAccount`; do not duplicate them in `ParentProfile`.
+- A parent account has no direct `SchoolMembership`. All school access is derived exclusively through linked student profiles.
+- A parent account may be linked to multiple students across multiple schools. A student may have at most one linked parent account in the first version.
+- **Enrollment workflow:** When enrolling a student, school staff first ask whether the parent already has a ClassBridge account.
+  - If one exists, school staff link the student profile to that existing parent account using the parent's exact, globally unique username. This allows reusing the same parent account for children attending different schools or school levels.
+  - If no account exists, an authorized school administrator or vice-administrator creates the parent `UserAccount` and `ParentProfile` before linking the student.
+  - Newly created parent accounts follow the standard initial-password policy: the system generates a cryptographically secure password, stores only the BCrypt hash, and returns the plain-text password once to the creating administrator (never logged or persisted).
 
 ### StudentProfile
 
-Represents a student at a school.
+Represents an enrolled student at a specific school.
 
-- Belongs to one school and one current class at a time in the initial model.
-- Only the current class assignment is stored; class membership history is out of scope for the first version.
-- Is linked to exactly one parent account for access in the first version.
-- May reference one student `UserAccount` for high-school login; younger students have no login account.
-- Stores the student's grade and school identifier as needed by the school.
+- Every enrolled student has a `StudentProfile`, including primary-, middle-, and high-school students.
+- A `StudentProfile` is not itself a login account.
+- **Data minimization:** Stores only the student's required `firstName`, `lastName`, `schoolNumber`, `school`, current `classroom`, parent association (required for primary/middle school, optional for high school), student login account reference (for high-school students), and active/inactive enrollment status (`active`). Date of birth, home address, and national identity number are not collected in the first version.
+- The student's current grade level is derived from the assigned classroom's `gradeLevel`; it is not duplicated in `StudentProfile`.
+- `schoolNumber` is unique within a school, enforced by a composite unique constraint on `(school_id, school_number)`.
+- Student profiles are retained as inactive/archived records when a student leaves a school. A new school enrollment creates a separate `StudentProfile`. Only the current classroom assignment is stored on an active profile; class membership history, academic-year tracking, and automatic promotion/transfer processing remain out of scope for the first version. Archived school enrollment profiles are explicitly retained rather than being out of scope.
+- **Student login and parent association rules:**
+  - **Primary- and middle-school students:** Primary- and middle-school `StudentProfile` records have no linked student `UserAccount` and no login credentials. Their parent association is required.
+  - **High-school students:** Every high-school `StudentProfile` has exactly one linked `UserAccount` with the `STUDENT` role, created upon enrollment. The school creates the username and the system generates an initial password under the existing one-time credential policy. Linking a parent account to a high-school student's profile is optional and configured only upon parent request; the student still uses their own login account.
+- **Leaving or changing schools:**
+  - Student profiles are retained as inactive/archived records when a student leaves a school rather than being permanently deleted.
+  - If an archived high-school profile has a linked student login account, that `UserAccount` is deactivated (`isActive = false`) so it can no longer authenticate.
+  - If the student enrolls at a different school or school level, a new, separate `StudentProfile` is created for that school and linked to the existing parent account when applicable. The previous school's profile remains archived.
+  - Academic-year tracking, automatic promotion/transfer processing, and class membership history remain out of scope.
 
 ### Classroom
 
@@ -113,9 +132,11 @@ Represents one private message from one user to one user.
 School 1 ─── * SchoolMembership ─── 1 UserAccount (Admins, Teachers)
 UserAccount (Admins, Teachers) 1 ─── 1 StaffProfile
 School 1 ─── * Classroom
-School 1 ─── * StudentProfile ─── 1 ParentProfile ─── 1 UserAccount
-StudentProfile 0..1 ─── 1 Student UserAccount (high-school login only)
+School 1 ─── * StudentProfile
 Classroom 1 ─── * StudentProfile
+High-school StudentProfile 1 ─── 1 Student UserAccount (STUDENT role)
+Primary- / Middle-school StudentProfile (no student UserAccount)
+StudentProfile * ─── 0..1 ParentProfile 1 ─── 1 UserAccount (PARENT role)
 UserAccount (Teachers) * ─── * Classroom (through TeachingAssignment)
 Classroom * ─── 1 HomeroomTeacher (UserAccount with TEACHER role)
 Announcement * ─── * Classroom
@@ -124,13 +145,18 @@ DirectMessage * ─── 1 Recipient UserAccount
 DirectMessage 0..1 ─── 1 StudentProfile (parent message context)
 ```
 
+Relationship rules for student profiles:
+- Every high-school `StudentProfile` has exactly one linked `UserAccount` with the `STUDENT` role.
+- Primary- and middle-school `StudentProfile` records have no linked student `UserAccount`.
+- Parent association is required for primary- and middle-school `StudentProfile` records and optional for high-school `StudentProfile` records (at most one linked parent account per student in the first version).
+
 ## 3. Rules the data model must support
 
 1. Every school-owned record can be traced to a school, directly or through a required parent entity.
 2. School users can only access records belonging to their own school.
-3. A parent can access only the student profiles explicitly linked to that parent account.
+3. A parent can access only the student profiles explicitly linked to that parent account (at most one parent account per student in the first version; parent association is required for primary/middle school and optional for high school).
 4. A parent can switch between linked children while retaining the parent's own account and profile.
-5. A student account is allowed only for high-school students in the first version.
+5. Every high-school `StudentProfile` has exactly one linked `UserAccount` with the `STUDENT` role; primary- and middle-school `StudentProfile` records have no linked student `UserAccount`.
 6. A teacher's announcement targets must be limited to classes assigned to that teacher.
 7. Direct-message sender/recipient rules must be validated on the server for every request.
 8. A parent's message must preserve the parent as sender and record the selected child context.
@@ -145,11 +171,14 @@ DirectMessage 0..1 ─── 1 StudentProfile (parent message context)
 - `School` has one `education_level`: `PRIMARY`, `MIDDLE`, or `HIGH_SCHOOL`.
 - `Classroom.grade_level` is an integer from 1 to 12 and must fall within the school's level: 1–4 for primary, 5–8 for middle, and 9–12 for high school.
 - A classroom has a grade level and a section name, and the combination of school, grade level, and section name is unique, enforced by a composite unique constraint on `(school_id, grade_level, section_name)`. Academic-year tracking is not part of the first version.
-- A student account is permitted only for students in a high-school class. Parent access remains available for students at all levels.
+- Every high-school `StudentProfile` has exactly one linked `UserAccount` with the `STUDENT` role. Primary- and middle-school `StudentProfile` records have no linked student `UserAccount`.
+- Parent linking is required for primary- and middle-school students; for high-school students, parent linking is optional and configured only upon parent request.
 - `StudentProfile.school_number` is unique within a school, enforced by a composite unique constraint on `(school_id, school_number)`.
+- `StudentProfile` adheres to data minimization: it does not store date of birth, home address, or national identity number; grade level is derived from the assigned classroom.
+- Student profiles are retained as inactive/archived records when a student leaves a school, and any linked high-school student `UserAccount` is deactivated. A new school enrollment creates a separate `StudentProfile` under that school.
+- Academic-year tracking, automatic promotion/transfer processing, and class membership history remain out of scope for the first version; student profiles store only their current class assignment.
 - `UserAccount.username` is globally unique across the platform.
-- A parent account is not assigned to a single school; access to each school is derived from the linked student profile.
-- Student profiles store only their current class assignment in the first version; class membership history is not stored.
+- A parent account is not assigned to a single school; access to each school is derived from linked student profiles.
 
 **Confirmed decision:** Each `School` record represents exactly one school level. If a broader institution operates multiple levels, each level is represented as a separate school record (for example, Aktürk Primary School and Aktürk Middle School).
 
