@@ -72,6 +72,9 @@ Represents a student at a school.
 Represents a class within one school.
 
 - Belongs to one school.
+- Has a grade level and a section name (for example, 9/A).
+- The combination of school, grade level, and section name is unique.
+- Academic-year tracking is not part of the first version.
 - Has one designated homeroom/advisory teacher.
 - Contains multiple students.
 - Can have multiple subject-teacher assignments.
@@ -141,6 +144,7 @@ DirectMessage 0..1 ─── 1 StudentProfile (parent message context)
 
 - `School` has one `education_level`: `PRIMARY`, `MIDDLE`, or `HIGH_SCHOOL`.
 - `Classroom.grade_level` is an integer from 1 to 12 and must fall within the school's level: 1–4 for primary, 5–8 for middle, and 9–12 for high school.
+- A classroom has a grade level and a section name, and the combination of school, grade level, and section name is unique, enforced by a composite unique constraint on `(school_id, grade_level, section_name)`. Academic-year tracking is not part of the first version.
 - A student account is permitted only for students in a high-school class. Parent access remains available for students at all levels.
 - `StudentProfile.school_number` is unique within a school, enforced by a composite unique constraint on `(school_id, school_number)`.
 - `UserAccount.username` is globally unique across the platform.

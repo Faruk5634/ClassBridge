@@ -12,7 +12,7 @@ ClassBridge helps schools communicate announcements to the right students and fa
 
 The platform focuses on school administration, class-based announcements, and direct communication between permitted users. It is not intended to be a full school information system. Grading, attendance tracking, exams, and timetables are outside the initial scope.
 
-The platform carries forward the existing project's main capabilities: school and account administration, class management, role-specific dashboards, announcements, announcement attachments, direct messages, and profile updates. System audit logs are deferred.
+The platform carries forward the existing project's main capabilities: school and account administration, class management, role-specific dashboards, announcements, announcement attachments, direct messages, and profile updates. A classroom has a grade level and a section name (for example, 9/A); the combination of school, grade level, and section name is unique. Academic-year tracking is not part of the first version. System audit logs are deferred.
 
 ## 3. Roles and responsibilities
 
@@ -97,6 +97,7 @@ Direct messages support read/unread status. This is separate from announcement r
 - Multiple parent/guardian accounts accessing the same student.
 - Student-to-student, parent-to-parent, teacher-to-teacher, or student-to-parent direct messaging.
 - Grades, attendance, exams, and timetables.
+- Academic-year tracking and multi-year classroom history.
 
 ## 9. Decisions to confirm during detailed design
 
