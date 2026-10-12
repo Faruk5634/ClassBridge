@@ -75,10 +75,11 @@ Recipient search and message submission must both enforce these rules. Hiding an
 ## 6. Accounts and profiles
 
 - There is no public self-registration in the normal user flow.
-- The Superadmin creates school administrator and vice-administrator accounts; each school administrator can create accounts for that school.
-- When the Superadmin creates a school administrator or vice-administrator account, the system generates a cryptographically secure random initial password.
-- That initial password is returned only once in the successful account-creation response to the authenticated Superadmin. It is never stored or logged in plain text; only the BCrypt hash is stored.
-- A generated initial password cannot be retrieved after the creation response is lost; an authorized password reset flow will be needed for recovery.
+- The Superadmin creates school administrator and vice-administrator accounts; school administrators and vice-administrators create teacher, parent, and high-school student accounts for their school. Primary- and middle-school students do not have login accounts.
+- Whenever an authorized administrator creates a login-enabled account, the system generates a cryptographically secure random initial password.
+- That initial password is returned exactly once in the successful account-creation response to the administrator who created the account (the Superadmin for school administrator and vice-administrator accounts; the school administrator or vice-administrator for teacher, parent, and high-school student accounts).
+- The plain-text password is never logged or stored in the database, project files, or any other persistent storage; only the BCrypt hash is stored.
+- A generated initial password cannot be retrieved after the creation response is lost; an authorized password-reset flow will be needed for recovery.
 - Users are not forced to change the initial password on first login. The interface may show an informational reminder about reviewing account credentials, but it must not block the user from continuing.
 - Users may change their password after signing in through an authenticated account flow.
 - Users can update their own profile information after signing in.

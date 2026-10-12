@@ -51,6 +51,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
                 .requestMatchers("/api/superadmin/**").hasRole("SUPERADMIN")
+                .requestMatchers("/api/school-admin/**").hasAnyRole("SCHOOL_ADMIN", "SCHOOL_VICE_ADMIN")
                 .anyRequest().authenticated()
             )
             .oauth2ResourceServer(oauth2 -> oauth2

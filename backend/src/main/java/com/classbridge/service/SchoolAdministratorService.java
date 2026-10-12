@@ -14,39 +14,34 @@ import com.classbridge.repository.SchoolMembershipRepository;
 import com.classbridge.repository.SchoolRepository;
 import com.classbridge.repository.StaffProfileRepository;
 import com.classbridge.repository.UserAccountRepository;
+import com.classbridge.security.InitialPasswordGenerator;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import java.security.SecureRandom;
-
 @Service
 public class SchoolAdministratorService {
-
-    private static final String UPPER = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    private static final String LOWER = "abcdefghijklmnopqrstuvwxyz";
-    private static final String DIGITS = "0123456789";
-    private static final String SPECIAL = "!@#$%^&*";
-    private static final String ALL_CHARS = UPPER + LOWER + DIGITS + SPECIAL;
-    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
     private final SchoolRepository schoolRepository;
     private final UserAccountRepository userAccountRepository;
     private final StaffProfileRepository staffProfileRepository;
     private final SchoolMembershipRepository schoolMembershipRepository;
     private final PasswordEncoder passwordEncoder;
+    private final InitialPasswordGenerator initialPasswordGenerator;
 
     public SchoolAdministratorService(SchoolRepository schoolRepository,
                                       UserAccountRepository userAccountRepository,
                                       StaffProfileRepository staffProfileRepository,
                                       SchoolMembershipRepository schoolMembershipRepository,
-                                      PasswordEncoder passwordEncoder) {
+                                      PasswordEncoder passwordEncoder,
+                                      InitialPasswordGenerator initialPasswordGenerator) {
         this.schoolRepository = schoolRepository;
         this.userAccountRepository = userAccountRepository;
         this.staffProfileRepository = staffProfileRepository;
         this.schoolMembershipRepository = schoolMembershipRepository;
         this.passwordEncoder = passwordEncoder;
+        this.initialPasswordGenerator = initialPasswordGenerator;
     }
 
     @Transactional
@@ -62,7 +57,7 @@ public class SchoolAdministratorService {
             throw new DuplicateUsernameException("Username is already taken: " + request.getUsername());
         }
 
-        String initialPassword = generateInitialPassword(16);
+        String initialPassword = initialPasswordGenerator.generatePassword();
         String passwordHash = passwordEncoder.encode(initialPassword);
 
         UserAccount account = new UserAccount();
@@ -101,26 +96,5 @@ public class SchoolAdministratorService {
         response.setCreatedAt(savedAccount.getCreatedAt());
 
         return response;
-    }
-
-    private String generateInitialPassword(int length) {
-        char[] password = new char[length];
-        password[0] = UPPER.charAt(SECURE_RANDOM.nextInt(UPPER.length()));
-        password[1] = LOWER.charAt(SECURE_RANDOM.nextInt(LOWER.length()));
-        password[2] = DIGITS.charAt(SECURE_RANDOM.nextInt(DIGITS.length()));
-        password[3] = SPECIAL.charAt(SECURE_RANDOM.nextInt(SPECIAL.length()));
-
-        for (int i = 4; i < length; i++) {
-            password[i] = ALL_CHARS.charAt(SECURE_RANDOM.nextInt(ALL_CHARS.length()));
-        }
-
-        for (int i = length - 1; i > 0; i--) {
-            int j = SECURE_RANDOM.nextInt(i + 1);
-            char temp = password[i];
-            password[i] = password[j];
-            password[j] = temp;
-        }
-
-        return new String(password);
     }
 }

@@ -20,9 +20,9 @@ Represents one school using ClassBridge.
 Represents login credentials and shared identity information.
 
 - Stores shared identity and account information, including the globally unique username, securely stored password hash, exactly one role, shared contact details, and account status.
-- Passwords are never stored or logged in plain text; only the one-way BCrypt hash is persisted.
-- When the Superadmin creates a school administrator or vice-administrator account, the system generates a cryptographically secure random initial password.
-- The initial password is returned only once in the successful creation response to the authenticated Superadmin. It cannot be retrieved after that response is lost; an authorized password reset flow is required for recovery.
+- Passwords are never stored or logged in plain text in the database, project files, or any other persistent storage; only the one-way BCrypt hash is persisted.
+- Whenever an authorized administrator creates a login-enabled account, the system generates a cryptographically secure random initial password.
+- The generated initial password is returned only once in the successful creation response to the administrator who created the account (the Superadmin for school administrator and vice-administrator accounts; the school administrator or vice-administrator for teacher, parent, and high-school student accounts). It cannot be retrieved after that response is lost; an authorized password-reset flow is required for recovery.
 - Users are not forced to change the initial password on first login, and no forced password change flag is stored on the account. An informational reminder to review credentials may be displayed, but it does not block navigation.
 - Users may change their password after signing in through an authenticated account flow.
 - A single account cannot combine roles. If one person needs both teacher and parent access, they use two separate accounts with separate usernames and credentials.
@@ -30,7 +30,7 @@ Represents login credentials and shared identity information.
 - Roles: `SUPERADMIN`, `SCHOOL_ADMIN`, `SCHOOL_VICE_ADMIN`, `TEACHER`, `PARENT`, and `STUDENT`.
 - Superadmin accounts are platform-wide.
 - A parent account may be linked to children in one or more schools; school access is derived from the linked child rather than assigning the parent to only one school. A parent account may be linked to multiple students, including students from different schools.
-- A student login account is optional and is created only for high-school students in the first version.
+- A student login account is optional and is created only for high-school students in the first version; primary- and middle-school students do not have login accounts.
 
 ### SchoolMembership
 

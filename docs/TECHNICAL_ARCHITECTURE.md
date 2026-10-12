@@ -57,11 +57,13 @@ The frontend is a React single-page application written in TypeScript. UI areas 
 
 ## 5. Authentication and authorization
 
-- Users sign in with accounts created by an authorized administrator; public self-registration is not part of the normal flow.
+- Users sign in with accounts created by an authorized administrator; public self-registration is not part of the normal flow. Each account has exactly one role.
 - Users authenticate with their username and password against the `UserAccount` record. Only active accounts may authenticate, and passwords are verified against their stored one-way hashes.
-- When the Superadmin creates a school administrator or vice-administrator account, the system generates a cryptographically secure random initial password.
-- That initial password is returned only once in the successful account-creation response to the authenticated Superadmin. It is never stored or logged in plain text; the backend stores only the BCrypt hash.
-- A generated initial password cannot be retrieved after the creation response is lost; an authorized password reset flow will be needed for recovery.
+- Whenever an authorized administrator creates a login-enabled account, the system generates a cryptographically secure random initial password.
+- That initial password is returned exactly once in the successful account-creation response to the administrator who created the account: to the Superadmin for school administrator and vice-administrator accounts, and to the school administrator or vice-administrator for teacher, parent, and high-school student accounts.
+- Primary- and middle-school students do not have login accounts.
+- The backend persists only the BCrypt hash. Never log or store the plain-text password in the database, project files, or other persistent storage.
+- If the successful creation response is lost, the initial password cannot be retrieved; an authorized password-reset flow is required.
 - Users are not forced to change the initial password on first login. The interface may show an informational reminder about reviewing account credentials, but it must not block the user from continuing.
 - Users may change their password after signing in through an authenticated account flow.
 - Spring Security protects the REST API using signed JWT bearer access tokens with a 15-minute lifetime. Refresh tokens are out of scope.
