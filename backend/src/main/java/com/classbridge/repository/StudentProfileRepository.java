@@ -17,6 +17,12 @@ public interface StudentProfileRepository extends JpaRepository<StudentProfile, 
 
     boolean existsBySchoolIdAndSchoolNumber(Long schoolId, String schoolNumber);
 
+    @Query("SELECT CASE WHEN COUNT(sp) > 0 THEN TRUE ELSE FALSE END FROM StudentProfile sp " +
+           "WHERE sp.school.id = :schoolId AND sp.schoolNumber = :schoolNumber AND sp.id <> :id")
+    boolean existsBySchoolIdAndSchoolNumberAndIdNot(@Param("schoolId") Long schoolId,
+                                                    @Param("schoolNumber") String schoolNumber,
+                                                    @Param("id") Long id);
+
     Optional<StudentProfile> findBySchoolIdAndSchoolNumber(Long schoolId, String schoolNumber);
 
     Optional<StudentProfile> findByUserAccountId(Long userAccountId);

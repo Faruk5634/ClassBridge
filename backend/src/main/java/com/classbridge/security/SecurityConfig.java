@@ -78,13 +78,14 @@ public class SecurityConfig {
     }
 
     @Bean
-    public JwtDecoder jwtDecoder() {
+    public JwtDecoder jwtDecoder(ActiveUserAccountTokenValidator activeUserAccountTokenValidator) {
         byte[] keyBytes = getSecretKeyBytes();
         SecretKeySpec secretKey = new SecretKeySpec(keyBytes, "HmacSHA256");
         NimbusJwtDecoder jwtDecoder = NimbusJwtDecoder.withSecretKey(secretKey).macAlgorithm(MacAlgorithm.HS256).build();
 
         OAuth2TokenValidator<Jwt> withIssuer = JwtValidators.createDefaultWithIssuer("classbridge-api");
-        jwtDecoder.setJwtValidator(withIssuer);
+        OAuth2TokenValidator<Jwt> delegatingValidator = new DelegatingOAuth2TokenValidator<>(withIssuer, activeUserAccountTokenValidator);
+        jwtDecoder.setJwtValidator(delegatingValidator);
 
         return jwtDecoder;
     }

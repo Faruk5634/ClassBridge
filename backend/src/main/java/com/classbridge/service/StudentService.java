@@ -12,6 +12,8 @@ import com.classbridge.dto.CreateStudentRequest;
 import com.classbridge.dto.CreateStudentResponse;
 import com.classbridge.dto.PageResponse;
 import com.classbridge.dto.StudentProfileResponse;
+import com.classbridge.dto.UpdateStudentRequest;
+import com.classbridge.exception.ArchivedStudentProfileException;
 import com.classbridge.exception.DuplicateSchoolNumberException;
 import com.classbridge.exception.DuplicateUsernameException;
 import com.classbridge.exception.ForbiddenOperationException;
@@ -225,6 +227,57 @@ public class StudentService {
                 .orElseThrow(() -> new ResourceNotFoundException("Student profile not found with id: " + studentProfileId));
 
         return studentMapper.toProfileResponse(profile);
+    }
+
+    @Transactional
+    public StudentProfileResponse updateStudent(Long actorAccountId, Long studentProfileId, UpdateStudentRequest request) {
+        School school = getActorSchool(actorAccountId);
+
+        StudentProfile profile = studentProfileRepository.findByIdAndSchoolId(studentProfileId, school.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Student profile not found with id: " + studentProfileId));
+
+        if (!profile.isActive()) {
+            throw new ArchivedStudentProfileException("Archived student profiles cannot be edited.");
+        }
+
+        Classroom classroom = classroomRepository.findByIdAndSchoolId(request.getClassroomId(), school.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Classroom not found with id: " + request.getClassroomId()));
+
+        validateGradeLevel(school.getEducationLevel(), classroom.getGradeLevel());
+
+        String schoolNumber = request.getSchoolNumber().trim();
+        if (studentProfileRepository.existsBySchoolIdAndSchoolNumberAndIdNot(school.getId(), schoolNumber, profile.getId())) {
+            throw new DuplicateSchoolNumberException(
+                    "A student with school number '" + schoolNumber + "' already exists in this school."
+            );
+        }
+
+        profile.setSchoolNumber(schoolNumber);
+        profile.setFirstName(request.getFirstName().trim());
+        profile.setLastName(request.getLastName().trim());
+        profile.setClassroom(classroom);
+
+        StudentProfile updatedProfile = studentProfileRepository.saveAndFlush(profile);
+        return studentMapper.toProfileResponse(updatedProfile);
+    }
+
+    @Transactional
+    public StudentProfileResponse archiveStudent(Long actorAccountId, Long studentProfileId) {
+        School school = getActorSchool(actorAccountId);
+
+        StudentProfile profile = studentProfileRepository.findByIdAndSchoolId(studentProfileId, school.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Student profile not found with id: " + studentProfileId));
+
+        profile.setActive(false);
+
+        if (profile.getUserAccount() != null) {
+            UserAccount studentAccount = profile.getUserAccount();
+            studentAccount.setActive(false);
+            userAccountRepository.save(studentAccount);
+        }
+
+        StudentProfile archivedProfile = studentProfileRepository.saveAndFlush(profile);
+        return studentMapper.toProfileResponse(archivedProfile);
     }
 
     private School getActorSchool(Long actorAccountId) {

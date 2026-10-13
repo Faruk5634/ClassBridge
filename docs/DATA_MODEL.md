@@ -85,9 +85,10 @@ Represents an enrolled student at a specific school.
 - **Student login and parent association rules:**
   - **Primary- and middle-school students:** Primary- and middle-school `StudentProfile` records have no linked student `UserAccount` and no login credentials. Their parent association is required.
   - **High-school students:** Every high-school `StudentProfile` has exactly one linked `UserAccount` with the `STUDENT` role, created upon enrollment. The school creates the username and the system generates an initial password under the existing one-time credential policy. Linking a parent account to a high-school student's profile is optional and configured only upon parent request; the student still uses their own login account.
-- **Leaving or changing schools:**
+- **Leaving, updating, or archiving student profiles:**
+  - School administrators and vice-administrators can update an active student's `schoolNumber`, `firstName`, `lastName`, and current `classroom` within their school. The classroom must belong to the school and have a grade level valid for the school level. The school number must be unique within the school (the profile may keep its own current number). Editing archived student profiles is prohibited.
+  - Archiving a student profile is a soft archive setting `active = false` (idempotent). In the same transaction, any linked high-school student login account is deactivated (`isActive = false`) so it can no longer authenticate. The linked parent account is not deactivated or modified. All entity relationships (school, classroom, parent, and student account) are preserved.
   - Student profiles are retained as inactive/archived records when a student leaves a school rather than being permanently deleted.
-  - If an archived high-school profile has a linked student login account, that `UserAccount` is deactivated (`isActive = false`) so it can no longer authenticate.
   - If the student enrolls at a different school or school level, a new, separate `StudentProfile` is created for that school and linked to the existing parent account when applicable. The previous school's profile remains archived.
   - Academic-year tracking, automatic promotion/transfer processing, and class membership history remain out of scope.
 

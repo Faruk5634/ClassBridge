@@ -5,6 +5,8 @@ import com.classbridge.dto.CreateStudentResponse;
 import com.classbridge.dto.ErrorResponse;
 import com.classbridge.dto.PageResponse;
 import com.classbridge.dto.StudentProfileResponse;
+import com.classbridge.dto.UpdateStudentRequest;
+import com.classbridge.exception.ArchivedStudentProfileException;
 import com.classbridge.exception.DuplicateSchoolNumberException;
 import com.classbridge.exception.DuplicateUsernameException;
 import com.classbridge.exception.ForbiddenOperationException;
@@ -22,6 +24,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -67,6 +70,30 @@ public class StudentController {
         Long actorAccountId = Long.valueOf(jwt.getSubject());
         StudentProfileResponse response = studentService.getStudent(actorAccountId, studentProfileId);
         return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/{studentProfileId}")
+    public ResponseEntity<StudentProfileResponse> updateStudent(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable Long studentProfileId,
+            @Valid @RequestBody UpdateStudentRequest request) {
+        Long actorAccountId = Long.valueOf(jwt.getSubject());
+        StudentProfileResponse response = studentService.updateStudent(actorAccountId, studentProfileId, request);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/{studentProfileId}/archive")
+    public ResponseEntity<StudentProfileResponse> archiveStudent(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable Long studentProfileId) {
+        Long actorAccountId = Long.valueOf(jwt.getSubject());
+        StudentProfileResponse response = studentService.archiveStudent(actorAccountId, studentProfileId);
+        return ResponseEntity.ok(response);
+    }
+
+    @ExceptionHandler(ArchivedStudentProfileException.class)
+    public ResponseEntity<ErrorResponse> handleArchivedStudentProfile(ArchivedStudentProfileException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorResponse(ex.getMessage()));
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
