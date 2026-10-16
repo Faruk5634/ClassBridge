@@ -27,19 +27,22 @@ The platform carries forward the existing project's main capabilities: school an
 - Manages users, classes, and announcements for their own school.
 - Creates teacher, student, and parent accounts for their school.
 - Communicates with the Superadmin about platform or system issues.
+- Can communicate with teachers and vice-administrators in the same school.
 
 ### 3.3 Teacher
 
 - Can be assigned to teach multiple classes.
 - Can be designated as the homeroom/advisory teacher of a class. Each class has one homeroom/advisory teacher.
 - Creates announcements for one or more classes they teach.
-- Sends direct messages to any student, parent, or school administrator in their own school.
+- Can search for and message any active student in their own school by student name or school number, regardless of classroom teaching assignments.
+- Can communicate with school administrators and vice-administrators in the same school.
+- Cannot search for or start a direct conversation with a parent account. For primary- and middle-school students, messages are delivered in the linked parent's account within the selected child's message area.
 
 ### 3.4 Student
 
 - Every high-school student receives a student login account upon enrollment.
 - Primary- and middle-school students do not sign in; their parent accesses the student's information through the parent's account.
-- Can view announcements and send direct messages to teachers or school administrators in their own school.
+- Can view announcements and start or reply to conversations with teachers, school administrators, and vice-administrators in their own school.
 - Cannot message other students or parents.
 - When a high-school student leaves a school, their student login account is deactivated.
 
@@ -55,28 +58,41 @@ The platform carries forward the existing project's main capabilities: school an
 - Can select a child to enter that child's view, return to the parent's own profile, or switch to another linked child without signing out.
 - Can update the parent's own profile independently of the selected child's view.
 - Can access a high-school student's information (if linked) as well as younger students' information.
-- Selects a child before sending a message. The parent can message teachers or school administrators at that child's school.
-- Parent messages are sent by the parent's account and clearly identify that the sender is a parent. The selected child is recorded as the context for the message.
+- Selects a child before opening that child's message area. The parent can start or reply to conversations with teachers, school administrators, and vice-administrators at that child's school.
+- Parent messages are sent by the parent's account and clearly identify that the sender is a parent. The selected child is recorded as the context; the parent never impersonates the student.
+- For primary- and middle-school students, the parent can read and reply to staff-started conversations in the child's message area.
+- For high-school students, the parent can read the student's and staff's existing conversations but cannot reply to or otherwise participate in them. The parent's read-only view does not clear the student's unread status. The parent may start a separate conversation from the child's view; it is labeled as parent-authored and is not visible to or actionable by the student.
 - Cannot message other parents or students.
 
 ## 4. Direct-message permissions
 
 | Sender | Permitted recipients |
 |---|---|
-| Teacher | Students, parents, and school administrators in the teacher's school |
-| High-school student | Teachers and school administrators in the student's school |
-| Parent | Teachers and school administrators at the selected child's school |
-| School administrator or vice-administrator | Superadmin, for platform or system issues |
+| Teacher | Any active student, and school administrators or vice-administrators, in the teacher's school |
+| High-school student | Teachers and school administrators or vice-administrators in the student's school |
+| Parent | Teachers and school administrators or vice-administrators at the selected child's school |
+| School administrator or vice-administrator | Superadmin for platform/system support; teachers and active students in the same school |
 | Superadmin | School administrators and vice-administrators, for platform or system issues |
 
-Recipient search and message submission must both enforce these rules. Hiding an unavailable recipient in the interface is not sufficient authorization. Messages between teachers, between students, between parents, and between students and parents are not permitted.
+Messaging is an asynchronous, in-app, text-only conversation system, not real email or live chat. A conversation has no subject; replies remain in that conversation, and the same participants may start another separate conversation. Messages are loaded when the user opens or refreshes the inbox. The first version has in-app read/unread status only, with no email or push notifications.
+
+Recipient search and message submission must both enforce these rules. Staff search only active students in their own school by name or school number and do not directly search for parent accounts. For primary/middle-school students, the linked parent is the account recipient and the student profile provides context. For high-school students, the student is the account recipient. A linked parent may read high-school student/staff conversations without participating or clearing the student's unread status; parent-authored conversations are separate and hidden from the student. Messages between teachers, between students, between parents, and between students and parents are not permitted. School administrators and vice-administrators have equal messaging permissions in the first version. Cross-school messaging is never allowed except Superadmin support conversations with the relevant school administrators.
 
 ## 5. Announcements
 
-- Teachers can target one or multiple classes they teach.
-- Announcements are visible to the students and parents associated with the targeted class or classes.
-- Announcement read receipts are not included.
-- Announcement attachments are included as a carry-forward feature from the existing project.
+- School administrators and vice-administrators can create announcements targeting classrooms in their own school.
+- Teachers can target one or multiple classrooms within their own school. Individual teaching assignments or homeroom responsibility are not required. The backend must reject classrooms belonging to another school.
+- Announcements are visible to school staff in the author's school, and to students and parents associated with the targeted active class or classes.
+- Archived student profiles do not grant access to announcements.
+- Announcement read receipts, drafts, and scheduling are not included.
+- File attachments are supported for existing announcements:
+  - Supported file types are limited to PDF, JPEG, and PNG.
+  - File size is limited to at most 10 MB per file.
+  - Validation requires matching file content signatures (magic bytes) as well as filenames and MIME content types.
+  - Original filenames are sanitized for display, and unique server-generated UUID storage keys are used for disk storage.
+  - File bytes are stored on the local filesystem outside the repository in a configurable directory (`${user.home}/.classbridge/attachments` by default, overridable with `CLASSBRIDGE_ATTACHMENT_STORAGE_DIR`); PostgreSQL stores only attachment metadata. Physical storage paths and storage keys are never exposed in API responses or static URLs.
+  - School administrators and vice-administrators can attach files to any announcement in their school; teachers can attach files only to their own announcements.
+  - Authorized downloads are available to school staff in the announcement's school, students in targeted active classrooms, and parents of active linked children in targeted classrooms. Archived profiles do not grant access.
 
 ## 6. Accounts and profiles
 
@@ -90,7 +106,14 @@ Recipient search and message submission must both enforce these rules. Hiding an
 - A generated initial password cannot be retrieved after the creation response is lost; an authorized password-reset flow will be needed for recovery.
 - Users are not forced to change the initial password on first login. The interface may show an informational reminder about reviewing account credentials, but it must not block the user from continuing.
 - Users may change their password after signing in through an authenticated account flow.
-- Users can update their own profile information after signing in.
+- Authenticated password changes require the current password; the new password must contain 8–20 characters and fit BCrypt's 72-byte UTF-8 limit. Already-issued JWTs remain valid only until their normal expiration.
+- Email and phone number remain optional. The first self-service recovery channel is a verified email address; SMS may be added later. Users without a verified email use an authorized administrator-assisted reset.
+- Signed-in users can add or change their email address; a changed address must be verified again before it can be used for recovery.
+- Email verification and password recovery use generic responses where account existence must remain private, single-use six-digit codes that expire after 30 minutes, and rate limits. Codes are stored as BCrypt hashes and each code allows at most five confirmation attempts. A successful reset invalidates previously issued access tokens.
+- Authorized fallback: `SUPERADMIN` can reset active `SCHOOL_ADMIN` and `SCHOOL_VICE_ADMIN` accounts; a school administrator or vice-administrator can reset eligible active teacher, student, or parent accounts associated with their own school. The API returns a cryptographically generated temporary password once to the authorized administrator. Resetting a shared parent account changes that parent's credentials across all linked schools.
+- Signed-in users can view their own profile through `GET /api/auth/me` and update their own nonblank phone number through `PUT /api/auth/phone`. Email is changed only through `PUT /api/auth/email` and must be verified again before recovery can use it.
+- Users cannot change their own first name, last name, username, role, or school association. Names are set during account/profile creation. School administrators and vice-administrators may correct active student profile details within their school through the existing student-management flow; archived student profiles remain read-only.
+- The self-profile response contains only the authenticated account's own identity and contact fields; it never exposes password hashes, recovery codes, or credential-version data.
 - School staff members (school administrators, vice-administrators, and teachers) have a staff profile storing their required first name and last name, while their school linkage is handled via school membership. Superadmin, parent, and student accounts do not use a staff profile.
 - Parent profiles store the parent's first and last name, referencing a `UserAccount` with the `PARENT` role. Shared contact details remain in `UserAccount`.
 - Student profiles store minimal student data: first name, last name, school number (modeled as text up to 50 characters preserving leading zeros, unique within the school), school, classroom, active/inactive enrollment status, parent association, and student login account reference (for high-school students). Date of birth, home address, and national identity numbers are not collected. Grade level is derived from the assigned classroom.
@@ -101,7 +124,7 @@ Recipient search and message submission must both enforce these rules. Hiding an
 
 ## 7. Message status
 
-Direct messages support read/unread status. This is separate from announcement read receipts, which are excluded from the first version.
+Direct messages support in-app read/unread status. This is separate from announcement read receipts, which are excluded from the first version. The first version does not send email or push notifications and does not provide real-time chat delivery.
 
 ## 8. Non-goals
 
@@ -115,7 +138,7 @@ Direct messages support read/unread status. This is separate from announcement r
 
 ## 9. Decisions to confirm during detailed design
 
-- The exact profile fields each role may view and edit.
+- No open profile self-service decisions remain for the first version: names and account identifiers are read-only to users; users may update their own phone number and change their email through the verification flow.
 
 ## 10. Language
 

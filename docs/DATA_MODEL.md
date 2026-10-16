@@ -20,17 +20,34 @@ Represents one school using ClassBridge.
 Represents login credentials and shared identity information.
 
 - Stores shared identity and account information, including the globally unique username, securely stored password hash, exactly one role, shared contact details, and account status.
+- Email and phone remain optional; `emailVerified` records whether ownership of the current email address has been confirmed. `credentialVersion` is incremented on password recovery to invalidate previously issued JWTs.
 - Passwords are never stored or logged in plain text in the database, project files, or any other persistent storage; only the one-way BCrypt hash is persisted.
 - Whenever an authorized administrator creates a login-enabled account, the system generates a cryptographically secure random initial password.
 - The generated initial password is returned only once in the successful creation response to the administrator who created the account (the Superadmin for school administrator and vice-administrator accounts; the school administrator or vice-administrator for teacher, parent, and high-school student accounts). It cannot be retrieved after that response is lost; an authorized password-reset flow is required for recovery.
 - Users are not forced to change the initial password on first login, and no forced password change flag is stored on the account. An informational reminder to review credentials may be displayed, but it does not block navigation.
 - Users may change their password after signing in through an authenticated account flow.
+- Password changes verify the current password and store only a new BCrypt hash. New passwords must contain 8–20 characters and fit BCrypt's 72-byte UTF-8 maximum; already-issued JWTs are not revoked before their normal expiration.
+- Email and phone number remain optional account contact fields. A contact method can be used for self-service password recovery only after ownership has been verified.
+- Self-service password recovery uses a cryptographically secure, single-use six-digit code that expires after 30 minutes. Only a BCrypt hash of the code is stored; requests are rate-limited, each code allows at most five confirmation attempts, and request responses do not reveal whether an account exists.
+- Email is the first supported recovery channel and requires a verified address. SMS recovery may be added later. Accounts without a verified recovery channel use an authorized administrator-assisted reset flow.
+- A successful password reset invalidates previously issued access tokens; a normal authenticated password change leaves existing tokens valid until their normal expiration.
+- An authenticated user can read their own safe profile, including role-bound first and last name fields, through `GET /api/auth/me`. Users can update their own phone number through `PUT /api/auth/phone`; email changes remain on the verification-controlled flow.
+- Self-service profile operations cannot change first name, last name, username, role, or school relationships. School administrators and vice-administrators can correct active student profile fields within their own school; archived student profiles cannot be edited.
+- If self-service recovery is unavailable, a Superadmin can reset a school administrator or vice-administrator account. A school administrator or vice-administrator can reset eligible teacher, active student, or parent accounts connected to their own school. The generated temporary password is returned once to that administrator; for a parent account reused across schools, the new credential applies to the single shared account everywhere.
 - A single account cannot combine roles. If one person needs both teacher and parent access, they use two separate accounts with separate usernames and credentials.
 - Role-specific information belongs in the corresponding profile or relationship records rather than being duplicated in `UserAccount`. Examples include staff member names in `StaffProfile`, a student's school number and class assignment in `StudentProfile`, and parent-to-student links.
 - Roles: `SUPERADMIN`, `SCHOOL_ADMIN`, `SCHOOL_VICE_ADMIN`, `TEACHER`, `PARENT`, and `STUDENT`.
 - Superadmin accounts are platform-wide.
 - A parent account may be linked to children in one or more schools; school access is derived from the linked child rather than assigning the parent to only one school. A parent account may be linked to multiple students, including students from different schools. A student may have at most one linked parent account in the first version.
 - Every high-school student receives a student login account (`UserAccount` with `STUDENT` role) upon enrollment. Primary- and middle-school students do not have login accounts or credentials.
+
+### AccountRecoveryToken
+
+Represents a one-time challenge for email verification or password recovery.
+
+- References one `UserAccount` and has purpose `EMAIL_VERIFICATION` or `PASSWORD_RESET`.
+- Stores only the BCrypt hash of the six-digit verification or recovery code, its expiration, failed-attempt count, and optional use timestamp; the raw code is delivered only to the account's email address.
+- Codes expire after 30 minutes, can be used once, allow at most five confirmation attempts, and previous outstanding codes for the same purpose are invalidated when a new code is issued.
 
 ### SchoolMembership
 
@@ -117,20 +134,40 @@ Associates a teacher with a class they teach.
 
 Represents a school announcement authored by a teacher or an authorized school administrator.
 
-- Belongs to one school and has one author.
-- Targets one or more classrooms.
-- May have zero or more file attachments.
+- Belongs to one school and has one author (`UserAccount`).
+- Targets one or more classrooms through a target relationship (`announcement_classrooms`).
+- School administrators and vice-administrators can target any classroom in their own school.
+- Teachers can target any classroom in their own school; individual teaching assignments or homeroom responsibility are not required. The school boundary is enforced by resolving each target classroom within the author's school.
+- Visible to school staff in the author's school, students in targeted active classrooms, and parents through an active linked child enrolled in a targeted classroom.
+- Archived student profiles do not grant access to announcements.
+- Supports file attachments (`announcement_attachments`) on existing announcements.
+- Drafts, scheduling, and read receipts are not implemented.
 - Does not track whether recipients have read it in the first version.
+
+### AnnouncementAttachment
+
+Represents metadata for a file attached to an announcement.
+
+- Belongs to exactly one `Announcement` via `announcement_id` with cascading delete.
+- Stores metadata: `storage_key` (globally unique server-generated UUID), `display_filename` (sanitized original filename for display and download headers), `content_type` (canonical MIME type: `application/pdf`, `image/jpeg`, or `image/png`), `file_size` (in bytes), and `created_at`.
+- File bytes are never stored in PostgreSQL; they reside on the local filesystem outside the repository in a configurable directory.
+- Disk paths and storage keys are never exposed in API responses or through static web routes.
+- Initial file limits: PDF, JPEG, and PNG files only; maximum size of 10 MB per file. File type is validated by file content signatures (magic bytes) as well as filename extensions and declared content types.
+- Upload authorization: School administrators and vice-administrators may attach files to any announcement in their school; teachers may attach files only to their own announcements.
+- Download authorization: Staff in the author's school, students in targeted active classrooms, and parents of active linked children in targeted classrooms. Archived student profiles do not grant access.
 
 ### DirectMessage
 
-Represents one private message from one user to one user.
+Represents one text message inside a private `MessageConversation`.
 
-- Stores sender, recipient, subject, body, sent time, and read/unread status.
-- Is associated with a school context for school-level communication and tenant validation.
-- For a message sent by a parent, optionally references the selected child that provides the school and student context.
-- A parent message remains authored by the parent account; it is never sent as the student's account.
-- Superadmin-to-school-administrator messages retain the relevant school context for system support communication.
+- Stores the actual sender account, text body, sent time, and the message's read/unread state for its intended recipient. It has no subject; conversation replies are represented as additional messages in the same conversation.
+- A conversation stores its participants, school context where applicable, and optional selected `StudentProfile` context. It can contain multiple messages, and the same participants may have multiple distinct conversations.
+- Parent messages remain authored by the parent account and are never sent as the student's account. The selected child supplies and validates school context.
+- For primary/middle-school students, the linked parent is the actual account participant for staff-to-student-context conversations; the child profile is retained as context and the parent can reply in that conversation.
+- For high-school students, student/staff conversations belong to the student and staff participants. A linked parent may read them through the selected child's view but cannot reply or otherwise participate; this read-only access does not change the student's unread status. A conversation started by the parent is separate, parent-authored, and not visible to the student.
+- Staff may start student-context conversations only for active students in their own school, regardless of classroom teaching assignment. The account recipient is the high-school student or, for primary/middle school, the linked parent.
+- Superadmin support conversations retain the school context and are limited to Superadmin and that school's school administrators/vice-administrators. Teachers and school administrators/vice-administrators may also communicate within the same school.
+- Messaging is asynchronous and in-app. The first version is text-only, has no real-time delivery, and sends no email or push notifications. Read/unread state is in-app.
 
 ## 2. Relationship overview
 
@@ -146,9 +183,12 @@ StudentProfile * ─── 0..1 ParentProfile 1 ─── 1 UserAccount (PARENT 
 UserAccount (Teachers) * ─── * Classroom (through TeachingAssignment)
 Classroom * ─── 1 HomeroomTeacher (UserAccount with TEACHER role)
 Announcement * ─── * Classroom
+Announcement 1 ─── * AnnouncementAttachment
+MessageConversation 1 ─── * DirectMessage
 DirectMessage * ─── 1 Sender UserAccount
-DirectMessage * ─── 1 Recipient UserAccount
-DirectMessage 0..1 ─── 1 StudentProfile (parent message context)
+MessageConversation * ─── 2 permitted participants (account identities)
+MessageConversation 0..1 ─── 1 School (school communication context)
+MessageConversation 0..1 ─── 1 StudentProfile (selected child/student context)
 ```
 
 Relationship rules for student profiles:
@@ -163,14 +203,14 @@ Relationship rules for student profiles:
 3. A parent can access only the student profiles explicitly linked to that parent account (at most one parent account per student in the first version; parent association is required for primary/middle school and optional for high school).
 4. A parent can switch between linked children while retaining the parent's own account and profile.
 5. Every high-school `StudentProfile` has exactly one linked `UserAccount` with the `STUDENT` role; primary- and middle-school `StudentProfile` records have no linked student `UserAccount`.
-6. A teacher's announcement targets must be limited to classes assigned to that teacher.
+6. A teacher may target any classroom in their own school with an announcement, but never a classroom belonging to another school.
 7. Direct-message sender/recipient rules must be validated on the server for every request.
 8. A parent's message must preserve the parent as sender and record the selected child context.
-9. Announcement read receipts are absent; direct messages support read/unread state.
+9. Announcement read receipts are absent; direct messages support in-app read/unread state. A parent's read-only view of high-school student conversations does not change the student's unread state.
 
 ## 4. Open modeling decisions
 
-- The precise parent notification flow.
+- The exact profile fields each role may view and edit.
 
 ## 5. School level, grade, and uniqueness constraints
 
