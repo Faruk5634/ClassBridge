@@ -1,0 +1,40 @@
+package com.classbridge.mapper;
+
+import com.classbridge.domain.DirectMessage;
+import com.classbridge.domain.MessageConversation;
+import com.classbridge.domain.StudentProfile;
+import com.classbridge.domain.UserAccount;
+import com.classbridge.dto.ConversationResponse;
+import com.classbridge.dto.DirectMessageResponse;
+import com.classbridge.dto.MessageRecipientResponse;
+import org.springframework.stereotype.Component;
+
+@Component
+public class MessageMapper {
+
+    public MessageRecipientResponse toStudentRecipient(StudentProfile student) {
+        return new MessageRecipientResponse(null,
+                student.getUserAccount() == null ? com.classbridge.domain.UserRole.PARENT : com.classbridge.domain.UserRole.STUDENT,
+                student.getFirstName() + " " + student.getLastName(), student.getId(), student.getSchoolNumber(), student.getSchool().getId());
+    }
+
+    public MessageRecipientResponse toAccountRecipient(UserAccount account, String displayName, Long schoolId) {
+        return new MessageRecipientResponse(account.getId(), account.getRole(), displayName, null, null, schoolId);
+    }
+
+    public ConversationResponse toConversationResponse(MessageConversation conversation, UserAccount otherParticipant,
+                                                       String otherDisplayName, String studentDisplayName,
+                                                       boolean readOnly, long unreadCount, String latestMessage) {
+        StudentProfile student = conversation.getStudentProfile();
+        return new ConversationResponse(conversation.getId(), conversation.getSchool().getId(),
+                student == null ? null : student.getId(), studentDisplayName,
+                otherParticipant.getId(), otherDisplayName, otherParticipant.getRole(), readOnly,
+                unreadCount, latestMessage, conversation.getCreatedAt(), conversation.getLastMessageAt());
+    }
+
+    public DirectMessageResponse toMessageResponse(DirectMessage message, String senderDisplayName) {
+        UserAccount sender = message.getSender();
+        return new DirectMessageResponse(message.getId(), sender.getId(), senderDisplayName, sender.getRole(),
+                sender.getRole() == com.classbridge.domain.UserRole.PARENT, message.getBody(), message.getCreatedAt(), message.getReadAt());
+    }
+}
