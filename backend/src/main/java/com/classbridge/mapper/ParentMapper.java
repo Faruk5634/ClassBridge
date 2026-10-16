@@ -1,8 +1,10 @@
 package com.classbridge.mapper;
 
 import com.classbridge.domain.ParentProfile;
+import com.classbridge.domain.StudentProfile;
 import com.classbridge.domain.UserAccount;
 import com.classbridge.domain.UserRole;
+import com.classbridge.dto.ChildResponse;
 import com.classbridge.dto.CreateParentRequest;
 import com.classbridge.dto.CreateParentResponse;
 import org.springframework.stereotype.Component;
@@ -43,6 +45,20 @@ public class ParentMapper {
         response.setActive(userAccount.isActive());
         response.setInitialPassword(initialPassword);
         response.setCreatedAt(userAccount.getCreatedAt());
+        return response;
+    }
+
+    public ChildResponse toChildResponse(StudentProfile profile) {
+        ChildResponse response = new ChildResponse();
+        response.setId(profile.getId());
+        response.setStudentProfileId(profile.getId());
+        response.setFirstName(profile.getFirstName());
+        response.setLastName(profile.getLastName());
+        response.setSchoolName(profile.getSchool().getName());
+        response.setEducationLevel(profile.getSchool().getEducationLevel());
+        response.setClassroomId(profile.getClassroom().getId());
+        response.setGradeLevel(profile.getClassroom().getGradeLevel());
+        response.setSectionName(profile.getClassroom().getSectionName());
         return response;
     }
 }

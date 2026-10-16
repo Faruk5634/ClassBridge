@@ -27,9 +27,30 @@ public interface StudentProfileRepository extends JpaRepository<StudentProfile, 
 
     Optional<StudentProfile> findByUserAccountId(Long userAccountId);
 
+    @EntityGraph(attributePaths = {"school", "classroom", "parentProfile", "parentProfile.userAccount", "userAccount"})
+    @Query("SELECT sp FROM StudentProfile sp WHERE sp.school.id = :schoolId AND sp.isActive = true " +
+           "AND (LOWER(sp.firstName) LIKE LOWER(CONCAT('%', :query, '%')) " +
+           "OR LOWER(sp.lastName) LIKE LOWER(CONCAT('%', :query, '%')) " +
+           "OR LOWER(CONCAT(sp.firstName, ' ', sp.lastName)) LIKE LOWER(CONCAT('%', :query, '%')) " +
+           "OR LOWER(sp.schoolNumber) LIKE LOWER(CONCAT('%', :query, '%'))) " +
+           "ORDER BY sp.lastName ASC, sp.firstName ASC, sp.id ASC")
+    List<StudentProfile> searchActiveBySchoolId(@Param("schoolId") Long schoolId,
+                                                @Param("query") String query,
+                                                Pageable pageable);
+
     List<StudentProfile> findByClassroomId(Long classroomId);
 
     List<StudentProfile> findByParentProfileId(Long parentProfileId);
+
+    boolean existsByParentProfileIdAndSchoolIdAndIsActiveTrue(Long parentProfileId, Long schoolId);
+
+    @EntityGraph(attributePaths = {"school", "classroom"})
+    @Query("SELECT sp FROM StudentProfile sp WHERE sp.parentProfile.id = :parentProfileId AND sp.isActive = true ORDER BY sp.id ASC")
+    List<StudentProfile> findActiveByParentProfileId(@Param("parentProfileId") Long parentProfileId);
+
+    @EntityGraph(attributePaths = {"school", "classroom"})
+    @Query("SELECT sp FROM StudentProfile sp WHERE sp.id = :id AND sp.parentProfile.id = :parentProfileId AND sp.isActive = true")
+    Optional<StudentProfile> findActiveByIdAndParentProfileId(@Param("id") Long id, @Param("parentProfileId") Long parentProfileId);
 
     @EntityGraph(attributePaths = {"classroom", "parentProfile", "parentProfile.userAccount", "userAccount"})
     @Query("SELECT sp FROM StudentProfile sp WHERE sp.id = :id AND sp.school.id = :schoolId")
