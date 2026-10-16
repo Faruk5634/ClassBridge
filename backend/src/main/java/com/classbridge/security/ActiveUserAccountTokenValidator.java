@@ -50,7 +50,11 @@ public class ActiveUserAccountTokenValidator implements OAuth2TokenValidator<Jwt
             return OAuth2TokenValidatorResult.failure(INVALID_TOKEN_ERROR);
         }
 
-        boolean exists = userAccountRepository.existsByIdAndIsActiveAndRole(accountId, true, role);
+        Long credentialVersionClaim = jwt.getClaim("credential_version");
+        long credentialVersion = credentialVersionClaim == null ? 0L : credentialVersionClaim;
+
+        boolean exists = userAccountRepository.existsByIdAndIsActiveAndRoleAndCredentialVersion(
+                accountId, true, role, credentialVersion);
         if (!exists) {
             return OAuth2TokenValidatorResult.failure(INVALID_TOKEN_ERROR);
         }

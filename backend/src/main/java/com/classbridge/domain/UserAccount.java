@@ -34,6 +34,12 @@ public class UserAccount {
     @Column(length = 254)
     private String email;
 
+    @Column(name = "email_verified", nullable = false)
+    private boolean emailVerified;
+
+    @Column(name = "credential_version", nullable = false)
+    private long credentialVersion;
+
     @Column(name = "phone_number", length = 32)
     private String phoneNumber;
 
@@ -86,6 +92,22 @@ public class UserAccount {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public boolean isEmailVerified() {
+        return emailVerified;
+    }
+
+    public void setEmailVerified(boolean emailVerified) {
+        this.emailVerified = emailVerified;
+    }
+
+    public long getCredentialVersion() {
+        return credentialVersion;
+    }
+
+    public void setCredentialVersion(long credentialVersion) {
+        this.credentialVersion = credentialVersion;
     }
 
     public String getPhoneNumber() {

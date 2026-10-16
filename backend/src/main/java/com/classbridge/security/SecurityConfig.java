@@ -50,8 +50,15 @@ public class SecurityConfig {
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
+                .requestMatchers(HttpMethod.POST,
+                    "/api/auth/password-reset/request",
+                    "/api/auth/password-reset/confirm").permitAll()
                 .requestMatchers("/api/superadmin/**").hasRole("SUPERADMIN")
                 .requestMatchers("/api/school-admin/**").hasAnyRole("SCHOOL_ADMIN", "SCHOOL_VICE_ADMIN")
+                .requestMatchers("/api/announcements", "/api/announcements/**").hasAnyRole("SCHOOL_ADMIN", "SCHOOL_VICE_ADMIN", "TEACHER")
+                .requestMatchers("/api/parent/**").hasRole("PARENT")
+                .requestMatchers("/api/student/**").hasRole("STUDENT")
+                .requestMatchers("/api/messages/**").authenticated()
                 .anyRequest().authenticated()
             )
             .oauth2ResourceServer(oauth2 -> oauth2

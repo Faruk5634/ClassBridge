@@ -30,6 +30,7 @@ public class JwtTokenService {
                 .expiresAt(expiry)
                 .subject(String.valueOf(userAccount.getId()))
                 .claim("role", userAccount.getRole().name())
+                .claim("credential_version", userAccount.getCredentialVersion())
                 .build();
 
         JwsHeader header = JwsHeader.with(MacAlgorithm.HS256).build();
