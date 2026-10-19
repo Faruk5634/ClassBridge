@@ -3,6 +3,8 @@ package com.classbridge.domain;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -42,6 +44,10 @@ public class Announcement {
 
     @Column(nullable = false, columnDefinition = "TEXT")
     private String body;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "announcement_type", nullable = false, length = 32)
+    private AnnouncementType type = AnnouncementType.GENERAL;
 
     @OneToMany(mappedBy = "announcement", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<AnnouncementClassroom> targetClassrooms = new HashSet<>();
@@ -110,6 +116,10 @@ public class Announcement {
     public void setBody(String body) {
         this.body = body;
     }
+
+    public AnnouncementType getType() { return type; }
+
+    public void setType(AnnouncementType type) { this.type = type == null ? AnnouncementType.GENERAL : type; }
 
     public Set<AnnouncementClassroom> getTargetClassrooms() {
         return targetClassrooms;

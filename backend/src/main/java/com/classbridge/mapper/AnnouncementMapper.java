@@ -25,6 +25,7 @@ public class AnnouncementMapper {
         announcement.setAuthorAccount(authorAccount);
         announcement.setTitle(request.getTitle().trim());
         announcement.setBody(request.getBody().trim());
+        announcement.setType(request.getType());
         for (Classroom classroom : classrooms) {
             announcement.addTargetClassroom(classroom);
         }
@@ -51,6 +52,7 @@ public class AnnouncementMapper {
         response.setSchoolId(announcement.getSchool().getId());
         response.setTitle(announcement.getTitle());
         response.setBody(announcement.getBody());
+        response.setType(announcement.getType());
         response.setAuthorAccountId(announcement.getAuthorAccount().getId());
         response.setAuthorDisplayName(authorDisplayName != null ? authorDisplayName : announcement.getAuthorAccount().getUsername());
         response.setCreatedAt(announcement.getCreatedAt());

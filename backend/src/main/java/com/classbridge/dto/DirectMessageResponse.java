@@ -1,6 +1,7 @@
 package com.classbridge.dto;
 
 import com.classbridge.domain.UserRole;
+import java.util.List;
 import java.time.Instant;
 
 public class DirectMessageResponse {
@@ -12,9 +13,16 @@ public class DirectMessageResponse {
     private String message;
     private Instant createdAt;
     private Instant readAt;
+    private List<MessageAttachmentResponse> attachments;
 
     public DirectMessageResponse(Long id, Long senderAccountId, String senderDisplayName, UserRole senderRole,
                                  boolean parentAuthored, String message, Instant createdAt, Instant readAt) {
+        this(id, senderAccountId, senderDisplayName, senderRole, parentAuthored, message, createdAt, readAt, List.of());
+    }
+
+    public DirectMessageResponse(Long id, Long senderAccountId, String senderDisplayName, UserRole senderRole,
+                                 boolean parentAuthored, String message, Instant createdAt, Instant readAt,
+                                 List<MessageAttachmentResponse> attachments) {
         this.id = id;
         this.senderAccountId = senderAccountId;
         this.senderDisplayName = senderDisplayName;
@@ -23,6 +31,7 @@ public class DirectMessageResponse {
         this.message = message;
         this.createdAt = createdAt;
         this.readAt = readAt;
+        this.attachments = attachments;
     }
     public Long getId() { return id; }
     public Long getSenderAccountId() { return senderAccountId; }
@@ -32,4 +41,5 @@ public class DirectMessageResponse {
     public String getMessage() { return message; }
     public Instant getCreatedAt() { return createdAt; }
     public Instant getReadAt() { return readAt; }
+    public List<MessageAttachmentResponse> getAttachments() { return attachments; }
 }

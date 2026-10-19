@@ -19,6 +19,8 @@ public interface DirectMessageRepository extends JpaRepository<DirectMessage, Lo
 
     Optional<DirectMessage> findFirstByConversationIdOrderByCreatedAtDescIdDesc(Long conversationId);
 
+    Optional<DirectMessage> findByIdAndConversationId(Long id, Long conversationId);
+
     @Query("SELECT COUNT(m) FROM DirectMessage m WHERE m.conversation.id = :conversationId " +
            "AND m.sender.id <> :accountId AND m.readAt IS NULL")
     long countUnreadForParticipant(@Param("conversationId") Long conversationId, @Param("accountId") Long accountId);

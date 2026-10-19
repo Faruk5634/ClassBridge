@@ -40,6 +40,17 @@ public interface StudentProfileRepository extends JpaRepository<StudentProfile, 
 
     List<StudentProfile> findByClassroomId(Long classroomId);
 
+    @EntityGraph(attributePaths = {"classroom", "userAccount", "parentProfile", "parentProfile.userAccount"})
+    @Query("SELECT sp FROM StudentProfile sp WHERE sp.school.id = :schoolId AND sp.isActive = true " +
+           "ORDER BY sp.lastName ASC, sp.firstName ASC, sp.id ASC")
+    List<StudentProfile> findActiveBySchoolId(@Param("schoolId") Long schoolId);
+
+    @EntityGraph(attributePaths = {"classroom", "userAccount", "parentProfile", "parentProfile.userAccount"})
+    @Query("SELECT sp FROM StudentProfile sp WHERE sp.school.id = :schoolId AND sp.classroom.id = :classroomId AND sp.isActive = true " +
+           "ORDER BY sp.lastName ASC, sp.firstName ASC, sp.id ASC")
+    List<StudentProfile> findActiveBySchoolIdAndClassroomId(@Param("schoolId") Long schoolId,
+                                                             @Param("classroomId") Long classroomId);
+
     List<StudentProfile> findByParentProfileId(Long parentProfileId);
 
     boolean existsByParentProfileIdAndSchoolIdAndIsActiveTrue(Long parentProfileId, Long schoolId);

@@ -1,6 +1,7 @@
 package com.classbridge.service;
 
 import com.classbridge.domain.DirectMessage;
+import com.classbridge.domain.DirectMessageAttachment;
 import com.classbridge.domain.MessageConversation;
 import com.classbridge.domain.ParentProfile;
 import com.classbridge.domain.School;
@@ -14,12 +15,17 @@ import com.classbridge.dto.ConversationDetailResponse;
 import com.classbridge.dto.ConversationResponse;
 import com.classbridge.dto.CreateConversationRequest;
 import com.classbridge.dto.DirectMessageResponse;
+import com.classbridge.dto.AttachmentDownload;
+import com.classbridge.dto.MessageAttachmentResponse;
 import com.classbridge.dto.MessageRecipientResponse;
+import com.classbridge.dto.StartStudentConversationsRequest;
 import com.classbridge.dto.SendMessageRequest;
 import com.classbridge.exception.ForbiddenOperationException;
+import com.classbridge.exception.InvalidAttachmentException;
 import com.classbridge.exception.ResourceNotFoundException;
 import com.classbridge.mapper.MessageMapper;
 import com.classbridge.repository.DirectMessageRepository;
+import com.classbridge.repository.DirectMessageAttachmentRepository;
 import com.classbridge.repository.MessageConversationRepository;
 import com.classbridge.repository.ParentProfileRepository;
 import com.classbridge.repository.SchoolMembershipRepository;
@@ -28,8 +34,13 @@ import com.classbridge.repository.StaffProfileRepository;
 import com.classbridge.repository.StudentProfileRepository;
 import com.classbridge.repository.UserAccountRepository;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Objects;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -52,7 +63,10 @@ public class MessageService {
     private final SchoolRepository schoolRepository;
     private final MessageConversationRepository conversationRepository;
     private final DirectMessageRepository messageRepository;
+    private final DirectMessageAttachmentRepository attachmentRepository;
     private final MessageMapper messageMapper;
+    private final AttachmentStorageService attachmentStorageService;
+    private final AttachmentValidator attachmentValidator;
 
     public MessageService(UserAccountRepository userAccountRepository,
                           SchoolMembershipRepository schoolMembershipRepository,
@@ -62,7 +76,10 @@ public class MessageService {
                           SchoolRepository schoolRepository,
                           MessageConversationRepository conversationRepository,
                           DirectMessageRepository messageRepository,
-                          MessageMapper messageMapper) {
+                          DirectMessageAttachmentRepository attachmentRepository,
+                          MessageMapper messageMapper,
+                          AttachmentStorageService attachmentStorageService,
+                          AttachmentValidator attachmentValidator) {
         this.userAccountRepository = userAccountRepository;
         this.schoolMembershipRepository = schoolMembershipRepository;
         this.studentProfileRepository = studentProfileRepository;
@@ -71,7 +88,10 @@ public class MessageService {
         this.schoolRepository = schoolRepository;
         this.conversationRepository = conversationRepository;
         this.messageRepository = messageRepository;
+        this.attachmentRepository = attachmentRepository;
         this.messageMapper = messageMapper;
+        this.attachmentStorageService = attachmentStorageService;
+        this.attachmentValidator = attachmentValidator;
     }
 
     @Transactional(readOnly = true)
@@ -198,6 +218,61 @@ public class MessageService {
         return toConversationResponse(savedConversation, actorId, false);
     }
 
+    @Transactional
+    public List<ConversationResponse> startStudentConversations(Long actorId, StartStudentConversationsRequest request) {
+        UserAccount actor = requireActiveAccount(actorId);
+        if (actor.getRole() != UserRole.TEACHER) {
+            throw new ForbiddenOperationException("Only teachers may start a school-wide student message.");
+        }
+        SchoolMembership membership = requireSchoolMembership(actorId);
+        List<Long> requestedIds = request.getStudentProfileIds();
+        if (requestedIds == null || requestedIds.isEmpty()) {
+            throw new IllegalArgumentException("Select at least one student to message.");
+        }
+        List<Long> studentIds = requestedIds.stream().distinct().toList();
+        if (studentIds.size() > 2000) {
+            throw new IllegalArgumentException("A message may be sent to at most 2,000 students at a time.");
+        }
+        String body = normalizedMessage(request.getMessage());
+        Long schoolId = membership.getSchool().getId();
+        List<ConversationResponse> results = new ArrayList<>();
+
+        for (Long studentId : studentIds) {
+            StudentProfile student = studentProfileRepository.findByIdAndSchoolId(studentId, schoolId)
+                    .filter(StudentProfile::isActive)
+                    .orElseThrow(() -> new ResourceNotFoundException("Active student not found in your school with id: " + studentId));
+            UserAccount recipient = effectiveStudentRecipient(student);
+            if (recipient == null) {
+                throw new IllegalArgumentException("Student " + student.getFirstName() + " " + student.getLastName() + " has no active message recipient.");
+            }
+            if (actorId.equals(recipient.getId())) {
+                throw new IllegalArgumentException("A teacher cannot start a conversation with their own account.");
+            }
+
+            MessageConversation conversation = conversationRepository
+                    .findStudentContextConversation(schoolId, studentId, actorId, recipient.getId())
+                    .orElseGet(() -> {
+                        MessageConversation created = new MessageConversation();
+                        created.setSchool(membership.getSchool());
+                        created.setParticipantOne(actor);
+                        created.setParticipantTwo(recipient);
+                        created.setStudentProfile(student);
+                        created.setLastMessageAt(Instant.now());
+                        return conversationRepository.save(created);
+                    });
+
+            DirectMessage firstMessage = new DirectMessage();
+            firstMessage.setConversation(conversation);
+            firstMessage.setSender(actor);
+            firstMessage.setBody(body);
+            DirectMessage savedMessage = messageRepository.saveAndFlush(firstMessage);
+            conversation.setLastMessageAt(savedMessage.getCreatedAt());
+            MessageConversation savedConversation = conversationRepository.saveAndFlush(conversation);
+            results.add(toConversationResponse(savedConversation, actorId, false));
+        }
+        return results;
+    }
+
     @Transactional(readOnly = true)
     public List<ConversationResponse> getConversations(Long actorId, Long studentProfileId) {
         UserAccount actor = requireActiveAccount(actorId);
@@ -257,6 +332,47 @@ public class MessageService {
         conversation.setLastMessageAt(savedMessage.getCreatedAt());
         conversationRepository.saveAndFlush(conversation);
         return messageMapper.toMessageResponse(savedMessage, displayName(actor));
+    }
+
+    @Transactional
+    public MessageAttachmentResponse addAttachment(Long actorId, Long conversationId, Long messageId, Long studentProfileId, MultipartFile file) {
+        UserAccount actor = requireActiveAccount(actorId);
+        Access access = findConversationAccess(actor, conversationId, studentProfileId);
+        if (access.readOnly()) throw new ForbiddenOperationException("This conversation is read-only for the authenticated account.");
+        validateReplySchoolContext(actor, access.conversation());
+        DirectMessage message = messageRepository.findByIdAndConversationId(messageId, conversationId)
+                .orElseThrow(() -> new ResourceNotFoundException("Message not found with id: " + messageId));
+        if (!Objects.equals(message.getSender().getId(), actorId)) {
+            throw new ForbiddenOperationException("You may only attach files to your own messages.");
+        }
+        AttachmentValidator.ValidatedAttachment validated = attachmentValidator.validate(file);
+        String storageKey;
+        try (InputStream input = file.getInputStream()) {
+            storageKey = attachmentStorageService.store(input);
+        } catch (IOException e) {
+            throw new InvalidAttachmentException("Failed to read attachment file content.");
+        }
+        try {
+            DirectMessageAttachment attachment = new DirectMessageAttachment(message, storageKey,
+                    validated.getDisplayFilename(), validated.getCanonicalContentType(), validated.getFileSize());
+            DirectMessageAttachment saved = attachmentRepository.saveAndFlush(attachment);
+            return new MessageAttachmentResponse(saved.getId(), saved.getDisplayFilename(), saved.getContentType(), saved.getFileSize(), saved.getCreatedAt());
+        } catch (RuntimeException exception) {
+            attachmentStorageService.deleteFile(storageKey);
+            throw exception;
+        }
+    }
+
+    @Transactional(readOnly = true)
+    public AttachmentDownload downloadAttachment(Long actorId, Long conversationId, Long messageId, Long attachmentId, Long studentProfileId) {
+        UserAccount actor = requireActiveAccount(actorId);
+        Access access = findConversationAccess(actor, conversationId, studentProfileId);
+        DirectMessage message = messageRepository.findByIdAndConversationId(messageId, conversationId)
+                .orElseThrow(() -> new ResourceNotFoundException("Message not found with id: " + messageId));
+        DirectMessageAttachment attachment = attachmentRepository.findByIdAndMessageId(attachmentId, messageId)
+                .orElseThrow(() -> new ResourceNotFoundException("Message attachment not found with id: " + attachmentId));
+        return new AttachmentDownload(attachmentStorageService.loadAsResource(attachment.getStorageKey()),
+                attachment.getDisplayFilename(), attachment.getContentType(), attachment.getFileSize());
     }
 
     private Access findConversationAccess(UserAccount actor, Long conversationId, Long studentProfileId) {

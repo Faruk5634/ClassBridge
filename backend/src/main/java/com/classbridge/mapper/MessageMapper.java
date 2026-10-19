@@ -6,6 +6,7 @@ import com.classbridge.domain.StudentProfile;
 import com.classbridge.domain.UserAccount;
 import com.classbridge.dto.ConversationResponse;
 import com.classbridge.dto.DirectMessageResponse;
+import com.classbridge.dto.MessageAttachmentResponse;
 import com.classbridge.dto.MessageRecipientResponse;
 import org.springframework.stereotype.Component;
 
@@ -35,6 +36,8 @@ public class MessageMapper {
     public DirectMessageResponse toMessageResponse(DirectMessage message, String senderDisplayName) {
         UserAccount sender = message.getSender();
         return new DirectMessageResponse(message.getId(), sender.getId(), senderDisplayName, sender.getRole(),
-                sender.getRole() == com.classbridge.domain.UserRole.PARENT, message.getBody(), message.getCreatedAt(), message.getReadAt());
+                sender.getRole() == com.classbridge.domain.UserRole.PARENT, message.getBody(), message.getCreatedAt(), message.getReadAt(),
+                message.getAttachments().stream().map(attachment -> new MessageAttachmentResponse(attachment.getId(), attachment.getDisplayFilename(),
+                        attachment.getContentType(), attachment.getFileSize(), attachment.getCreatedAt())).toList());
     }
 }
