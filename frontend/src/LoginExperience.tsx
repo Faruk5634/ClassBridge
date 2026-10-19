@@ -75,8 +75,8 @@ type BeaverMood = 'guide' | 'sad' | 'confused' | 'asking'
 function BeaverGuide({ mood, size = 'small' }: { mood: BeaverMood; size?: 'small' | 'hero' | 'compact' }) {
   const moodContent: Record<BeaverMood, { image: string; alt: string }> = {
     guide: { image: 'beaver-guide.jpg', alt: 'The ClassBridge beaver mascot smiling and guiding you' },
-    sad: { image: 'beaver-sad.jpg', alt: 'The ClassBridge beaver mascot looks sad and ready to help' },
-    confused: { image: 'beaver-confused.jpg', alt: 'The ClassBridge beaver mascot looks confused and lost' },
+    sad: { image: 'beaver-sad-v2.png', alt: 'The ClassBridge beaver mascot looks sad and ready to help' },
+    confused: { image: 'beaver-confused-v2.png', alt: 'The ClassBridge beaver mascot looks surprised and lost' },
     asking: { image: 'beaver-asking.jpg', alt: 'The ClassBridge beaver mascot asking a question' },
   }
   const content = moodContent[mood]
@@ -99,7 +99,7 @@ function StoryPanel({ portal, role }: { portal: EntryPortal | null; role: Campus
     : role === 'TEACHER'
       ? 'teacher-classroom-scene-v2.png'
     : portal === 'campus' ? 'forest-school-scene.jpg'
-      : portal === null ? 'campus-river-scene.png' : 'community-scene.jpg'
+      : portal === null ? 'campus-river-scene.png' : 'forest-school-scene.jpg'
   const storyVariant = content
     ? `story-${content.color}`
     : management ? 'story-management' : portal === 'campus' ? 'story-campus' : 'story-home'
