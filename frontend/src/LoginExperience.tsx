@@ -70,17 +70,6 @@ function ThemeButton({ theme, onClick }: { theme: ThemeMode; onClick: () => void
   )
 }
 
-function Icon({ kind }: { kind: 'building' | 'campus' | 'parent' | 'student' | 'teacher' }) {
-  const paths = {
-    building: <><path d="M4 21V6.5L12 3l8 3.5V21" /><path d="M2 21h20M8 8v2m8-2v2M8 13v2m8-2v2M10 21v-4h4v4" /></>,
-    campus: <><path d="m3 9 9-5 9 5-9 5-9-5Z" /><path d="M6 11v5c3.7 3 8.3 3 12 0v-5M21 9v6" /></>,
-    parent: <><circle cx="9" cy="8" r="3" /><path d="M3.5 20v-1.5a5.5 5.5 0 0 1 11 0V20M16 5.5a3 3 0 0 1 0 5.8m2 3.2a5 5 0 0 1 2.5 4.3V20" /></>,
-    student: <><path d="m3 9 9-5 9 5-9 5-9-5Z" /><path d="M6 11v5c3.7 3 8.3 3 12 0v-5M21 9v6" /></>,
-    teacher: <><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v17H6.5A2.5 2.5 0 0 0 4 22V5.5Z" /><path d="M4 6h12m-8 4h8m-8 4h5" /></>,
-  }
-  return <svg className="entry-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.65" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{paths[kind]}</svg>
-}
-
 type BeaverMood = 'guide' | 'sad' | 'confused' | 'asking'
 
 function BeaverGuide({ mood, size = 'small' }: { mood: BeaverMood; size?: 'small' | 'hero' | 'compact' }) {
@@ -102,23 +91,32 @@ function StoryPanel({ portal, role }: { portal: EntryPortal | null; role: Campus
   const content = role ? roleContent[role] : null
   const management = portal === 'management'
   const home = portal === null && role === null
-  const scene = role
-    ? `${role.toLocaleLowerCase('en-US')}-scene.jpg`
-    : portal === null ? 'forest-school-scene.jpg' : 'community-scene.jpg'
+  const hideCampusStoryDetails = portal === 'campus'
+  const scene = role === 'PARENT'
+    ? 'parent-home-scene-v2.png'
+    : role === 'STUDENT'
+      ? 'student-campus-scene-v2.png'
+    : role === 'TEACHER'
+      ? 'teacher-classroom-scene-v2.png'
+    : portal === 'campus' ? 'forest-school-scene.jpg'
+      : portal === null ? 'campus-river-scene.png' : 'community-scene.jpg'
+  const storyVariant = content
+    ? `story-${content.color}`
+    : management ? 'story-management' : portal === 'campus' ? 'story-campus' : 'story-home'
   return (
-    <aside className={`entry-story-panel ${content ? `story-${content.color}` : management ? 'story-management' : 'story-home'}`}>
+    <aside className={`entry-story-panel ${storyVariant}`}>
       <img className="story-scene-image" src={`/images/${scene}`} alt="" />
       <div className="story-scene-wash" aria-hidden="true" />
       <div className="story-copy-block">
         <p className="entry-kicker">{role ? `${content?.shortTitle.toLocaleUpperCase('en-US')} PORTAL` : management ? 'MANAGEMENT PORTAL' : 'CLASSBRIDGE'}</p>
         <h1>{content?.title ?? (management ? 'Bring your school community together.' : 'A trusted bridge between school and home.')}</h1>
-        {!home && <p className="story-description">
+        {!home && !hideCampusStoryDetails && <p className="story-description">
           {content?.description ?? (management
             ? 'Announcements, classrooms, and communication in one workspace for school administrators.'
             : 'A shared space for students, families, and educators to stay connected.')}
         </p>}
       </div>
-      {!home && <p className="story-footer-note">A more connected school community.</p>}
+      {!home && !hideCampusStoryDetails && <p className="story-footer-note">A more connected school community.</p>}
     </aside>
   )
 }
@@ -149,12 +147,12 @@ export default function LoginExperience({
   }
 
   return (
-    <main className={`entry-page${portal === null ? ' entry-page-home' : ''}`}>
+    <main className={`entry-page${portal === null ? ' entry-page-home' : ''}${portal === 'campus' && !selectedRole ? ' entry-page-school-roles' : ''}${portal === 'campus' && selectedRole ? ' entry-page-campus-login' : ''}`}>
       <header className="entry-header">
         <Brand />
         <div className="entry-header-actions">
-          {portal && <button className="entry-back-link" type="button" onClick={onBack}>← <span>Geri</span></button>}
-          {portal && <ThemeButton theme={theme} onClick={onToggleTheme} />}
+          {portal && !(portal === 'campus' && (!selectedRole || selectedRole === 'PARENT' || selectedRole === 'STUDENT' || selectedRole === 'TEACHER')) && <button className="entry-back-link" type="button" onClick={onBack}>← <span>Geri</span></button>}
+          <ThemeButton theme={theme} onClick={onToggleTheme} />
         </div>
       </header>
 
@@ -192,11 +190,11 @@ export default function LoginExperience({
             <div className="role-options">
               {(['PARENT', 'STUDENT', 'TEACHER'] as const).map((campusRole, index) => {
                 const item = roleContent[campusRole]
-                const iconKind = campusRole === 'PARENT' ? 'parent' : campusRole === 'STUDENT' ? 'student' : 'teacher'
+                const roleImage = campusRole === 'PARENT' ? 'role-parent.png' : campusRole === 'STUDENT' ? 'role-student.png' : 'role-teacher.png'
                 return (
                   <button className={`role-option role-option-${item.color}`} key={campusRole} type="button" onClick={() => onChooseRole(campusRole)}>
                     <span className="role-option-index">0{index + 1}</span>
-                    <span className="role-option-icon"><Icon kind={iconKind} /></span>
+                    <span className="role-option-icon"><img src={`/images/${roleImage}`} alt="" /></span>
                     <span className="role-option-copy"><strong>{item.shortTitle}</strong><span>{campusRole === 'PARENT' ? 'Keep up with your child’s school life' : campusRole === 'STUDENT' ? 'View announcements and conversations' : 'Connect with your class and school'}</span></span>
                     <span className="option-arrow" aria-hidden="true">→</span>
                   </button>
@@ -248,6 +246,7 @@ export default function LoginExperience({
               </button>
             </form>
             <p className="entry-help">Need help accessing your account? <span>Contact your school administrator.</span></p>
+              {(role === 'PARENT' || role === 'STUDENT' || role === 'TEACHER') && <button className="entry-return-link entry-login-return" type="button" onClick={onBack}>← Back to school portal</button>}
           </div>
         </section>
       )}
