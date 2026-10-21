@@ -47,7 +47,9 @@ const profileAnimalOptions: ProfileAnimal[] = profileAnimalSpecies.flatMap((name
   id: name.toUpperCase() + '_' + group.toUpperCase(), name, group, column: index % 4, row: Math.floor(index / 4),
 })))
 function profileAnimalArt(animal: ProfileAnimal) {
-  const rowPosition = ['-5.56%', '38.89%', '83.33%'][animal.row]
+  // The portrait sheets are square images arranged in four columns and three rows.
+  // These positions align each row's top edge inside the square avatar crop.
+  const rowPosition = ['0%', '44.44%', '88.89%'][animal.row] ?? '0%'
   return {
     backgroundImage: `url('/images/profile-animals-${animal.group === 'adult' ? 'adults' : 'students'}.jpg')`,
     backgroundSize: '400% 400%',
@@ -150,7 +152,7 @@ export default function TeacherWorkspacePreview({ theme, token, profile, onToggl
   const [accountAppearance, setAccountAppearance] = useState<AccountAppearance>({ avatarType: 'INITIALS', animal: null, imageDataUrl: null })
   const [appearanceDraft, setAppearanceDraft] = useState<AccountAppearance>({ avatarType: 'INITIALS', animal: null, imageDataUrl: null })
   const [appearanceSaving, setAppearanceSaving] = useState(false)
-  const [profileStatus, setProfileStatus] = useState('')
+  const [successToast, setSuccessToast] = useState('')
   const [emailDraft, setEmailDraft] = useState(profile.email || '')
   const [savedEmail, setSavedEmail] = useState(profile.email || '')
   const [emailVerified, setEmailVerified] = useState(Boolean(profile.emailVerified))
@@ -170,6 +172,7 @@ export default function TeacherWorkspacePreview({ theme, token, profile, onToggl
   const [soundEnabled, setSoundEnabled] = useState(() => window.localStorage.getItem('classbridge.teacher.sound') === 'on')
   const navigationTimer = useRef<number | null>(null)
   const errorToastTimer = useRef<number | null>(null)
+  const successToastTimer = useRef<number | null>(null)
   const profileRef = useRef<HTMLDivElement>(null)
 
   function handleSessionExpired() { setSessionExpired(true) }
@@ -183,6 +186,16 @@ export default function TeacherWorkspacePreview({ theme, token, profile, onToggl
     errorToastTimer.current = null
     setErrorToast('')
   }
+  function notifySuccess(message: string) {
+    setSuccessToast(message)
+    if (successToastTimer.current) window.clearTimeout(successToastTimer.current)
+    successToastTimer.current = window.setTimeout(() => { setSuccessToast(''); successToastTimer.current = null }, 4000)
+  }
+  function dismissSuccessToast() {
+    if (successToastTimer.current) window.clearTimeout(successToastTimer.current)
+    successToastTimer.current = null
+    setSuccessToast('')
+  }
 
   useEffect(() => {
     const sync = () => { if (navigationTimer.current) window.clearTimeout(navigationTimer.current); setTransitionLabel(''); setRoute(readRoute()) }
@@ -193,6 +206,7 @@ export default function TeacherWorkspacePreview({ theme, token, profile, onToggl
   useEffect(() => () => {
     if (navigationTimer.current) window.clearTimeout(navigationTimer.current)
     if (errorToastTimer.current) window.clearTimeout(errorToastTimer.current)
+    if (successToastTimer.current) window.clearTimeout(successToastTimer.current)
   }, [])
   useEffect(() => {
     function outside(event: MouseEvent) { if (profileRef.current && !profileRef.current.contains(event.target as Node)) setProfileOpen(false) }
@@ -281,10 +295,10 @@ export default function TeacherWorkspacePreview({ theme, token, profile, onToggl
   }
 
   async function saveAppearance() {
-    setAppearanceSaving(true); setProfileStatus('')
+    setAppearanceSaving(true)
     try {
       const saved = await api<AccountAppearance>('/api/auth/appearance', token, { method: 'PUT', body: JSON.stringify(appearanceDraft) })
-      setAccountAppearance(saved); setAppearanceDraft(saved); setProfileStatus('Your avatar has been saved to your account.')
+      setAccountAppearance(saved); setAppearanceDraft(saved); notifySuccess('Your avatar has been saved to your account.')
     } catch (error) { if (error instanceof ApiError && error.status === 401) handleSessionExpired(); else notifyError(errorText(error)) }
     finally { setAppearanceSaving(false) }
   }
@@ -303,38 +317,38 @@ export default function TeacherWorkspacePreview({ theme, token, profile, onToggl
 
   async function saveEmail() {
     if (!emailDraft.trim()) { notifyError('Enter an email address first.'); return }
-    if (emailDraft.trim().toLocaleLowerCase() === savedEmail.trim().toLocaleLowerCase()) { setProfileStatus('This email address is already saved.'); return }
-    setProfileSaving(true); setProfileStatus('')
+    if (emailDraft.trim().toLocaleLowerCase() === savedEmail.trim().toLocaleLowerCase()) { notifySuccess('This email address is already saved.'); return }
+    setProfileSaving(true)
     try {
       await api('/api/auth/email', token, { method: 'PUT', body: JSON.stringify({ email: emailDraft.trim() }) })
-      setSavedEmail(emailDraft.trim()); setEmailVerified(false); setVerificationSent(false); setVerificationCode(''); setProfileStatus('Email saved. Verify it before using it for password recovery.')
+      setSavedEmail(emailDraft.trim()); setEmailVerified(false); setVerificationSent(false); setVerificationCode(''); notifySuccess('Email saved. Verify it before using it for password recovery.')
     } catch (error) { if (error instanceof ApiError && error.status === 401) handleSessionExpired(); else notifyError(errorText(error)) }
     finally { setProfileSaving(false) }
   }
 
   async function sendVerificationCode() {
-    setProfileSaving(true); setProfileStatus('')
+    setProfileSaving(true)
     try {
       await api('/api/auth/email-verification/request', token, { method: 'POST' })
-      setVerificationSent(true); setProfileStatus('A six-digit code has been sent to your email.')
+      setVerificationSent(true); notifySuccess('A six-digit code has been sent to your email.')
     } catch (error) { if (error instanceof ApiError && error.status === 401) handleSessionExpired(); else notifyError(errorText(error)) }
     finally { setProfileSaving(false) }
   }
 
   async function confirmVerification(event: FormEvent) {
-    event.preventDefault(); setProfileSaving(true); setProfileStatus('')
+    event.preventDefault(); setProfileSaving(true)
     try {
       await api<void>('/api/auth/email-verification/confirm', token, { method: 'POST', body: JSON.stringify({ code: verificationCode }) })
-      setEmailVerified(true); setVerificationSent(false); setVerificationCode(''); setProfileStatus('Your email address is verified.')
+      setEmailVerified(true); setVerificationSent(false); setVerificationCode(''); notifySuccess('Your email address is verified.')
     } catch (error) { if (error instanceof ApiError && error.status === 401) handleSessionExpired(); else notifyError(errorText(error)) }
     finally { setProfileSaving(false) }
   }
 
   async function savePhone() {
-    setProfileSaving(true); setProfileStatus('')
+    setProfileSaving(true)
     try {
       const updated = await api<Profile>('/api/auth/phone', token, { method: 'PUT', body: JSON.stringify({ phoneNumber: phoneDraft.trim() }) })
-      setPhoneDraft(updated.phoneNumber || ''); setProfileStatus('Your phone number has been updated.')
+      setPhoneDraft(updated.phoneNumber || ''); notifySuccess('Your phone number has been updated.')
     } catch (error) { if (error instanceof ApiError && error.status === 401) handleSessionExpired(); else notifyError(errorText(error)) }
     finally { setProfileSaving(false) }
   }
@@ -343,11 +357,11 @@ export default function TeacherWorkspacePreview({ theme, token, profile, onToggl
     event.preventDefault()
     if (newPassword.length < 8 || newPassword.length > 20) { notifyError('Your new password must be 8 to 20 characters long.'); return }
     if (newPassword !== passwordConfirmation) { notifyError('The new password and confirmation do not match.'); return }
-    setPasswordSaving(true); setProfileStatus('')
+    setPasswordSaving(true)
     try {
       await api<void>('/api/auth/change-password', token, { method: 'POST', body: JSON.stringify({ currentPassword, newPassword }) })
       setCurrentPassword(''); setNewPassword(''); setPasswordConfirmation('')
-      setProfileStatus('Your password has been changed.')
+      notifySuccess('Your password has been changed.')
     } catch (error) { if (error instanceof ApiError && error.status === 401) handleSessionExpired(); else notifyError(errorText(error)) }
     finally { setPasswordSaving(false) }
   }
@@ -479,7 +493,6 @@ export default function TeacherWorkspacePreview({ theme, token, profile, onToggl
       {route.page === 'profile' && <section className="teacher-page-section teacher-profile-page">
         <button className="teacher-back-link" type="button" onClick={() => navigate({ page: 'today' })}>← Back to today</button>
         <div className="teacher-profile-heading"><div>{accountAvatar(accountAppearance, 'teacher-profile-hero-avatar')}<div><p className="teacher-overline">YOUR CLASSBRIDGE ACCOUNT</p><h1>My profile</h1><p>Keep your account details and portrait up to date.</p></div></div><span className="teacher-profile-role">Teacher</span></div>
-        {profileStatus && <p className="teacher-profile-status" role="status">{profileStatus}</p>}
         <div className="teacher-profile-layout">
           <div className="teacher-profile-main-column">
             <section className="teacher-account-panel"><div className="teacher-profile-panel-heading"><div><p className="teacher-overline">ACCOUNT DETAILS</p><h2>Your information</h2></div><span className="teacher-readonly-mark">School managed</span></div>
@@ -536,7 +549,7 @@ export default function TeacherWorkspacePreview({ theme, token, profile, onToggl
 
       {route.page === 'new-message' && <section className="teacher-page-section teacher-new-message-page"><button className="teacher-back-link" type="button" onClick={() => navigate({ page: 'messages' })}>← Back to inbox</button><div className="teacher-compose-layout"><div><p className="teacher-overline">SCHOOL COMMUNITY</p><h1 className="teacher-page-title-text">New message</h1><p className="teacher-page-intro">Choose one or more students in your school and send a private note to each conversation.</p><div className="teacher-compose-aside teacher-compose-aside-megaphone"><img src="/images/beaver-guide-cutout.png" alt="ClassBridge beaver mascot" /><span><strong>One-to-one, school-safe messaging.</strong><small>Each student gets a separate conversation. Only students in your school are listed.</small></span></div></div><form className="teacher-new-message-form" onSubmit={startNewMessage}><div className="teacher-recipient-heading"><div><p className="teacher-overline">RECIPIENTS</p><h2>Choose students</h2></div><span>{selectedStudentIds.length} selected</span></div><label className="teacher-search-field teacher-student-search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.3" /><path d="m16 16 4.5 4.5" /></svg><span className="sr-only">Search students</span><input value={studentQuery} onChange={(event) => setStudentQuery(event.target.value)} placeholder="Search by name, school number or class" /></label>{studentError && <div className="teacher-load-error" role="alert">{studentError}</div>}{students.length > 0 && <label className="teacher-select-all"><input type="checkbox" checked={visibleStudents.length > 0 && visibleStudents.every((student) => selectedStudentIds.includes(student.id))} onChange={(event) => selectAllVisibleStudents(event.target.checked)} /> Select all {studentQuery ? 'matching students' : 'students'}</label>}{loading ? <div className="teacher-empty-state">Loading students in your school…</div> : students.length === 0 ? <div className="teacher-empty-state">{studentError ? 'Student messaging is unavailable until the updated school directory API is running.' : 'There are no active students with a message recipient in your school.'}</div> : visibleStudents.length === 0 ? <div className="teacher-empty-state">No students match that search.</div> : <div className="teacher-message-students">{visibleStudents.map((student) => <label className={selectedStudentIds.includes(student.id) ? 'is-selected' : ''} key={student.id}><input type="checkbox" checked={selectedStudentIds.includes(student.id)} onChange={() => toggleStudent(student.id)} /><span className="teacher-student-initials">{initials(student.firstName + ' ' + student.lastName)}</span><span className="teacher-student-summary"><strong>{student.firstName} {student.lastName}</strong><small>{student.gradeLevel}-{student.sectionName} · No. {student.schoolNumber}</small></span><i aria-hidden="true">✓</i></label>)}</div>}<label className="teacher-new-message-body">Message<textarea maxLength={5000} onChange={(event) => setNewMessageDraft(event.target.value)} placeholder="Write a private message to the selected students…" required rows={5} value={newMessageDraft} /><small>{newMessageDraft.length}/5000</small></label><div className="teacher-file-picker-group"><strong>Attachments</strong><small>PDF, JPG or PNG · up to 10 MB each</small><label className="teacher-file-picker"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4m0 0L7 9m5-5 5 5" /><path d="M5 14v5h14v-5" /></svg><span><strong>Choose files</strong><small>{newMessageFiles.length ? newMessageFiles.length + ' file' + (newMessageFiles.length === 1 ? '' : 's') + ' selected' : 'Add a document or image'}</small></span><input type="file" aria-label="Choose message attachments" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png" multiple onChange={handleNewMessageFiles} /></label></div>{newMessageFiles.length > 0 && <div className="teacher-selected-files">{newMessageFiles.map((file, index) => <span key={file.name + index}><b aria-hidden="true">↗</b> {file.name} <small>{attachmentSize(file.size)}</small></span>)}</div>}{newMessageStatus && <p className="teacher-action-status" role="status">{newMessageStatus}</p>}<div className="teacher-compose-footer"><button className="teacher-text-action" onClick={() => navigate({ page: 'messages' })} type="button">Cancel</button><button className="teacher-primary-action" disabled={sendingNewMessage || !selectedStudentIds.length || !newMessageDraft.trim()} type="submit">{sendingNewMessage ? 'Sending…' : 'Send to ' + selectedStudentIds.length}</button></div></form></div></section>}
 
-      {route.page === 'messages' && (route.conversationId ? <section className="teacher-page-section"><button className="teacher-back-link" type="button" onClick={() => navigate({ page: 'messages' })}>← Back to inbox</button><div className="teacher-thread-page"><header className="teacher-thread-header"><div><p className="teacher-overline">SCHOOL CONVERSATION</p><h1>{selectedConversation?.otherParticipantDisplayName || 'Conversation'}</h1><span>{selectedConversation?.studentDisplayName ? 'About ' + selectedConversation.studentDisplayName : selectedConversation?.otherParticipantRole.replaceAll('_', ' ')}</span></div></header>{newMessageStatus && <p className="teacher-action-status" role="status">{newMessageStatus}</p>}{threadError && <div className="teacher-load-error" role="alert">{threadError}</div>}{threadLoading ? <div className="teacher-empty-state">Opening conversation…</div> : detail && <><div className="teacher-thread-messages teacher-thread-page-messages">{detail.messages.map((message) => <article className={'teacher-message-bubble' + (message.senderAccountId === profile.userAccountId ? ' is-own' : '')} key={message.id}><span>{message.message}</span>{attachmentLinks(message.attachments, (id) => '/api/messages/conversations/' + route.conversationId + '/messages/' + message.id + '/attachments/' + id)}<small>{message.senderDisplayName} · {stamp(message.createdAt)}</small></article>)}</div>{detail.conversation.readOnly ? <p className="teacher-empty-state">This conversation is read-only.</p> : <form className="teacher-message-compose" onSubmit={sendMessage}><label className="sr-only" htmlFor="teacher-message-draft">Your message</label><textarea id="teacher-message-draft" maxLength={5000} onChange={(event) => setDraft(event.target.value)} placeholder="Write a reply…" rows={3} value={draft} /><label className="teacher-message-attachment" title="Attach PDF, JPG or PNG"><span>＋ Attach file</span><input type="file" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png" multiple onChange={handleMessageFiles} /></label><button className="teacher-primary-action" disabled={sending || (!draft.trim() && messageFiles.length === 0)} type="submit">{sending ? 'Sending…' : 'Send message'}</button></form>}{messageFiles.length > 0 && <div className="teacher-selected-files">{messageFiles.map((file, index) => <span key={file.name + index}>📎 {file.name} <small>{attachmentSize(file.size)}</small></span>)}</div>}</>}</div></section> : <section className="teacher-page-section"><div className="teacher-page-title teacher-message-page-title"><div><p className="teacher-overline">A NOTE FROM HOME</p><h1>Messages</h1><p>Your conversations with families and colleagues.</p></div><div className="teacher-message-mascot teacher-mascot-pair teacher-mascot-interactive" tabIndex={0} role="img" aria-label="Beaver holding letters; hover to lift the mail" title="Hover to see today's mail"><img className="teacher-pose-rest" src="/images/beaver-message-rest.png" alt="" /><img className="teacher-pose-hover" src="/images/beaver-message-raised.png" alt="" /></div><div className="teacher-message-list-actions"><span className="teacher-inbox-count">{unread} unread</span><button className="teacher-primary-action" onClick={() => { setStudentQuery(''); setSelectedStudentIds([]); setNewMessageDraft(''); setNewMessageFiles([]); setNewMessageStatus(''); navigate({ page: 'new-message' }) }} type="button"><span>＋</span> New message</button></div></div>{newMessageStatus && <p className="teacher-action-status" role="status">{newMessageStatus}</p>}{conversationError && <div className="teacher-load-error" role="alert">{conversationError}</div>}{loading ? <div className="teacher-empty-state">Loading conversations…</div> : conversations.length === 0 ? <div className="teacher-empty-state">No conversations to show yet. Start a new message to a student in your school.</div> : <div className="teacher-inbox-list">{conversations.map((item, index) => <button className="teacher-inbox-row" key={item.id} onClick={() => navigate({ page: 'messages', conversationId: item.id })} type="button"><b className={'teacher-conversation-avatar ' + (index % 2 === 0 ? 'sage' : 'sand')}>{initials(item.otherParticipantDisplayName || 'School')}</b><span><strong>{item.otherParticipantDisplayName}</strong><small>{item.studentDisplayName ? 'About ' + item.studentDisplayName : item.otherParticipantRole.replaceAll('_', ' ')}</small><span>{item.latestMessage || 'Open conversation'}</span></span><time>{stamp(item.lastMessageAt)}</time>{item.unreadCount > 0 && <i>{item.unreadCount}</i>}</button>)}</div>}</section>)}
+      {route.page === 'messages' && (route.conversationId ? <section className="teacher-page-section"><button className="teacher-back-link" type="button" onClick={() => navigate({ page: 'messages' })}>← Back to inbox</button><div className="teacher-thread-page"><header className="teacher-thread-header"><div><p className="teacher-overline">SCHOOL CONVERSATION</p><h1>{selectedConversation?.otherParticipantDisplayName || 'Conversation'}</h1><span>{selectedConversation?.studentDisplayName ? 'About ' + selectedConversation.studentDisplayName : selectedConversation?.otherParticipantRole.replaceAll('_', ' ')}</span></div></header>{newMessageStatus && <p className="teacher-action-status" role="status">{newMessageStatus}</p>}{threadError && <div className="teacher-load-error" role="alert">{threadError}</div>}{threadLoading ? <div className="teacher-empty-state">Opening conversation…</div> : detail && <><div className="teacher-thread-messages teacher-thread-page-messages">{detail.messages.map((message) => <article className={'teacher-message-bubble' + (message.senderAccountId === profile.userAccountId ? ' is-own' : '')} key={message.id}><span>{message.message}</span>{attachmentLinks(message.attachments, (id) => '/api/messages/conversations/' + route.conversationId + '/messages/' + message.id + '/attachments/' + id)}<small>{message.senderDisplayName} · {stamp(message.createdAt)}</small></article>)}</div>{detail.conversation.readOnly ? <p className="teacher-empty-state">This conversation is read-only.</p> : <form className="teacher-message-compose" onSubmit={sendMessage}><label className="sr-only" htmlFor="teacher-message-draft">Your message</label><textarea id="teacher-message-draft" maxLength={5000} onChange={(event) => setDraft(event.target.value)} placeholder="Write a reply…" rows={3} value={draft} /><label className="teacher-message-attachment" title="Attach PDF, JPG or PNG"><span>＋ Attach file</span><input type="file" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png" multiple onChange={handleMessageFiles} /></label><button className="teacher-primary-action" disabled={sending || (!draft.trim() && messageFiles.length === 0)} type="submit">{sending ? 'Sending…' : 'Send message'}</button></form>}{messageFiles.length > 0 && <div className="teacher-selected-files">{messageFiles.map((file, index) => <span key={file.name + index}>📎 {file.name} <small>{attachmentSize(file.size)}</small></span>)}</div>}</>}</div></section> : <section className="teacher-page-section"><div className="teacher-page-title teacher-message-page-title"><div><p className="teacher-overline">A NOTE FROM HOME</p><h1>Messages</h1><p>Your conversations with families and colleagues.</p></div><div className="teacher-message-mascot teacher-mascot-pair teacher-mascot-interactive" tabIndex={0} role="img" aria-label="Beaver holding letters; hover to lift the mail" title="Hover to see today's mail"><img className="teacher-pose-rest" src="/images/beaver-message-rest.png" alt="" /><img className="teacher-pose-hover" src="/images/beaver-message-raised.png" alt="" /><span>Mail for you</span></div><div className="teacher-message-list-actions"><span className="teacher-inbox-count">{unread} unread</span><button className="teacher-primary-action" onClick={() => { setStudentQuery(''); setSelectedStudentIds([]); setNewMessageDraft(''); setNewMessageFiles([]); setNewMessageStatus(''); navigate({ page: 'new-message' }) }} type="button"><span>＋</span> New message</button></div></div>{newMessageStatus && <p className="teacher-action-status" role="status">{newMessageStatus}</p>}{conversationError && <div className="teacher-load-error" role="alert">{conversationError}</div>}{loading ? <div className="teacher-empty-state">Loading conversations…</div> : conversations.length === 0 ? <div className="teacher-empty-state">No conversations to show yet. Start a new message to a student in your school.</div> : <div className="teacher-inbox-list">{conversations.map((item, index) => <button className="teacher-inbox-row" key={item.id} onClick={() => navigate({ page: 'messages', conversationId: item.id })} type="button"><b className={'teacher-conversation-avatar ' + (index % 2 === 0 ? 'sage' : 'sand')}>{initials(item.otherParticipantDisplayName || 'School')}</b><span><strong>{item.otherParticipantDisplayName}</strong><small>{item.studentDisplayName ? 'About ' + item.studentDisplayName : item.otherParticipantRole.replaceAll('_', ' ')}</small><span>{item.latestMessage || 'Open conversation'}</span></span><time>{stamp(item.lastMessageAt)}</time>{item.unreadCount > 0 && <i>{item.unreadCount}</i>}</button>)}</div>}</section>)}
 
       {route.page === 'classes' && <section className="teacher-page-section"><div className="teacher-page-title"><div><p className="teacher-overline">YOUR TEACHING SPACE</p><h1>My classes</h1><p>Only the homeroom classes assigned to you appear here.</p></div></div>{homeroomError && <div className="teacher-load-error" role="alert">{homeroomError}</div>}{loading ? <div className="teacher-empty-state">Loading your homeroom classes…</div> : homeroomClassrooms.length === 0 ? <div className="teacher-empty-state">No homeroom class has been assigned to you yet. Your school administrator can assign one.</div> : <div className="teacher-classroom-grid">{homeroomClassrooms.map((room, index) => <button className="teacher-classroom-card teacher-classroom-card-button" key={room.id} onClick={() => navigate({ page: 'class-detail', classroomId: room.id })} type="button"><span className={'teacher-class-mark ' + (index % 2 === 0 ? 'moss' : 'river')}>{String(room.gradeLevel).padStart(2, '0')}</span><span className="teacher-classroom-card-copy"><p className="teacher-overline">YOUR HOMEROOM</p><strong>{room.gradeLevel}-{room.sectionName}</strong><small>Open class and view students →</small></span><span className="teacher-classroom-card-arrow" aria-hidden="true">↗</span></button>)}</div>}</section>}
 
@@ -546,10 +559,11 @@ export default function TeacherWorkspacePreview({ theme, token, profile, onToggl
 
     {transitionLabel && <div className={'teacher-route-transition' + (transitionIsDetail ? ' is-detail' : '')} role="status" aria-live="polite"><div className="teacher-transition-walker" aria-hidden="true"><div className="teacher-transition-beaver" /></div><p>Loading…</p></div>}
 
-    {confirmSignOut && <div className="teacher-modal-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setConfirmSignOut(false) }} role="presentation"><section className="teacher-signout-modal" role="dialog" aria-modal="true" aria-labelledby="signout-title"><button className="teacher-signout-close" onClick={() => setConfirmSignOut(false)} type="button" aria-label="Close">×</button><img src="/images/beaver-confused-v2.png" alt="ClassBridge beaver looks unsure about leaving" /><p className="teacher-overline">BEFORE YOU HEAD OUT</p><h2 id="signout-title">Ready to leave, {greetingName}?</h2><p>You can come back to your school space whenever you’re ready.</p><div><button className="teacher-text-action" onClick={() => setConfirmSignOut(false)} type="button">Stay here</button><button className="teacher-primary-action" onClick={onSignOut} type="button">Sign out</button></div></section></div>}
+    {confirmSignOut && <div className="teacher-modal-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setConfirmSignOut(false) }} role="presentation"><section className="teacher-signout-modal" role="dialog" aria-modal="true" aria-labelledby="signout-title"><button className="teacher-signout-close" onClick={() => setConfirmSignOut(false)} type="button" aria-label="Close">×</button><img src="/images/beaver-signout-cutout.png" alt="ClassBridge beaver looks unsure about leaving" /><p className="teacher-overline">BEFORE YOU HEAD OUT</p><h2 id="signout-title">Ready to leave, {greetingName}?</h2><p>You can come back to your school space whenever you’re ready.</p><div><button className="teacher-text-action" onClick={() => setConfirmSignOut(false)} type="button">Stay here</button><button className="teacher-primary-action" onClick={onSignOut} type="button">Sign out</button></div></section></div>}
 
     {sessionExpired && <div className="teacher-modal-backdrop teacher-session-expired-backdrop" role="presentation"><section className="teacher-signout-modal teacher-session-expired-modal" role="dialog" aria-modal="true" aria-labelledby="session-expired-title"><img src="/images/beaver-sad-v2.png" alt="The ClassBridge beaver is sorry your session expired" /><p className="teacher-overline">A QUICK PAUSE</p><h2 id="session-expired-title">Your session has expired</h2><p>Please sign in again to continue to your school workspace.</p><div><button className="teacher-primary-action" onClick={onSessionExpired} type="button">Back to sign in</button></div></section></div>}
 
-    {errorToast && <aside className="teacher-error-toast" role="alert"><img src="/images/beaver-sad-v2.png" alt="" /><div><strong>Something went wrong</strong><p>{errorToast}</p></div><button type="button" onClick={dismissErrorToast} aria-label="Dismiss error message">×</button></aside>}
+    {successToast && <aside className="teacher-success-toast" role="status" aria-live="polite"><img src="/images/beaver-success-cutout.png" alt="" /><div><strong>All set!</strong><p>{successToast}</p></div><button type="button" onClick={dismissSuccessToast} aria-label="Dismiss success message">×</button></aside>}
+    {errorToast && <aside className="teacher-error-toast" role="alert"><img src="/images/beaver-error-cutout.png" alt="" /><div><strong>Something went wrong</strong><p>{errorToast}</p></div><button type="button" onClick={dismissErrorToast} aria-label="Dismiss error message">×</button></aside>}
   </main>
 }
