@@ -1,5 +1,6 @@
 package com.classbridge.dto;
 
+import com.classbridge.domain.AnnouncementType;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -10,6 +11,7 @@ public class AnnouncementResponse {
     private Long schoolId;
     private String title;
     private String body;
+    private AnnouncementType type;
     private Long authorAccountId;
     private String authorDisplayName;
     private List<TargetClassroomResponse> targetClassrooms = new ArrayList<>();
@@ -48,6 +50,10 @@ public class AnnouncementResponse {
     public void setBody(String body) {
         this.body = body;
     }
+
+    public AnnouncementType getType() { return type; }
+
+    public void setType(AnnouncementType type) { this.type = type; }
 
     public Long getAuthorAccountId() {
         return authorAccountId;

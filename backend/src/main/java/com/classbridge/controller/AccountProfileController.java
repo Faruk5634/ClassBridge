@@ -1,7 +1,9 @@
 package com.classbridge.controller;
 
 import com.classbridge.dto.ErrorResponse;
+import com.classbridge.dto.AccountAppearanceResponse;
 import com.classbridge.dto.MyProfileResponse;
+import com.classbridge.dto.UpdateAccountAppearanceRequest;
 import com.classbridge.dto.UpdatePhoneNumberRequest;
 import com.classbridge.exception.ResourceNotFoundException;
 import com.classbridge.service.AccountProfileService;
@@ -39,6 +41,25 @@ public class AccountProfileController {
             @Valid @RequestBody UpdatePhoneNumberRequest request) {
         Long accountId = Long.valueOf(jwt.getSubject());
         return ResponseEntity.ok(accountProfileService.updatePhoneNumber(accountId, request));
+    }
+
+    @GetMapping("/appearance")
+    public ResponseEntity<AccountAppearanceResponse> getMyAppearance(@AuthenticationPrincipal Jwt jwt) {
+        Long accountId = Long.valueOf(jwt.getSubject());
+        return ResponseEntity.ok(accountProfileService.getAppearance(accountId));
+    }
+
+    @PutMapping("/appearance")
+    public ResponseEntity<AccountAppearanceResponse> updateMyAppearance(
+            @AuthenticationPrincipal Jwt jwt,
+            @Valid @RequestBody UpdateAccountAppearanceRequest request) {
+        Long accountId = Long.valueOf(jwt.getSubject());
+        return ResponseEntity.ok(accountProfileService.updateAppearance(accountId, request));
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErrorResponse> handleBadRequest(IllegalArgumentException exception) {
+        return ResponseEntity.badRequest().body(new ErrorResponse(exception.getMessage()));
     }
 
     @ExceptionHandler(ResourceNotFoundException.class)
