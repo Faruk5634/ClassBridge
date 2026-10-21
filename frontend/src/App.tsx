@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import LoginExperience, { type CampusRole, type EntryPortal, type ThemeMode } from './LoginExperience'
 import TeacherWorkspacePreview from './TeacherWorkspacePreview'
+import CampusMemberWorkspace from './CampusMemberWorkspace'
 
 type LoginResponse = { accessToken: string }
 type AccountProfile = {
@@ -16,6 +17,7 @@ type AccountProfile = {
 type EntryRoute = { portal: EntryPortal | null; role: CampusRole | null }
 type EntryHistoryState = { classBridgeEntryDepth?: number }
 type TeacherSession = { accessToken: string; profile: AccountProfile }
+type MemberSession = { accessToken: string; profile: AccountProfile & { role: 'PARENT' | 'STUDENT' } }
 
 const TOKEN_KEY = 'classbridge.accessToken'
 const THEME_KEY = 'classbridge.theme'
@@ -25,7 +27,7 @@ function readEntryRoute(): EntryRoute {
   if (route === 'management') return { portal: 'management', role: null }
   if (route === 'campus') return { portal: 'campus', role: null }
   if (route === 'teacher-preview') return { portal: 'campus', role: 'TEACHER' }
-  const campusRole = route.match(/^campus\/(parent|student|teacher)$/)?.[1]
+  const campusRole = route.match(/^campus\/(parent|student|teacher)(?:\/.*)?$/)?.[1]
   if (campusRole) return { portal: 'campus', role: campusRole.toUpperCase() as CampusRole }
   return { portal: null, role: null }
 }
@@ -39,8 +41,9 @@ function entryHash(route: EntryRoute) {
 export default function App() {
   const [theme, setTheme] = useState<ThemeMode>(() => localStorage.getItem(THEME_KEY) === 'dark' ? 'dark' : 'light')
   const [entryRoute, setEntryRoute] = useState<EntryRoute>(readEntryRoute)
-  const [authStage, setAuthStage] = useState<'checking' | 'anonymous' | 'teacher'>(() => sessionStorage.getItem(TOKEN_KEY) ? 'checking' : 'anonymous')
+  const [authStage, setAuthStage] = useState<'checking' | 'anonymous' | 'teacher' | 'member'>(() => sessionStorage.getItem(TOKEN_KEY) ? 'checking' : 'anonymous')
   const [teacherSession, setTeacherSession] = useState<TeacherSession | null>(null)
+  const [memberSession, setMemberSession] = useState<MemberSession | null>(null)
   const [isSigningIn, setIsSigningIn] = useState(false)
   const [loginError, setLoginError] = useState('')
   const [sessionMessage, setSessionMessage] = useState('')
@@ -68,6 +71,9 @@ export default function App() {
         if (profile.role === 'TEACHER') {
           setTeacherSession({ accessToken: token, profile })
           setAuthStage('teacher')
+        } else if (profile.role === 'PARENT' || profile.role === 'STUDENT') {
+          setMemberSession({ accessToken: token, profile: { ...profile, role: profile.role } })
+          setAuthStage('member')
         } else {
           setAuthStage('anonymous')
         }
@@ -135,6 +141,17 @@ export default function App() {
     setSessionMessage('')
   }, [])
 
+  const endMemberSession = useCallback(() => {
+    const role = memberSession?.profile.role ?? selectedRole ?? 'STUDENT'
+    sessionStorage.removeItem(TOKEN_KEY)
+    setMemberSession(null)
+    setAuthStage('anonymous')
+    setEntryRoute({ portal: 'campus', role })
+    window.history.replaceState({ classBridgeEntryDepth: 0 }, '', entryHash({ portal: 'campus', role }))
+    setLoginError('')
+    setSessionMessage('')
+  }, [memberSession, selectedRole])
+
   async function handleSignIn(username: string, password: string) {
     setLoginError('')
     setSessionMessage('')
@@ -174,6 +191,9 @@ export default function App() {
       if (profile.role === 'TEACHER') {
         setTeacherSession({ accessToken: login.accessToken, profile })
         setAuthStage('teacher')
+      } else if (profile.role === 'PARENT' || profile.role === 'STUDENT') {
+        setMemberSession({ accessToken: login.accessToken, profile: { ...profile, role: profile.role } })
+        setAuthStage('member')
       } else {
         setSessionMessage('Sign-in successful. Your ClassBridge workspace is the next step.')
       }
@@ -197,6 +217,19 @@ export default function App() {
         onToggleTheme={() => setTheme((current) => current === 'light' ? 'dark' : 'light')}
         onSignOut={endTeacherSession}
         onSessionExpired={endTeacherSession}
+      />
+    )
+  }
+
+  if (authStage === 'member' && memberSession) {
+    return (
+      <CampusMemberWorkspace
+        theme={theme}
+        token={memberSession.accessToken}
+        profile={memberSession.profile}
+        onToggleTheme={() => setTheme((current) => current === 'light' ? 'dark' : 'light')}
+        onSignOut={endMemberSession}
+        onSessionExpired={endMemberSession}
       />
     )
   }
