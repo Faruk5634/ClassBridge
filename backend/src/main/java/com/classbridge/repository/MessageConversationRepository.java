@@ -32,6 +32,14 @@ public interface MessageConversationRepository extends JpaRepository<MessageConv
                                                                  @Param("actorId") Long actorId,
                                                                  @Param("recipientId") Long recipientId);
 
+    @EntityGraph(attributePaths = {"school", "participantOne", "participantTwo"})
+    @Query("SELECT c FROM MessageConversation c WHERE c.school.id = :schoolId AND c.studentProfile IS NULL AND " +
+           "((c.participantOne.id = :actorId AND c.participantTwo.id = :recipientId) OR " +
+           "(c.participantOne.id = :recipientId AND c.participantTwo.id = :actorId))")
+    Optional<MessageConversation> findDirectConversation(@Param("schoolId") Long schoolId,
+                                                          @Param("actorId") Long actorId,
+                                                          @Param("recipientId") Long recipientId);
+
     @EntityGraph(attributePaths = {"school", "participantOne", "participantTwo", "studentProfile", "studentProfile.school", "studentProfile.userAccount"})
     @Query("SELECT c FROM MessageConversation c WHERE c.id = :id AND c.studentProfile.id = :studentProfileId " +
            "AND c.studentProfile.isActive = true AND c.studentProfile.userAccount.id = :studentAccountId " +

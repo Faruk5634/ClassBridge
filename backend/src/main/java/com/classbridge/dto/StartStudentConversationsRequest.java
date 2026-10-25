@@ -8,7 +8,7 @@ import java.util.List;
 
 public class StartStudentConversationsRequest {
     @NotEmpty
-    @Size(max = 2000)
+    @Size(max = 1)
     private List<Long> studentProfileIds;
 
     @NotBlank

@@ -51,6 +51,7 @@ public class PasswordService {
         }
 
         account.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
+        account.setCredentialVersion(account.getCredentialVersion() + 1);
         userAccountRepository.save(account);
     }
 }

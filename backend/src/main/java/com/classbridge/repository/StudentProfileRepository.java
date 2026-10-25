@@ -27,12 +27,23 @@ public interface StudentProfileRepository extends JpaRepository<StudentProfile, 
 
     Optional<StudentProfile> findByUserAccountId(Long userAccountId);
 
+    @EntityGraph(attributePaths = {"school", "classroom", "classroom.homeroomTeacher"})
+    @Query("SELECT sp FROM StudentProfile sp WHERE sp.userAccount.id = :userAccountId AND sp.isActive = true")
+    Optional<StudentProfile> findActiveByUserAccountId(@Param("userAccountId") Long userAccountId);
+
     @EntityGraph(attributePaths = {"school", "classroom", "parentProfile", "parentProfile.userAccount", "userAccount"})
-    @Query("SELECT sp FROM StudentProfile sp WHERE sp.school.id = :schoolId AND sp.isActive = true " +
+    @Query("SELECT sp FROM StudentProfile sp LEFT JOIN sp.userAccount studentAccount " +
+           "LEFT JOIN sp.parentProfile parent LEFT JOIN parent.userAccount parentAccount " +
+           "WHERE sp.school.id = :schoolId AND sp.isActive = true " +
            "AND (LOWER(sp.firstName) LIKE LOWER(CONCAT('%', :query, '%')) " +
            "OR LOWER(sp.lastName) LIKE LOWER(CONCAT('%', :query, '%')) " +
            "OR LOWER(CONCAT(sp.firstName, ' ', sp.lastName)) LIKE LOWER(CONCAT('%', :query, '%')) " +
-           "OR LOWER(sp.schoolNumber) LIKE LOWER(CONCAT('%', :query, '%'))) " +
+           "OR LOWER(sp.schoolNumber) LIKE LOWER(CONCAT('%', :query, '%')) " +
+           "OR LOWER(studentAccount.username) LIKE LOWER(CONCAT('%', :query, '%')) " +
+           "OR LOWER(parent.firstName) LIKE LOWER(CONCAT('%', :query, '%')) " +
+           "OR LOWER(parent.lastName) LIKE LOWER(CONCAT('%', :query, '%')) " +
+           "OR LOWER(CONCAT(parent.firstName, ' ', parent.lastName)) LIKE LOWER(CONCAT('%', :query, '%')) " +
+           "OR LOWER(parentAccount.username) LIKE LOWER(CONCAT('%', :query, '%'))) " +
            "ORDER BY sp.lastName ASC, sp.firstName ASC, sp.id ASC")
     List<StudentProfile> searchActiveBySchoolId(@Param("schoolId") Long schoolId,
                                                 @Param("query") String query,

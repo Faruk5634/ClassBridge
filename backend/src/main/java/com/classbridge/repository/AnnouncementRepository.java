@@ -21,6 +21,13 @@ public interface AnnouncementRepository extends JpaRepository<Announcement, Long
 
     @EntityGraph(attributePaths = {"targetClassrooms", "targetClassrooms.classroom", "authorAccount"})
     @Query("SELECT DISTINCT a FROM Announcement a " +
+           "WHERE a.school.id = :schoolId AND a.authorAccount.id = :authorAccountId " +
+           "ORDER BY a.createdAt DESC, a.id DESC")
+    List<Announcement> findBySchoolIdAndAuthorAccountIdOrderByCreatedAtDesc(@Param("schoolId") Long schoolId,
+                                                                            @Param("authorAccountId") Long authorAccountId);
+
+    @EntityGraph(attributePaths = {"targetClassrooms", "targetClassrooms.classroom", "authorAccount"})
+    @Query("SELECT DISTINCT a FROM Announcement a " +
            "JOIN a.targetClassrooms tc " +
            "WHERE a.school.id = :schoolId AND tc.classroom.id = :classroomId " +
            "ORDER BY a.createdAt DESC, a.id DESC")

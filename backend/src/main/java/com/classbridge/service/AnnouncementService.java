@@ -179,6 +179,20 @@ public class AnnouncementService {
     }
 
     @Transactional(readOnly = true)
+    public List<AnnouncementResponse> getTeacherAnnouncementHistory(Long teacherAccountId) {
+        SchoolMembership membership = schoolMembershipRepository.findByUserAccountId(teacherAccountId)
+                .orElseThrow(() -> new ForbiddenOperationException("Authenticated teacher is not associated with any school."));
+
+        if (membership.getUserAccount().getRole() != UserRole.TEACHER) {
+            throw new ForbiddenOperationException("Only teachers may view their announcement history.");
+        }
+
+        List<Announcement> announcements = announcementRepository.findBySchoolIdAndAuthorAccountIdOrderByCreatedAtDesc(
+                membership.getSchool().getId(), teacherAccountId);
+        return mapAnnouncementsToResponses(announcements);
+    }
+
+    @Transactional(readOnly = true)
     public AnnouncementResponse getSchoolAnnouncement(Long staffAccountId, Long announcementId) {
         SchoolMembership membership = schoolMembershipRepository.findByUserAccountId(staffAccountId)
                 .orElseThrow(() -> new ForbiddenOperationException("Authenticated staff member is not associated with any school."));
@@ -221,7 +235,7 @@ public class AnnouncementService {
         Long schoolId = studentProfile.getSchool().getId();
 
         List<Announcement> announcements = announcementRepository.findBySchoolIdAndClassroomIdOrderByCreatedAtDesc(schoolId, classroomId);
-        return mapAnnouncementsToResponses(announcements);
+        return mapRecipientAnnouncementsToResponses(announcements);
     }
 
     @Transactional(readOnly = true)
@@ -247,7 +261,7 @@ public class AnnouncementService {
 
         String authorDisplayName = getAuthorDisplayName(announcement.getAuthorAccount());
         List<AnnouncementAttachment> attachments = announcementAttachmentRepository.findByAnnouncementIdOrderByCreatedAtAscIdAsc(announcement.getId());
-        return announcementMapper.toResponse(announcement, authorDisplayName, attachments);
+        return toRecipientAnnouncementResponse(announcement, authorDisplayName, attachments);
     }
 
     @Transactional(readOnly = true)
@@ -290,7 +304,7 @@ public class AnnouncementService {
         Long schoolId = studentProfile.getSchool().getId();
 
         List<Announcement> announcements = announcementRepository.findBySchoolIdAndClassroomIdOrderByCreatedAtDesc(schoolId, classroomId);
-        return mapAnnouncementsToResponses(announcements);
+        return mapRecipientAnnouncementsToResponses(announcements);
     }
 
     @Transactional(readOnly = true)
@@ -315,7 +329,7 @@ public class AnnouncementService {
 
         String authorDisplayName = getAuthorDisplayName(announcement.getAuthorAccount());
         List<AnnouncementAttachment> attachments = announcementAttachmentRepository.findByAnnouncementIdOrderByCreatedAtAscIdAsc(announcement.getId());
-        return announcementMapper.toResponse(announcement, authorDisplayName, attachments);
+        return toRecipientAnnouncementResponse(announcement, authorDisplayName, attachments);
     }
 
     @Transactional(readOnly = true)
@@ -406,5 +420,19 @@ public class AnnouncementService {
                     return announcementMapper.toResponse(a, displayName, attachments);
                 })
                 .collect(Collectors.toList());
+    }
+
+    private List<AnnouncementResponse> mapRecipientAnnouncementsToResponses(List<Announcement> announcements) {
+        List<AnnouncementResponse> responses = mapAnnouncementsToResponses(announcements);
+        responses.forEach(response -> response.setTargetClassrooms(Collections.emptyList()));
+        return responses;
+    }
+
+    private AnnouncementResponse toRecipientAnnouncementResponse(Announcement announcement,
+                                                                  String authorDisplayName,
+                                                                  List<AnnouncementAttachment> attachments) {
+        AnnouncementResponse response = announcementMapper.toResponse(announcement, authorDisplayName, attachments);
+        response.setTargetClassrooms(Collections.emptyList());
+        return response;
     }
 }

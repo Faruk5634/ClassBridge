@@ -1,0 +1,26 @@
+.workspace-transition {
+  --transition-page: #f2f2e8;
+  --transition-ink: #315a47;
+  position: fixed;
+  z-index: 90;
+  inset: 0;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 7px;
+  color: var(--transition-ink);
+  background: color-mix(in srgb, var(--transition-page), transparent 5%);
+  backdrop-filter: blur(3px);
+  animation: workspace-transition-in .2s ease-out both;
+}
+.workspace-transition--teacher { --transition-page: var(--tw-page); --transition-ink: var(--tw-green-dark); }
+.workspace-transition--student { --transition-page: var(--sp-page); --transition-ink: var(--sp-blue-dark); }
+.workspace-transition--parent { --transition-page: #f5efe2; --transition-ink: #92532f; }
+.workspace-transition--parent.is-dark { --transition-page: #30271d; --transition-ink: #f0bd7c; }
+.workspace-transition > img { width: 118px; height: 118px; object-fit: contain; filter: drop-shadow(0 8px 12px rgb(29 44 28 / 14%)); animation: workspace-transition-step .7s ease-in-out infinite alternate; }
+.workspace-transition > p { margin: 0; color: var(--transition-ink); font: 700 17px/1.3 Inter, ui-sans-serif, system-ui, sans-serif; letter-spacing: .01em; }
+@keyframes workspace-transition-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes workspace-transition-step { to { transform: translateX(14px) rotate(4deg) scale(1.04); } }
+@media (prefers-reduced-motion: reduce) {
+  .workspace-transition, .workspace-transition > img { animation-duration: .01ms; animation-iteration-count: 1; }
+}

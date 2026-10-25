@@ -27,7 +27,8 @@ public interface StaffProfileRepository extends JpaRepository<StaffProfile, Long
            "AND sp.userAccount.role IN :roles AND " +
            "(LOWER(sp.firstName) LIKE LOWER(CONCAT('%', :query, '%')) " +
            "OR LOWER(sp.lastName) LIKE LOWER(CONCAT('%', :query, '%')) " +
-           "OR LOWER(CONCAT(sp.firstName, ' ', sp.lastName)) LIKE LOWER(CONCAT('%', :query, '%'))) " +
+           "OR LOWER(CONCAT(sp.firstName, ' ', sp.lastName)) LIKE LOWER(CONCAT('%', :query, '%')) " +
+           "OR LOWER(sp.userAccount.username) LIKE LOWER(CONCAT('%', :query, '%'))) " +
            "ORDER BY sp.lastName ASC, sp.firstName ASC")
     List<StaffProfile> searchBySchoolAndRoles(@Param("schoolId") Long schoolId,
                                               @Param("actorId") Long actorId,

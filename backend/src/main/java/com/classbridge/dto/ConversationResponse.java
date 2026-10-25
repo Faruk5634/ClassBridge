@@ -10,6 +10,7 @@ public class ConversationResponse {
     private String studentDisplayName;
     private Long otherParticipantAccountId;
     private String otherParticipantDisplayName;
+    private AccountAppearanceResponse otherParticipantAppearance;
     private UserRole otherParticipantRole;
     private boolean readOnly;
     private long unreadCount;
@@ -19,7 +20,7 @@ public class ConversationResponse {
 
     public ConversationResponse(Long id, Long schoolId, Long studentProfileId, String studentDisplayName,
                                 Long otherParticipantAccountId, String otherParticipantDisplayName,
-                                UserRole otherParticipantRole, boolean readOnly, long unreadCount,
+                                UserRole otherParticipantRole, AccountAppearanceResponse otherParticipantAppearance, boolean readOnly, long unreadCount,
                                 String latestMessage, Instant createdAt, Instant lastMessageAt) {
         this.id = id;
         this.schoolId = schoolId;
@@ -27,6 +28,7 @@ public class ConversationResponse {
         this.studentDisplayName = studentDisplayName;
         this.otherParticipantAccountId = otherParticipantAccountId;
         this.otherParticipantDisplayName = otherParticipantDisplayName;
+        this.otherParticipantAppearance = otherParticipantAppearance;
         this.otherParticipantRole = otherParticipantRole;
         this.readOnly = readOnly;
         this.unreadCount = unreadCount;
@@ -40,6 +42,7 @@ public class ConversationResponse {
     public String getStudentDisplayName() { return studentDisplayName; }
     public Long getOtherParticipantAccountId() { return otherParticipantAccountId; }
     public String getOtherParticipantDisplayName() { return otherParticipantDisplayName; }
+    public AccountAppearanceResponse getOtherParticipantAppearance() { return otherParticipantAppearance; }
     public UserRole getOtherParticipantRole() { return otherParticipantRole; }
     public boolean isReadOnly() { return readOnly; }
     public long getUnreadCount() { return unreadCount; }

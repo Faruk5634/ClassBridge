@@ -1,6 +1,7 @@
 package com.classbridge.service;
 
 import com.classbridge.domain.DirectMessage;
+import com.classbridge.domain.AccountAppearance;
 import com.classbridge.domain.DirectMessageAttachment;
 import com.classbridge.domain.MessageConversation;
 import com.classbridge.domain.ParentProfile;
@@ -12,6 +13,7 @@ import com.classbridge.domain.StudentProfile;
 import com.classbridge.domain.UserAccount;
 import com.classbridge.domain.UserRole;
 import com.classbridge.dto.ConversationDetailResponse;
+import com.classbridge.dto.AccountAppearanceResponse;
 import com.classbridge.dto.ConversationResponse;
 import com.classbridge.dto.CreateConversationRequest;
 import com.classbridge.dto.DirectMessageResponse;
@@ -25,6 +27,7 @@ import com.classbridge.exception.InvalidAttachmentException;
 import com.classbridge.exception.ResourceNotFoundException;
 import com.classbridge.mapper.MessageMapper;
 import com.classbridge.repository.DirectMessageRepository;
+import com.classbridge.repository.AccountAppearanceRepository;
 import com.classbridge.repository.DirectMessageAttachmentRepository;
 import com.classbridge.repository.MessageConversationRepository;
 import com.classbridge.repository.ParentProfileRepository;
@@ -65,6 +68,7 @@ public class MessageService {
     private final DirectMessageRepository messageRepository;
     private final DirectMessageAttachmentRepository attachmentRepository;
     private final MessageMapper messageMapper;
+    private final AccountAppearanceRepository appearanceRepository;
     private final AttachmentStorageService attachmentStorageService;
     private final AttachmentValidator attachmentValidator;
 
@@ -78,6 +82,7 @@ public class MessageService {
                           DirectMessageRepository messageRepository,
                           DirectMessageAttachmentRepository attachmentRepository,
                           MessageMapper messageMapper,
+                          AccountAppearanceRepository appearanceRepository,
                           AttachmentStorageService attachmentStorageService,
                           AttachmentValidator attachmentValidator) {
         this.userAccountRepository = userAccountRepository;
@@ -90,6 +95,7 @@ public class MessageService {
         this.messageRepository = messageRepository;
         this.attachmentRepository = attachmentRepository;
         this.messageMapper = messageMapper;
+        this.appearanceRepository = appearanceRepository;
         this.attachmentStorageService = attachmentStorageService;
         this.attachmentValidator = attachmentValidator;
     }
@@ -133,13 +139,22 @@ public class MessageService {
         if (STAFF_ROLES.contains(actor.getRole())) {
             List<StudentProfile> students = studentProfileRepository.searchActiveBySchoolId(school.getId(), query, limit);
             for (StudentProfile student : students) {
-                UserAccount recipient = effectiveStudentRecipient(student);
-                if (recipient != null) results.add(messageMapper.toStudentRecipient(student));
+                String studentName = student.getFirstName() + " " + student.getLastName();
+                UserAccount studentAccount = student.getUserAccount();
+                if (studentAccount != null && studentAccount.isActive()) {
+                    results.add(messageMapper.toStudentRecipient(student, studentAccount, studentName));
+                }
+                ParentProfile parent = student.getParentProfile();
+                UserAccount parentAccount = parent == null ? null : parent.getUserAccount();
+                if (parentAccount != null && parentAccount.isActive()) {
+                    results.add(messageMapper.toStudentRecipient(student, parentAccount,
+                            parent.getFirstName() + " " + parent.getLastName()));
+                }
             }
         }
 
         List<UserRole> staffRecipientRoles = actor.getRole() == UserRole.TEACHER
-                ? List.of(UserRole.SCHOOL_ADMIN, UserRole.SCHOOL_VICE_ADMIN)
+                ? List.of(UserRole.SCHOOL_ADMIN, UserRole.SCHOOL_VICE_ADMIN, UserRole.TEACHER)
                 : (actor.getRole() == UserRole.SCHOOL_ADMIN || actor.getRole() == UserRole.SCHOOL_VICE_ADMIN)
                     ? List.of(UserRole.TEACHER) : List.of(UserRole.TEACHER, UserRole.SCHOOL_ADMIN, UserRole.SCHOOL_VICE_ADMIN);
         staffProfileRepository.searchBySchoolAndRoles(school.getId(), actorId, staffRecipientRoles, query, limit)
@@ -160,13 +175,15 @@ public class MessageService {
         School school;
 
         if (STAFF_ROLES.contains(actor.getRole()) && request.getStudentProfileId() != null) {
-            if (request.getRecipientAccountId() != null) throw new IllegalArgumentException("Do not send recipientAccountId when starting a student-context conversation.");
             SchoolMembership membership = requireSchoolMembership(actorId);
             context = studentProfileRepository.findByIdAndSchoolId(request.getStudentProfileId(), membership.getSchool().getId())
                     .filter(StudentProfile::isActive)
                     .orElseThrow(() -> new ResourceNotFoundException("Active student profile not found with id: " + request.getStudentProfileId()));
-            recipient = effectiveStudentRecipient(context);
+            recipient = request.getRecipientAccountId() == null
+                    ? effectiveStudentRecipient(context)
+                    : requireAccount(request.getRecipientAccountId());
             if (recipient == null) throw new IllegalArgumentException("Student profile has no eligible account recipient.");
+            validateStudentContextRecipient(context, recipient);
             school = membership.getSchool();
         } else if (actor.getRole() == UserRole.PARENT) {
             context = requireLinkedActiveChild(actorId, request.getStudentProfileId());
@@ -201,20 +218,28 @@ public class MessageService {
         if (actor.getId().equals(recipient.getId())) throw new IllegalArgumentException("A user cannot start a conversation with their own account.");
         String body = normalizedMessage(request.getMessage());
         Instant now = Instant.now();
-        MessageConversation conversation = new MessageConversation();
-        conversation.setSchool(school);
-        conversation.setParticipantOne(actor);
-        conversation.setParticipantTwo(recipient);
-        conversation.setStudentProfile(context);
-        conversation.setLastMessageAt(now);
-        MessageConversation savedConversation = conversationRepository.save(conversation);
+        Optional<MessageConversation> existing = context == null
+                ? conversationRepository.findDirectConversation(school.getId(), actorId, recipient.getId())
+                : conversationRepository.findStudentContextConversation(school.getId(), context.getId(), actorId, recipient.getId());
+        MessageConversation conversation;
+        if (existing.isPresent()) {
+            conversation = existing.get();
+        } else {
+            conversation = new MessageConversation();
+            conversation.setSchool(school);
+            conversation.setParticipantOne(actor);
+            conversation.setParticipantTwo(recipient);
+            conversation.setStudentProfile(context);
+            conversation.setLastMessageAt(now);
+            conversation = conversationRepository.save(conversation);
+        }
         DirectMessage firstMessage = new DirectMessage();
-        firstMessage.setConversation(savedConversation);
+        firstMessage.setConversation(conversation);
         firstMessage.setSender(actor);
         firstMessage.setBody(body);
         DirectMessage savedFirstMessage = messageRepository.saveAndFlush(firstMessage);
-        savedConversation.setLastMessageAt(savedFirstMessage.getCreatedAt());
-        conversationRepository.saveAndFlush(savedConversation);
+        conversation.setLastMessageAt(savedFirstMessage.getCreatedAt());
+        MessageConversation savedConversation = conversationRepository.saveAndFlush(conversation);
         return toConversationResponse(savedConversation, actorId, false);
     }
 
@@ -230,8 +255,8 @@ public class MessageService {
             throw new IllegalArgumentException("Select at least one student to message.");
         }
         List<Long> studentIds = requestedIds.stream().distinct().toList();
-        if (studentIds.size() > 2000) {
-            throw new IllegalArgumentException("A message may be sent to at most 2,000 students at a time.");
+        if (studentIds.size() > 1) {
+            throw new IllegalArgumentException("Send a separate message to one student at a time.");
         }
         String body = normalizedMessage(request.getMessage());
         Long schoolId = membership.getSchool().getId();
@@ -280,18 +305,23 @@ public class MessageService {
         if (actor.getRole() == UserRole.PARENT) {
             StudentProfile child = requireLinkedActiveChild(actorId, studentProfileId);
             for (MessageConversation conversation : conversationRepository.findForParticipant(actorId)) {
-                if (conversation.getStudentProfile() != null && conversation.getStudentProfile().getId().equals(child.getId())) {
+                if (conversation.getStudentProfile() != null && conversation.getStudentProfile().getId().equals(child.getId())
+                        && canViewConversation(actor, conversation, actorId, false)) {
                     results.add(toConversationResponse(conversation, actorId, false));
                 }
             }
             if (child.getSchool().getEducationLevel() == SchoolLevel.HIGH_SCHOOL && child.getUserAccount() != null) {
                 for (MessageConversation conversation : conversationRepository.findHighSchoolConversationsForLinkedParent(child.getId(), child.getUserAccount().getId())) {
-                    results.add(toConversationResponse(conversation, child.getUserAccount().getId(), true));
+                    if (canViewConversation(actor, conversation, child.getUserAccount().getId(), true)) {
+                        results.add(toConversationResponse(conversation, child.getUserAccount().getId(), true));
+                    }
                 }
             }
         } else {
             for (MessageConversation conversation : conversationRepository.findForParticipant(actorId)) {
-                results.add(toConversationResponse(conversation, actorId, false));
+                if (canViewConversation(actor, conversation, actorId, false)) {
+                    results.add(toConversationResponse(conversation, actorId, false));
+                }
             }
         }
         results.sort(Comparator.comparing(ConversationResponse::getLastMessageAt).reversed()
@@ -303,6 +333,7 @@ public class MessageService {
     public ConversationDetailResponse getConversation(Long actorId, Long conversationId, Long studentProfileId) {
         UserAccount actor = requireActiveAccount(actorId);
         Access access = findConversationAccess(actor, conversationId, studentProfileId);
+        validateConversationAccess(actor, access.conversation(), access.viewingAccountId(), access.readOnly());
         List<DirectMessage> messages = messageRepository.findByConversationId(conversationId);
         if (!access.readOnly()) {
             Instant now = Instant.now();
@@ -323,7 +354,7 @@ public class MessageService {
         Access access = findConversationAccess(actor, conversationId, studentProfileId);
         if (access.readOnly()) throw new ForbiddenOperationException("This conversation is read-only for the authenticated account.");
         MessageConversation conversation = access.conversation();
-        validateReplySchoolContext(actor, conversation);
+        validateConversationAccess(actor, conversation, access.viewingAccountId(), false);
         DirectMessage message = new DirectMessage();
         message.setConversation(conversation);
         message.setSender(actor);
@@ -337,9 +368,12 @@ public class MessageService {
     @Transactional
     public MessageAttachmentResponse addAttachment(Long actorId, Long conversationId, Long messageId, Long studentProfileId, MultipartFile file) {
         UserAccount actor = requireActiveAccount(actorId);
+        if (actor.getRole() == UserRole.TEACHER) {
+            throw new ForbiddenOperationException("Teachers cannot attach files to direct messages.");
+        }
         Access access = findConversationAccess(actor, conversationId, studentProfileId);
         if (access.readOnly()) throw new ForbiddenOperationException("This conversation is read-only for the authenticated account.");
-        validateReplySchoolContext(actor, access.conversation());
+        validateConversationAccess(actor, access.conversation(), access.viewingAccountId(), false);
         DirectMessage message = messageRepository.findByIdAndConversationId(messageId, conversationId)
                 .orElseThrow(() -> new ResourceNotFoundException("Message not found with id: " + messageId));
         if (!Objects.equals(message.getSender().getId(), actorId)) {
@@ -367,6 +401,7 @@ public class MessageService {
     public AttachmentDownload downloadAttachment(Long actorId, Long conversationId, Long messageId, Long attachmentId, Long studentProfileId) {
         UserAccount actor = requireActiveAccount(actorId);
         Access access = findConversationAccess(actor, conversationId, studentProfileId);
+        validateConversationAccess(actor, access.conversation(), access.viewingAccountId(), access.readOnly());
         DirectMessage message = messageRepository.findByIdAndConversationId(messageId, conversationId)
                 .orElseThrow(() -> new ResourceNotFoundException("Message not found with id: " + messageId));
         DirectMessageAttachment attachment = attachmentRepository.findByIdAndMessageId(attachmentId, messageId)
@@ -394,27 +429,80 @@ public class MessageService {
         return new Access(conversation, actor.getId(), false);
     }
 
-    private void validateReplySchoolContext(UserAccount actor, MessageConversation conversation) {
-        UserAccount other = conversation.otherParticipant(actor.getId());
+    private boolean canViewConversation(UserAccount actor, MessageConversation conversation,
+                                        Long viewingAccountId, boolean readOnly) {
+        try {
+            validateConversationAccess(actor, conversation, viewingAccountId, readOnly);
+            return true;
+        } catch (ForbiddenOperationException | ResourceNotFoundException | IllegalArgumentException exception) {
+            return false;
+        }
+    }
+
+    private void validateConversationAccess(UserAccount actor, MessageConversation conversation,
+                                            Long viewingAccountId, boolean readOnly) {
+        if (viewingAccountId == null || !conversation.hasParticipant(viewingAccountId)) {
+            throw new ResourceNotFoundException("Conversation not found with id: " + conversation.getId());
+        }
+        UserAccount other = conversation.otherParticipant(viewingAccountId);
         if (!other.isActive()) throw new ResourceNotFoundException("Conversation not found with id: " + conversation.getId());
+
+        if (readOnly) {
+            UserAccount viewingAccount = userAccountRepository.findById(viewingAccountId)
+                    .filter(UserAccount::isActive)
+                    .filter(account -> account.getRole() == UserRole.STUDENT)
+                    .orElseThrow(() -> new ResourceNotFoundException("Conversation not found with id: " + conversation.getId()));
+            if (actor.getRole() != UserRole.PARENT) {
+                throw new ForbiddenOperationException("Read-only conversation access is only available to a linked parent.");
+            }
+            StudentProfile child = conversation.getStudentProfile();
+            if (child == null || child.getSchool().getEducationLevel() != SchoolLevel.HIGH_SCHOOL
+                    || !child.getSchool().getId().equals(conversation.getSchool().getId())
+                    || !viewingAccount.getId().equals(child.getUserAccount() == null ? null : child.getUserAccount().getId())) {
+                throw new ResourceNotFoundException("Conversation not found with id: " + conversation.getId());
+            }
+            requireLinkedActiveChild(actor.getId(), child.getId());
+            requireStaffInSchool(other, child.getSchool().getId());
+            return;
+        }
+
         if (actor.getRole() == UserRole.SUPERADMIN) {
             if (other.getRole() != UserRole.SCHOOL_ADMIN && other.getRole() != UserRole.SCHOOL_VICE_ADMIN) throw new ForbiddenOperationException("Superadmin support conversation is not permitted.");
             if (!conversation.getSchool().getId().equals(requireSchoolMembership(other.getId()).getSchool().getId())) throw new ForbiddenOperationException("Conversation school context is invalid.");
+            if (conversation.getStudentProfile() != null) throw new ForbiddenOperationException("Superadmin support conversations cannot use student context.");
             return;
         }
-        if (actor.getRole() == UserRole.PARENT || actor.getRole() == UserRole.STUDENT) {
-            StudentProfile profile = conversation.getStudentProfile();
-            if (profile == null || !profile.getSchool().getId().equals(conversation.getSchool().getId())) throw new ForbiddenOperationException("Conversation student context is invalid.");
-            if (actor.getRole() == UserRole.PARENT && (profile.getParentProfile() == null || !profile.getParentProfile().getUserAccount().getId().equals(actor.getId()))) throw new ForbiddenOperationException("The selected child is not linked to this parent account.");
-            if (actor.getRole() == UserRole.STUDENT && (profile.getUserAccount() == null || !profile.getUserAccount().getId().equals(actor.getId()))) throw new ForbiddenOperationException("Conversation does not belong to this student account.");
+
+        if (actor.getRole() == UserRole.PARENT) {
+            StudentProfile context = conversation.getStudentProfile();
+            if (context == null || !context.getSchool().getId().equals(conversation.getSchool().getId())) {
+                throw new ResourceNotFoundException("Conversation not found with id: " + conversation.getId());
+            }
+            StudentProfile child = requireLinkedActiveChild(actor.getId(), context.getId());
+            requireStaffInSchool(other, child.getSchool().getId());
             return;
         }
+
+        if (actor.getRole() == UserRole.STUDENT) {
+            StudentProfile student = studentProfileRepository.findByUserAccountId(actor.getId())
+                    .filter(StudentProfile::isActive)
+                    .orElseThrow(() -> new ResourceNotFoundException("Student profile not found."));
+            StudentProfile context = conversation.getStudentProfile();
+            if (context == null || !context.getId().equals(student.getId())
+                    || !student.getSchool().getId().equals(conversation.getSchool().getId())) {
+                throw new ResourceNotFoundException("Conversation not found with id: " + conversation.getId());
+            }
+            requireStaffInSchool(other, student.getSchool().getId());
+            return;
+        }
+
         SchoolMembership membership = requireSchoolMembership(actor.getId());
         if (!membership.getSchool().getId().equals(conversation.getSchool().getId())) throw new ForbiddenOperationException("Conversation is outside the authenticated user's school.");
         if (conversation.getStudentProfile() != null) {
-            if (!conversation.getStudentProfile().isActive()) throw new ResourceNotFoundException("Conversation not found with id: " + conversation.getId());
-            UserAccount expectedRecipient = effectiveStudentRecipient(conversation.getStudentProfile());
-            if (expectedRecipient == null || !expectedRecipient.getId().equals(other.getId())) throw new ForbiddenOperationException("Conversation student recipient is invalid.");
+            StudentProfile student = conversation.getStudentProfile();
+            if (!student.isActive() || !student.getSchool().getId().equals(conversation.getSchool().getId())) throw new ResourceNotFoundException("Conversation not found with id: " + conversation.getId());
+            try { validateStudentContextRecipient(student, other); }
+            catch (ResourceNotFoundException exception) { throw new ForbiddenOperationException("Conversation student recipient is invalid."); }
             return;
         }
         if (other.getRole() == UserRole.SUPERADMIN) {
@@ -422,7 +510,8 @@ public class MessageService {
             if (!membership.getSchool().getId().equals(conversation.getSchool().getId())) throw new ForbiddenOperationException("Support conversation school context is invalid.");
             return;
         }
-        if ((actor.getRole() == UserRole.TEACHER && other.getRole() != UserRole.SCHOOL_ADMIN && other.getRole() != UserRole.SCHOOL_VICE_ADMIN)
+        requireStaffInSchool(other, conversation.getSchool().getId());
+        if ((actor.getRole() == UserRole.TEACHER && !STAFF_ROLES.contains(other.getRole()))
                 || ((actor.getRole() == UserRole.SCHOOL_ADMIN || actor.getRole() == UserRole.SCHOOL_VICE_ADMIN)
                 && other.getRole() != UserRole.TEACHER && other.getRole() != UserRole.STUDENT && other.getRole() != UserRole.PARENT)) {
             throw new ForbiddenOperationException("This account role cannot reply in this conversation.");
@@ -436,7 +525,7 @@ public class MessageService {
         }
         requireStaffInSchool(recipient, schoolId);
         boolean permitted = actor.getRole() == UserRole.TEACHER
-                ? recipient.getRole() == UserRole.SCHOOL_ADMIN || recipient.getRole() == UserRole.SCHOOL_VICE_ADMIN
+                ? STAFF_ROLES.contains(recipient.getRole())
                 : recipient.getRole() == UserRole.TEACHER;
         if (!permitted) throw new IllegalArgumentException("This recipient role is not permitted for the authenticated account.");
     }
@@ -461,6 +550,16 @@ public class MessageService {
                 ? student.getUserAccount()
                 : student.getParentProfile() == null ? null : student.getParentProfile().getUserAccount();
         return account != null && account.isActive() ? account : null;
+    }
+
+    private void validateStudentContextRecipient(StudentProfile student, UserAccount recipient) {
+        if (student.getUserAccount() != null && student.getUserAccount().isActive()
+                && student.getUserAccount().getId().equals(recipient.getId())) return;
+        ParentProfile parent = student.getParentProfile();
+        UserAccount parentAccount = parent == null ? null : parent.getUserAccount();
+        if (parentAccount != null && parentAccount.isActive()
+                && parentAccount.getId().equals(recipient.getId())) return;
+        throw new ResourceNotFoundException("Message recipient is not linked to the selected active student in your school.");
     }
 
     private SchoolMembership requireSchoolMembership(Long accountId) {
@@ -512,8 +611,14 @@ public class MessageService {
         long unread = readOnly ? 0 : messageRepository.countUnreadForParticipant(conversation.getId(), viewingParticipantId);
         String latest = messageRepository.findFirstByConversationIdOrderByCreatedAtDescIdDesc(conversation.getId())
                 .map(DirectMessage::getBody).orElse(null);
-        return messageMapper.toConversationResponse(conversation, other, displayName(other), studentName, readOnly,
+        return messageMapper.toConversationResponse(conversation, other, displayName(other), appearance(other.getId()), studentName, readOnly,
                 unread, latest);
+    }
+
+    private AccountAppearanceResponse appearance(Long accountId) {
+        return appearanceRepository.findById(accountId)
+                .map(value -> new AccountAppearanceResponse(value.getAvatarType(), value.getAnimal(), value.getImageDataUrl()))
+                .orElseGet(() -> new AccountAppearanceResponse("INITIALS", null, null));
     }
 
     private record Access(MessageConversation conversation, Long viewingAccountId, boolean readOnly) { }

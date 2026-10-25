@@ -29,7 +29,7 @@ public class AccountProfileController {
         this.accountProfileService = accountProfileService;
     }
 
-    @GetMapping("/me")
+    @GetMapping("/user")
     public ResponseEntity<MyProfileResponse> getMyProfile(@AuthenticationPrincipal Jwt jwt) {
         Long accountId = Long.valueOf(jwt.getSubject());
         return ResponseEntity.ok(accountProfileService.getMyProfile(accountId));

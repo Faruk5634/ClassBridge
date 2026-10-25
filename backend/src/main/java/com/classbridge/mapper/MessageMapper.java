@@ -5,6 +5,7 @@ import com.classbridge.domain.MessageConversation;
 import com.classbridge.domain.StudentProfile;
 import com.classbridge.domain.UserAccount;
 import com.classbridge.dto.ConversationResponse;
+import com.classbridge.dto.AccountAppearanceResponse;
 import com.classbridge.dto.DirectMessageResponse;
 import com.classbridge.dto.MessageAttachmentResponse;
 import com.classbridge.dto.MessageRecipientResponse;
@@ -13,10 +14,9 @@ import org.springframework.stereotype.Component;
 @Component
 public class MessageMapper {
 
-    public MessageRecipientResponse toStudentRecipient(StudentProfile student) {
-        return new MessageRecipientResponse(null,
-                student.getUserAccount() == null ? com.classbridge.domain.UserRole.PARENT : com.classbridge.domain.UserRole.STUDENT,
-                student.getFirstName() + " " + student.getLastName(), student.getId(), student.getSchoolNumber(), student.getSchool().getId());
+    public MessageRecipientResponse toStudentRecipient(StudentProfile student, UserAccount recipient, String displayName) {
+        return new MessageRecipientResponse(recipient.getId(), recipient.getRole(), displayName,
+                student.getId(), student.getSchoolNumber(), student.getSchool().getId());
     }
 
     public MessageRecipientResponse toAccountRecipient(UserAccount account, String displayName, Long schoolId) {
@@ -24,12 +24,12 @@ public class MessageMapper {
     }
 
     public ConversationResponse toConversationResponse(MessageConversation conversation, UserAccount otherParticipant,
-                                                       String otherDisplayName, String studentDisplayName,
+                                                       String otherDisplayName, AccountAppearanceResponse otherAppearance, String studentDisplayName,
                                                        boolean readOnly, long unreadCount, String latestMessage) {
         StudentProfile student = conversation.getStudentProfile();
         return new ConversationResponse(conversation.getId(), conversation.getSchool().getId(),
                 student == null ? null : student.getId(), studentDisplayName,
-                otherParticipant.getId(), otherDisplayName, otherParticipant.getRole(), readOnly,
+                otherParticipant.getId(), otherDisplayName, otherParticipant.getRole(), otherAppearance, readOnly,
                 unreadCount, latestMessage, conversation.getCreatedAt(), conversation.getLastMessageAt());
     }
 

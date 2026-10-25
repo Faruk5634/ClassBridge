@@ -20,18 +20,18 @@ Represents one school using ClassBridge.
 Represents login credentials and shared identity information.
 
 - Stores shared identity and account information, including the globally unique username, securely stored password hash, exactly one role, shared contact details, and account status.
-- Email and phone remain optional; `emailVerified` records whether ownership of the current email address has been confirmed. `credentialVersion` is incremented on password recovery to invalidate previously issued JWTs.
+- Email and phone remain optional; `emailVerified` records whether ownership of the current email address has been confirmed. `credentialVersion` is incremented on password changes and password recovery to invalidate previously issued JWTs.
 - Passwords are never stored or logged in plain text in the database, project files, or any other persistent storage; only the one-way BCrypt hash is persisted.
 - Whenever an authorized administrator creates a login-enabled account, the system generates a cryptographically secure random initial password.
 - The generated initial password is returned only once in the successful creation response to the administrator who created the account (the Superadmin for school administrator and vice-administrator accounts; the school administrator or vice-administrator for teacher, parent, and high-school student accounts). It cannot be retrieved after that response is lost; an authorized password-reset flow is required for recovery.
 - Users are not forced to change the initial password on first login, and no forced password change flag is stored on the account. An informational reminder to review credentials may be displayed, but it does not block navigation.
 - Users may change their password after signing in through an authenticated account flow.
-- Password changes verify the current password and store only a new BCrypt hash. New passwords must contain 8–20 characters and fit BCrypt's 72-byte UTF-8 maximum; already-issued JWTs are not revoked before their normal expiration.
+- Password changes verify the current password and store only a new BCrypt hash. New passwords must contain 8–20 characters and fit BCrypt's 72-byte UTF-8 maximum; successful changes increment `credentialVersion` and immediately revoke existing JWTs.
 - Email and phone number remain optional account contact fields. A contact method can be used for self-service password recovery only after ownership has been verified.
 - Self-service password recovery uses a cryptographically secure, single-use six-digit code that expires after 30 minutes. Only a BCrypt hash of the code is stored; requests are rate-limited, each code allows at most five confirmation attempts, and request responses do not reveal whether an account exists.
 - Email is the first supported recovery channel and requires a verified address. SMS recovery may be added later. Accounts without a verified recovery channel use an authorized administrator-assisted reset flow.
-- A successful password reset invalidates previously issued access tokens; a normal authenticated password change leaves existing tokens valid until their normal expiration.
-- An authenticated user can read their own safe profile, including role-bound first and last name fields, through `GET /api/auth/me`. Users can update their own phone number through `PUT /api/auth/phone`; email changes remain on the verification-controlled flow.
+- A successful password reset or authenticated password change invalidates previously issued access tokens by incrementing `credentialVersion`.
+- An authenticated user can read their own safe profile, including role-bound first and last name fields, through `GET /api/auth/user`. Users can update their own phone number through `PUT /api/auth/phone`; email changes remain on the verification-controlled flow.
 - Self-service profile operations cannot change first name, last name, username, role, or school relationships. School administrators and vice-administrators can correct active student profile fields within their own school; archived student profiles cannot be edited.
 - If self-service recovery is unavailable, a Superadmin can reset a school administrator or vice-administrator account. A school administrator or vice-administrator can reset eligible teacher, active student, or parent accounts connected to their own school. The generated temporary password is returned once to that administrator; for a parent account reused across schools, the new credential applies to the single shared account everywhere.
 - A single account cannot combine roles. If one person needs both teacher and parent access, they use two separate accounts with separate usernames and credentials.
@@ -158,16 +158,24 @@ Represents metadata for a file attached to an announcement.
 
 ### DirectMessage
 
-Represents one text message inside a private `MessageConversation`.
+Represents one message inside a private `MessageConversation`.
 
-- Stores the actual sender account, text body, sent time, and the message's read/unread state for its intended recipient. It has no subject; conversation replies are represented as additional messages in the same conversation.
+- Stores the actual sender account, text body, sent time, and the message's read/unread state for its intended recipient. A message may have file attachments. It has no subject; conversation replies are represented as additional messages in the same conversation.
 - A conversation stores its participants, school context where applicable, and optional selected `StudentProfile` context. It can contain multiple messages, and the same participants may have multiple distinct conversations.
 - Parent messages remain authored by the parent account and are never sent as the student's account. The selected child supplies and validates school context.
 - For primary/middle-school students, the linked parent is the actual account participant for staff-to-student-context conversations; the child profile is retained as context and the parent can reply in that conversation.
 - For high-school students, student/staff conversations belong to the student and staff participants. A linked parent may read them through the selected child's view but cannot reply or otherwise participate; this read-only access does not change the student's unread status. A conversation started by the parent is separate, parent-authored, and not visible to the student.
-- Staff may start student-context conversations only for active students in their own school, regardless of classroom teaching assignment. The account recipient is the high-school student or, for primary/middle school, the linked parent.
+- Staff may start student-context conversations only for active students in their own school, regardless of classroom teaching assignment. The normal account recipient is the high-school student or, for primary/middle school, the linked parent. Teachers may also contact other teachers in the same school and may contact a linked parent only with the matching student context.
 - Superadmin support conversations retain the school context and are limited to Superadmin and that school's school administrators/vice-administrators. Teachers and school administrators/vice-administrators may also communicate within the same school.
-- Messaging is asynchronous and in-app. The first version is text-only, has no real-time delivery, and sends no email or push notifications. Read/unread state is in-app.
+- Messaging is asynchronous and in-app, has no real-time delivery, and sends no email or push notifications. Read/unread state is in-app. Permitted non-teacher senders can attach files to messages; teachers send text-only direct messages. Attachment access is checked against the current conversation and child context.
+
+### DirectMessageAttachment
+
+Represents a private file attached to one `DirectMessage`.
+
+- Stores the message relationship and safe display metadata (`display_filename`, `content_type`, `file_size`, and `created_at`) alongside a server-generated storage key. File bytes stay outside the database.
+- A message may have zero or more attachments. Deleting a message deletes its attachment metadata; storage cleanup is handled by the attachment storage lifecycle.
+- Upload and download authorization is evaluated against the sender, current conversation access, school membership, and selected child context. Teacher accounts cannot upload message attachments in the first version.
 
 ## 2. Relationship overview
 
@@ -185,6 +193,7 @@ Classroom * ─── 1 HomeroomTeacher (UserAccount with TEACHER role)
 Announcement * ─── * Classroom
 Announcement 1 ─── * AnnouncementAttachment
 MessageConversation 1 ─── * DirectMessage
+DirectMessage 1 ─── * DirectMessageAttachment
 DirectMessage * ─── 1 Sender UserAccount
 MessageConversation * ─── 2 permitted participants (account identities)
 MessageConversation 0..1 ─── 1 School (school communication context)

@@ -73,6 +73,13 @@ public class AnnouncementController {
         return ResponseEntity.ok(announcements);
     }
 
+    @GetMapping("/created-by-user")
+    public ResponseEntity<List<AnnouncementResponse>> getTeacherAnnouncementHistory(@AuthenticationPrincipal Jwt jwt) {
+        Long teacherAccountId = Long.valueOf(jwt.getSubject());
+        List<AnnouncementResponse> announcements = announcementService.getTeacherAnnouncementHistory(teacherAccountId);
+        return ResponseEntity.ok(announcements);
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<AnnouncementResponse> getSchoolAnnouncement(
             @AuthenticationPrincipal Jwt jwt,

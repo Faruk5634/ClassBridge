@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useState } from 'react'
 import LoginExperience, { type CampusRole, type EntryPortal, type ThemeMode } from './LoginExperience'
 import TeacherWorkspacePreview from './TeacherWorkspacePreview'
-import CampusMemberWorkspace from './CampusMemberWorkspace'
+import StudentWorkspace from './StudentWorkspace'
+import ParentWorkspace from './ParentWorkspace'
+import { fetchDeduplicated, invalidateCachedGetRequests } from './apiClient'
 
 type LoginResponse = { accessToken: string }
 type AccountProfile = {
@@ -17,7 +19,7 @@ type AccountProfile = {
 type EntryRoute = { portal: EntryPortal | null; role: CampusRole | null }
 type EntryHistoryState = { classBridgeEntryDepth?: number }
 type TeacherSession = { accessToken: string; profile: AccountProfile }
-type MemberSession = { accessToken: string; profile: AccountProfile & { role: 'PARENT' | 'STUDENT' } }
+type MemberSession = { accessToken: string; profile: Omit<AccountProfile, 'role'> & { role: 'PARENT' | 'STUDENT' } }
 
 const TOKEN_KEY = 'classbridge.accessToken'
 const THEME_KEY = 'classbridge.theme'
@@ -27,6 +29,7 @@ function readEntryRoute(): EntryRoute {
   if (route === 'management') return { portal: 'management', role: null }
   if (route === 'campus') return { portal: 'campus', role: null }
   if (route === 'teacher-preview') return { portal: 'campus', role: 'TEACHER' }
+  if (route === 'student-preview') return { portal: 'campus', role: 'STUDENT' }
   const campusRole = route.match(/^campus\/(parent|student|teacher)(?:\/.*)?$/)?.[1]
   if (campusRole) return { portal: 'campus', role: campusRole.toUpperCase() as CampusRole }
   return { portal: null, role: null }
@@ -56,12 +59,9 @@ export default function App() {
 
   useEffect(() => {
     const token = sessionStorage.getItem(TOKEN_KEY)
-    if (!token) {
-      setAuthStage('anonymous')
-      return
-    }
+    if (!token) return
     let active = true
-    fetch('/api/auth/me', { headers: { Authorization: 'Bearer ' + token } })
+    fetchDeduplicated('/api/auth/user', { headers: { Authorization: 'Bearer ' + token } })
       .then(async (response) => {
         if (!response.ok) throw new Error('Session could not be restored.')
         return await response.json() as AccountProfile
@@ -132,6 +132,8 @@ export default function App() {
   }
 
   const endTeacherSession = useCallback(() => {
+    const token = sessionStorage.getItem(TOKEN_KEY)
+    if (token) invalidateCachedGetRequests('Bearer ' + token)
     sessionStorage.removeItem(TOKEN_KEY)
     setTeacherSession(null)
     setAuthStage('anonymous')
@@ -143,6 +145,8 @@ export default function App() {
 
   const endMemberSession = useCallback(() => {
     const role = memberSession?.profile.role ?? selectedRole ?? 'STUDENT'
+    const token = sessionStorage.getItem(TOKEN_KEY)
+    if (token) invalidateCachedGetRequests('Bearer ' + token)
     sessionStorage.removeItem(TOKEN_KEY)
     setMemberSession(null)
     setAuthStage('anonymous')
@@ -171,7 +175,7 @@ export default function App() {
         setLoginError('ClassBridge could not start your session. Please try again.')
         return
       }
-      const profileResponse = await fetch('/api/auth/me', {
+      const profileResponse = await fetchDeduplicated('/api/auth/user', {
         headers: { Authorization: 'Bearer ' + login.accessToken },
       })
       if (!profileResponse.ok) {
@@ -222,11 +226,23 @@ export default function App() {
   }
 
   if (authStage === 'member' && memberSession) {
+    if (memberSession.profile.role === 'STUDENT') {
+      return (
+        <StudentWorkspace
+          theme={theme}
+          token={memberSession.accessToken}
+          profile={memberSession.profile}
+          onToggleTheme={() => setTheme((current) => current === 'light' ? 'dark' : 'light')}
+          onSignOut={endMemberSession}
+          onSessionExpired={endMemberSession}
+        />
+      )
+    }
     return (
-      <CampusMemberWorkspace
+      <ParentWorkspace
         theme={theme}
         token={memberSession.accessToken}
-        profile={memberSession.profile}
+        profile={{ ...memberSession.profile, role: 'PARENT' }}
         onToggleTheme={() => setTheme((current) => current === 'light' ? 'dark' : 'light')}
         onSignOut={endMemberSession}
         onSessionExpired={endMemberSession}

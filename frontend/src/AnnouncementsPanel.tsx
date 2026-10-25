@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { fetchDeduplicated } from './apiClient'
 
 type UserRole = 'SUPERADMIN' | 'SCHOOL_ADMIN' | 'SCHOOL_VICE_ADMIN' | 'TEACHER' | 'PARENT' | 'STUDENT'
 
@@ -61,7 +62,7 @@ export default function AnnouncementsPanel({ token, role }: Props) {
       setIsLoadingChildren(true)
       setError('')
       try {
-        const response = await fetch('/api/parent/children', {
+        const response = await fetchDeduplicated('/api/parent/children', {
           headers: { Authorization: `Bearer ${token}` },
         })
         if (!response.ok) throw new Error('We could not load your linked students.')
@@ -97,7 +98,7 @@ export default function AnnouncementsPanel({ token, role }: Props) {
           : '/api/announcements'
 
       try {
-        const response = await fetch(path, {
+        const response = await fetchDeduplicated(path, {
           headers: { Authorization: `Bearer ${token}` },
         })
         if (!response.ok) throw new Error('We could not load announcements. Please try again.')
