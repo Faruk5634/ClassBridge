@@ -24,7 +24,7 @@ Represents login credentials and shared identity information.
 - Passwords are never stored or logged in plain text in the database, project files, or any other persistent storage; only the one-way BCrypt hash is persisted.
 - Whenever an authorized administrator creates a login-enabled account, the system generates a cryptographically secure random initial password.
 - The generated initial password is returned only once in the successful creation response to the administrator who created the account (the Superadmin for school administrator and vice-administrator accounts; the school administrator or vice-administrator for teacher, parent, and high-school student accounts). It cannot be retrieved after that response is lost; an authorized password-reset flow is required for recovery.
-- Users are not forced to change the initial password on first login, and no forced password change flag is stored on the account. An informational reminder to review credentials may be displayed, but it does not block navigation.
+- Newly created teachers and high-school students must change their generated initial password before using the rest of the application. Administrator resets for teachers and high-school students also require a password change before navigation; the requirement is stored on the account and enforced by the API as well as the interface. Parent accounts follow their role-specific credential policy.
 - Users may change their password after signing in through an authenticated account flow.
 - Password changes verify the current password and store only a new BCrypt hash. New passwords must contain 8–20 characters and fit BCrypt's 72-byte UTF-8 maximum; successful changes increment `credentialVersion` and immediately revoke existing JWTs.
 - Email and phone number remain optional account contact fields. A contact method can be used for self-service password recovery only after ownership has been verified.
@@ -33,12 +33,12 @@ Represents login credentials and shared identity information.
 - A successful password reset or authenticated password change invalidates previously issued access tokens by incrementing `credentialVersion`.
 - An authenticated user can read their own safe profile, including role-bound first and last name fields, through `GET /api/auth/user`. Users can update their own phone number through `PUT /api/auth/phone`; email changes remain on the verification-controlled flow.
 - Self-service profile operations cannot change first name, last name, username, role, or school relationships. School administrators and vice-administrators can correct active student profile fields within their own school; archived student profiles cannot be edited.
-- If self-service recovery is unavailable, a Superadmin can reset a school administrator or vice-administrator account. A school administrator or vice-administrator can reset eligible teacher, active student, or parent accounts connected to their own school. The generated temporary password is returned once to that administrator; for a parent account reused across schools, the new credential applies to the single shared account everywhere.
+- If self-service recovery is unavailable, a Superadmin can reset a school administrator or vice-administrator account. A school administrator or vice-administrator can reset eligible teacher, active student, or parent accounts connected to or registered with their own school. The generated temporary password is returned once to that administrator. A parent account is shared across schools, so resetting it changes sign-in credentials for the whole family account.
 - A single account cannot combine roles. If one person needs both teacher and parent access, they use two separate accounts with separate usernames and credentials.
 - Role-specific information belongs in the corresponding profile or relationship records rather than being duplicated in `UserAccount`. Examples include staff member names in `StaffProfile`, a student's school number and class assignment in `StudentProfile`, and parent-to-student links.
 - Roles: `SUPERADMIN`, `SCHOOL_ADMIN`, `SCHOOL_VICE_ADMIN`, `TEACHER`, `PARENT`, and `STUDENT`.
 - Superadmin accounts are platform-wide.
-- A parent account may be linked to children in one or more schools; school access is derived from the linked child rather than assigning the parent to only one school. A parent account may be linked to multiple students, including students from different schools. A student may have at most one linked parent account in the first version.
+- A parent account may be registered in multiple school directories and linked to students across multiple schools. Registration is directory metadata; it does not grant access to student data. A student may have at most one linked parent account in the first version.
 - Every high-school student receives a student login account (`UserAccount` with `STUDENT` role) upon enrollment. Primary- and middle-school students do not have login accounts or credentials.
 
 ### AccountRecoveryToken
@@ -63,7 +63,12 @@ Represents profile information for school staff members.
 
 - Has a one-to-one relationship with `UserAccount`.
 - Stores the staff member's required `firstName` and `lastName`.
+- Stores the teacher's optional `branch` (subject/discipline).
 - Applies to `SCHOOL_ADMIN`, `SCHOOL_VICE_ADMIN`, and `TEACHER` accounts.
+- School administrators and vice-administrators can list, create, update teacher names and branch, archive, and restore teacher accounts in their own school. Teacher profile edits do not change the login username, contact details, or school membership.
+- A teacher with homeroom classrooms cannot be archived until each classroom is assigned to another active teacher or left unassigned. Archived teachers cannot be assigned as homeroom teachers.
+- Archiving a teacher disables the account and advances its credential version. A teacher cannot be archived while assigned as a classroom's homeroom teacher; the classroom must first be reassigned to another active teacher or left unassigned. Restoring an archived teacher re-enables the account and advances its credential version.
+- Teacher creation and administrator-assisted teacher password resets return a generated temporary password once and require the teacher to change it before entering the workspace. The password itself is never stored or logged.
 - The existing `SchoolMembership` remains responsible for linking each school staff account to exactly one school; do not duplicate the school relationship in `StaffProfile`.
 - Shared contact details such as email and phone number remain in `UserAccount`; do not duplicate them in `StaffProfile`.
 - `SUPERADMIN`, `PARENT`, and `STUDENT` accounts do not use `StaffProfile`.
@@ -77,12 +82,15 @@ Represents profile information for parents and guardians.
 - Has a one-to-one relationship with `UserAccount` where `role = PARENT`.
 - Stores the parent's required `firstName` and `lastName`.
 - Shared contact details such as email and phone number remain in `UserAccount`; do not duplicate them in `ParentProfile`.
-- A parent account has no direct `SchoolMembership`. All school access is derived exclusively through linked student profiles.
+- A parent account has no direct `SchoolMembership`. Access to student data is derived exclusively through linked student profiles. A separate school registration record may include the account in that school's parent directory and allow the school to link it during enrollment; registration alone grants no access to student data.
 - A parent account may be linked to multiple students across multiple schools. A student may have at most one linked parent account in the first version.
-- **Enrollment workflow:** When enrolling a student, school staff first ask whether the parent already has a ClassBridge account.
-  - If one exists, school staff link the student profile to that existing parent account using the parent's exact, globally unique username. This allows reusing the same parent account for children attending different schools or school levels.
-  - If no account exists, an authorized school administrator or vice-administrator creates the parent `UserAccount` and `ParentProfile` before linking the student.
-  - Newly created parent accounts follow the standard initial-password policy: the system generates a cryptographically secure password, stores only the BCrypt hash, and returns the plain-text password once to the creating administrator (never logged or persisted).
+- **Enrollment workflow:** When enrolling a student, school staff can select an existing parent account by its globally unique username or create a new parent account, then link the student profile to it. The same parent account can be linked to children at different schools. An authorized school administrator or vice-administrator creates any new parent `UserAccount` and `ParentProfile` before linking the student.
+  - Newly created parent accounts follow the standard initial-password policy: the system generates a cryptographically secure password, stores only the BCrypt hash, and returns the plain-text password once to the creating administrator (never logged or persisted). Parents must replace this temporary password before navigating the workspace.
+  - When a parent already has a ClassBridge account, the school can register that exact username in its local parent directory after confirming the account name with the family. This directory registration alone grants no student access; the parent must still be explicitly linked to each student.
+
+### ParentSchoolRegistration
+
+Represents that a school administrator registered a shared parent account in a school's directory. It records the school, parent profile, creating administrator, and timestamp. Registration supports local directory management and enrollment; it does not grant parent access to children or announcements without an active student-to-parent link. The school can correct the parent's name. A password reset initiated by a school applies to the shared account and should be limited to an account associated with that school through a registration or active student link.
 
 ### StudentProfile
 
@@ -91,13 +99,14 @@ Represents an enrolled student at a specific school.
 - Every enrolled student has a `StudentProfile`, including primary-, middle-, and high-school students.
 - A `StudentProfile` is not itself a login account.
 - **Data minimization:** Stores only the student's required `firstName`, `lastName`, `schoolNumber`, `school`, current `classroom`, parent association (required for primary/middle school, optional for high school), student login account reference (for high-school students), and active/inactive enrollment status (`active`). Date of birth, home address, and national identity number are not collected in the first version.
+- High-school student email and phone are optional fields on the linked `UserAccount`. They are returned in the school administrator's student detail response and omitted from roster-list responses.
 - The student's current grade level is derived from the assigned classroom's `gradeLevel`; it is not duplicated in `StudentProfile`.
 - `schoolNumber` is modeled as text up to 50 characters to preserve leading zeros, and is unique within a school (enforced by a composite unique constraint on `(school_id, school_number)`).
 - Student profiles are retained as inactive/archived records when a student leaves a school. A new school enrollment creates a separate `StudentProfile`. Only the current classroom assignment is stored on an active profile; class membership history, academic-year tracking, and automatic promotion/transfer processing remain out of scope for the first version. Archived school enrollment profiles are explicitly retained rather than being out of scope.
 - **Enrollment rules:**
   - School administrators and vice-administrators enroll students only for their own school, deriving the school from the administrator's membership. The assigned classroom must belong to that school and have a grade level valid for the school's level.
-  - For primary- and middle-school students: student login accounts are prohibited; linking a valid, active parent account with an existing `ParentProfile` is required.
-  - For high-school students: a student login account (`UserAccount` with `STUDENT` role) is created with a globally unique username and a one-time generated initial password under the standard credential policy; linking an existing parent account is optional.
+  - For primary- and middle-school students: student login accounts are prohibited; linking a valid, active parent account with an existing `ParentProfile` is required. The parent account may already be linked to children at other schools.
+  - For high-school students: a student login account (`UserAccount` with `STUDENT` role) is created with a globally unique username, optional email and phone, and a one-time generated initial password. The account must change that password before using the workspace; linking an existing parent account is optional.
   - The student profile and (for high-school students) student login account are created atomically in a single transaction.
 - **Student login and parent association rules:**
   - **Primary- and middle-school students:** Primary- and middle-school `StudentProfile` records have no linked student `UserAccount` and no login credentials. Their parent association is required.
@@ -105,6 +114,7 @@ Represents an enrolled student at a specific school.
 - **Leaving, updating, or archiving student profiles:**
   - School administrators and vice-administrators can update an active student's `schoolNumber`, `firstName`, `lastName`, and current `classroom` within their school. The classroom must belong to the school and have a grade level valid for the school level. The school number must be unique within the school (the profile may keep its own current number). Editing archived student profiles is prohibited.
   - Archiving a student profile is a soft archive setting `active = false` (idempotent). In the same transaction, any linked high-school student login account is deactivated (`isActive = false`) so it can no longer authenticate. The linked parent account is not deactivated or modified. All entity relationships (school, classroom, parent, and student account) are preserved.
+  - A school administrator or vice-administrator can restore an archived profile in the same school. Restoration sets the profile and its linked student login account active again; the account's credential version is advanced so tokens issued before the archive cannot be reused. The existing password is retained, and the linked parent account is not modified.
   - Student profiles are retained as inactive/archived records when a student leaves a school rather than being permanently deleted.
   - If the student enrolls at a different school or school level, a new, separate `StudentProfile` is created for that school and linked to the existing parent account when applicable. The previous school's profile remains archived.
   - Academic-year tracking, automatic promotion/transfer processing, and class membership history remain out of scope.
@@ -117,7 +127,7 @@ Represents a class within one school.
 - Has a grade level and a section name (for example, 9/A).
 - The combination of school, grade level, and section name is unique.
 - Academic-year tracking is not part of the first version.
-- Has one designated homeroom/advisory teacher.
+- May have one designated homeroom/advisory teacher or remain unassigned.
 - Contains multiple students.
 - Can have multiple subject-teacher assignments.
 
@@ -189,7 +199,7 @@ High-school StudentProfile 1 ─── 1 Student UserAccount (STUDENT role)
 Primary- / Middle-school StudentProfile (no student UserAccount)
 StudentProfile * ─── 0..1 ParentProfile 1 ─── 1 UserAccount (PARENT role)
 UserAccount (Teachers) * ─── * Classroom (through TeachingAssignment)
-Classroom * ─── 1 HomeroomTeacher (UserAccount with TEACHER role)
+Classroom * ─── 0..1 HomeroomTeacher (active UserAccount with TEACHER role)
 Announcement * ─── * Classroom
 Announcement 1 ─── * AnnouncementAttachment
 MessageConversation 1 ─── * DirectMessage
