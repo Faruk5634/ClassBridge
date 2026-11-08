@@ -19,6 +19,11 @@ public interface ClassroomRepository extends JpaRepository<Classroom, Long> {
     List<Classroom> findHomeroomClassrooms(@Param("schoolId") Long schoolId,
                                             @Param("teacherAccountId") Long teacherAccountId);
 
+    @Query("SELECT c FROM Classroom c WHERE c.school.id = :schoolId AND c.homeroomTeacher.id IN :teacherAccountIds " +
+           "ORDER BY c.gradeLevel ASC, c.sectionName ASC")
+    List<Classroom> findHomeroomClassroomsForTeachers(@Param("schoolId") Long schoolId,
+                                                       @Param("teacherAccountIds") List<Long> teacherAccountIds);
+
     Optional<Classroom> findByIdAndSchoolId(Long id, Long schoolId);
 
     boolean existsBySchoolIdAndGradeLevelAndSectionName(Long schoolId, Integer gradeLevel, String sectionName);

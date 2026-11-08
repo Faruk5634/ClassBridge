@@ -23,6 +23,10 @@ public class StudentProfileResponse {
 
     private Long studentUserAccountId;
     private String studentUsername;
+    private String studentEmail;
+    private boolean studentEmailVerified;
+    private String studentPhoneNumber;
+    private boolean mustChangePassword;
 
     public Long getId() {
         return id;
@@ -159,4 +163,20 @@ public class StudentProfileResponse {
     public void setStudentUsername(String studentUsername) {
         this.studentUsername = studentUsername;
     }
+
+    public String getStudentEmail() { return studentEmail; }
+
+    public void setStudentEmail(String studentEmail) { this.studentEmail = studentEmail; }
+
+    public boolean isStudentEmailVerified() { return studentEmailVerified; }
+
+    public void setStudentEmailVerified(boolean studentEmailVerified) { this.studentEmailVerified = studentEmailVerified; }
+
+    public String getStudentPhoneNumber() { return studentPhoneNumber; }
+
+    public void setStudentPhoneNumber(String studentPhoneNumber) { this.studentPhoneNumber = studentPhoneNumber; }
+
+    public boolean isMustChangePassword() { return mustChangePassword; }
+
+    public void setMustChangePassword(boolean mustChangePassword) { this.mustChangePassword = mustChangePassword; }
 }

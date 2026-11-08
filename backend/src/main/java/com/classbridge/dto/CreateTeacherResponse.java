@@ -13,6 +13,7 @@ public class CreateTeacherResponse {
     private String username;
     private String firstName;
     private String lastName;
+    private String branch;
     private UserRole role;
     private String email;
     private String phoneNumber;
@@ -74,6 +75,14 @@ public class CreateTeacherResponse {
 
     public void setLastName(String lastName) {
         this.lastName = lastName;
+    }
+
+    public String getBranch() {
+        return branch;
+    }
+
+    public void setBranch(String branch) {
+        this.branch = branch;
     }
 
     public UserRole getRole() {

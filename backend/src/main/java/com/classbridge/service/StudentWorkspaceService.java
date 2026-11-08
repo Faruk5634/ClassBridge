@@ -24,6 +24,12 @@ public class StudentWorkspaceService {
     public StudentWorkspaceProfileResponse getOwnProfile(Long accountId) {
         StudentProfile student = studentProfileRepository.findActiveByUserAccountId(accountId)
                 .orElseThrow(() -> new ResourceNotFoundException("No active student profile is linked to this account."));
+        if (student.getClassroom().getHomeroomTeacher() == null) {
+            return new StudentWorkspaceProfileResponse(
+                    student.getId(), student.getSchool().getId(), student.getSchool().getName(),
+                    student.getClassroom().getId(), student.getClassroom().getGradeLevel(),
+                    student.getClassroom().getSectionName(), null);
+        }
         Long teacherAccountId = student.getClassroom().getHomeroomTeacher().getId();
         StaffProfile teacher = staffProfileRepository.findByUserAccountId(teacherAccountId).orElse(null);
         String teacherName = teacher == null

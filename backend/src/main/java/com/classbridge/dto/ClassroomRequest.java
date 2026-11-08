@@ -17,8 +17,8 @@ public class ClassroomRequest {
     @Size(max = 20)
     private String sectionName;
 
-    @NotNull
     private Long homeroomTeacherAccountId;
+    private boolean homeroomTeacherAccountIdProvided;
 
     public Integer getGradeLevel() {
         return gradeLevel;
@@ -42,5 +42,10 @@ public class ClassroomRequest {
 
     public void setHomeroomTeacherAccountId(Long homeroomTeacherAccountId) {
         this.homeroomTeacherAccountId = homeroomTeacherAccountId;
+        this.homeroomTeacherAccountIdProvided = true;
+    }
+
+    public boolean isHomeroomTeacherAccountIdProvided() {
+        return homeroomTeacherAccountIdProvided;
     }
 }

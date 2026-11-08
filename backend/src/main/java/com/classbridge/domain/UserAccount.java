@@ -40,6 +40,9 @@ public class UserAccount {
     @Column(name = "credential_version", nullable = false)
     private long credentialVersion;
 
+    @Column(name = "must_change_password", nullable = false)
+    private boolean mustChangePassword;
+
     @Column(name = "phone_number", length = 32)
     private String phoneNumber;
 
@@ -109,6 +112,10 @@ public class UserAccount {
     public void setCredentialVersion(long credentialVersion) {
         this.credentialVersion = credentialVersion;
     }
+
+    public boolean isMustChangePassword() { return mustChangePassword; }
+
+    public void setMustChangePassword(boolean mustChangePassword) { this.mustChangePassword = mustChangePassword; }
 
     public String getPhoneNumber() {
         return phoneNumber;

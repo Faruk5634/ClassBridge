@@ -38,8 +38,8 @@ public class Classroom {
     @Column(name = "section_name", nullable = false, length = 20)
     private String sectionName;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "homeroom_teacher_account_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "homeroom_teacher_account_id")
     private UserAccount homeroomTeacher;
 
     @CreationTimestamp

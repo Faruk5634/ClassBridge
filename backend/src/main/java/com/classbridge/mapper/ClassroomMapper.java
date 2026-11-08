@@ -31,7 +31,9 @@ public class ClassroomMapper {
         response.setSchoolId(classroom.getSchool().getId());
         response.setGradeLevel(classroom.getGradeLevel());
         response.setSectionName(classroom.getSectionName());
-        response.setHomeroomTeacherAccountId(classroom.getHomeroomTeacher().getId());
+        response.setHomeroomTeacherAccountId(classroom.getHomeroomTeacher() == null
+                ? null
+                : classroom.getHomeroomTeacher().getId());
         response.setCreatedAt(classroom.getCreatedAt());
         response.setUpdatedAt(classroom.getUpdatedAt());
         return response;

@@ -18,6 +18,9 @@ public class CreateTeacherRequest {
     @Size(max = 100)
     private String lastName;
 
+    @Size(max = 100)
+    private String branch;
+
     @Email
     @Size(max = 254)
     private String email;
@@ -47,6 +50,14 @@ public class CreateTeacherRequest {
 
     public void setLastName(String lastName) {
         this.lastName = lastName;
+    }
+
+    public String getBranch() {
+        return branch;
+    }
+
+    public void setBranch(String branch) {
+        this.branch = branch;
     }
 
     public String getEmail() {

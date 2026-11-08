@@ -5,6 +5,7 @@ import com.classbridge.domain.AccountAppearance;
 import com.classbridge.domain.StaffProfile;
 import com.classbridge.domain.StudentProfile;
 import com.classbridge.domain.UserAccount;
+import com.classbridge.domain.UserRole;
 import com.classbridge.dto.MyProfileResponse;
 import com.classbridge.dto.AccountAppearanceResponse;
 import com.classbridge.dto.UpdateAccountAppearanceRequest;
@@ -16,6 +17,7 @@ import com.classbridge.repository.StaffProfileRepository;
 import com.classbridge.repository.StudentProfileRepository;
 import com.classbridge.repository.UserAccountRepository;
 import com.classbridge.repository.AccountAppearanceRepository;
+import com.classbridge.repository.SchoolMembershipRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,19 +44,22 @@ public class AccountProfileService {
     private final StudentProfileRepository studentProfileRepository;
     private final AccountProfileMapper accountProfileMapper;
     private final AccountAppearanceRepository accountAppearanceRepository;
+    private final SchoolMembershipRepository schoolMembershipRepository;
 
     public AccountProfileService(UserAccountRepository userAccountRepository,
                                  StaffProfileRepository staffProfileRepository,
                                  ParentProfileRepository parentProfileRepository,
                                  StudentProfileRepository studentProfileRepository,
                                  AccountProfileMapper accountProfileMapper,
-                                 AccountAppearanceRepository accountAppearanceRepository) {
+                                 AccountAppearanceRepository accountAppearanceRepository,
+                                 SchoolMembershipRepository schoolMembershipRepository) {
         this.userAccountRepository = userAccountRepository;
         this.staffProfileRepository = staffProfileRepository;
         this.parentProfileRepository = parentProfileRepository;
         this.studentProfileRepository = studentProfileRepository;
         this.accountProfileMapper = accountProfileMapper;
         this.accountAppearanceRepository = accountAppearanceRepository;
+        this.schoolMembershipRepository = schoolMembershipRepository;
     }
 
     @Transactional(readOnly = true)
@@ -62,6 +67,7 @@ public class AccountProfileService {
         UserAccount account = getActiveAccount(accountId);
         String firstName = null;
         String lastName = null;
+        String schoolName = null;
 
         switch (account.getRole()) {
             case SCHOOL_ADMIN, SCHOOL_VICE_ADMIN, TEACHER -> {
@@ -69,6 +75,11 @@ public class AccountProfileService {
                         .orElseThrow(() -> new ResourceNotFoundException("Profile not found for the authenticated account."));
                 firstName = profile.getFirstName();
                 lastName = profile.getLastName();
+                if (account.getRole() == UserRole.SCHOOL_ADMIN || account.getRole() == UserRole.SCHOOL_VICE_ADMIN) {
+                    schoolName = schoolMembershipRepository.findByUserAccountId(accountId)
+                            .map(membership -> membership.getSchool().getName())
+                            .orElse(null);
+                }
             }
             case PARENT -> {
                 ParentProfile profile = parentProfileRepository.findByUserAccountId(accountId)
@@ -86,7 +97,7 @@ public class AccountProfileService {
             case SUPERADMIN -> { }
         }
 
-        return accountProfileMapper.toResponse(account, firstName, lastName);
+        return accountProfileMapper.toResponse(account, firstName, lastName, schoolName);
     }
 
     @Transactional

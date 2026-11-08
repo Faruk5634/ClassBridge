@@ -64,7 +64,8 @@ public class TeacherClassroomController {
                                                                 @PathVariable Long classroomId) {
         SchoolMembership membership = teacherMembership(jwt);
         Classroom classroom = classroomRepository.findByIdAndSchoolId(classroomId, membership.getSchool().getId())
-                .filter(room -> room.getHomeroomTeacher().getId().equals(membership.getUserAccount().getId()))
+                .filter(room -> room.getHomeroomTeacher() != null
+                        && room.getHomeroomTeacher().getId().equals(membership.getUserAccount().getId()))
                 .orElseThrow(() -> new ResourceNotFoundException("Homeroom classroom not found with id: " + classroomId));
         List<TeacherStudentResponse> students = studentProfileRepository
                 .findActiveBySchoolIdAndClassroomId(membership.getSchool().getId(), classroomId).stream()

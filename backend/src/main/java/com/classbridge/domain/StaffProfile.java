@@ -32,6 +32,9 @@ public class StaffProfile {
     @Column(name = "last_name", nullable = false, length = 100)
     private String lastName;
 
+    @Column(length = 100)
+    private String branch;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
@@ -70,6 +73,14 @@ public class StaffProfile {
 
     public void setLastName(String lastName) {
         this.lastName = lastName;
+    }
+
+    public String getBranch() {
+        return branch;
+    }
+
+    public void setBranch(String branch) {
+        this.branch = branch;
     }
 
     public Instant getCreatedAt() {

@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class AccountProfileMapper {
 
-    public MyProfileResponse toResponse(UserAccount account, String firstName, String lastName) {
+    public MyProfileResponse toResponse(UserAccount account, String firstName, String lastName, String schoolName) {
         return new MyProfileResponse(
                 account.getId(),
                 account.getUsername(),
@@ -16,6 +16,8 @@ public class AccountProfileMapper {
                 lastName,
                 account.getEmail(),
                 account.isEmailVerified(),
-                account.getPhoneNumber());
+                account.getPhoneNumber(),
+                schoolName,
+                account.isMustChangePassword());
     }
 }

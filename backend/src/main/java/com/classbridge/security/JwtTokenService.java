@@ -31,6 +31,7 @@ public class JwtTokenService {
                 .subject(String.valueOf(userAccount.getId()))
                 .claim("role", userAccount.getRole().name())
                 .claim("credential_version", userAccount.getCredentialVersion())
+                .claim("must_change_password", userAccount.isMustChangePassword())
                 .build();
 
         JwsHeader header = JwsHeader.with(MacAlgorithm.HS256).build();

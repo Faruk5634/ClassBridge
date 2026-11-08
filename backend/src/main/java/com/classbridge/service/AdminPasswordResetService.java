@@ -11,6 +11,7 @@ import com.classbridge.exception.ForbiddenOperationException;
 import com.classbridge.exception.ResourceNotFoundException;
 import com.classbridge.repository.AccountRecoveryTokenRepository;
 import com.classbridge.repository.ParentProfileRepository;
+import com.classbridge.repository.ParentSchoolRegistrationRepository;
 import com.classbridge.repository.SchoolMembershipRepository;
 import com.classbridge.repository.StudentProfileRepository;
 import com.classbridge.repository.UserAccountRepository;
@@ -18,6 +19,7 @@ import com.classbridge.security.InitialPasswordGenerator;
 import jakarta.transaction.Transactional;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.time.Instant;
 import java.util.EnumSet;
@@ -35,6 +37,7 @@ public class AdminPasswordResetService {
     private final SchoolMembershipRepository schoolMembershipRepository;
     private final StudentProfileRepository studentProfileRepository;
     private final ParentProfileRepository parentProfileRepository;
+    private final ParentSchoolRegistrationRepository parentSchoolRegistrationRepository;
     private final AccountRecoveryTokenRepository recoveryTokenRepository;
     private final InitialPasswordGenerator initialPasswordGenerator;
     private final PasswordEncoder passwordEncoder;
@@ -43,6 +46,7 @@ public class AdminPasswordResetService {
                                      SchoolMembershipRepository schoolMembershipRepository,
                                      StudentProfileRepository studentProfileRepository,
                                      ParentProfileRepository parentProfileRepository,
+                                     ParentSchoolRegistrationRepository parentSchoolRegistrationRepository,
                                      AccountRecoveryTokenRepository recoveryTokenRepository,
                                      InitialPasswordGenerator initialPasswordGenerator,
                                      PasswordEncoder passwordEncoder) {
@@ -50,6 +54,7 @@ public class AdminPasswordResetService {
         this.schoolMembershipRepository = schoolMembershipRepository;
         this.studentProfileRepository = studentProfileRepository;
         this.parentProfileRepository = parentProfileRepository;
+        this.parentSchoolRegistrationRepository = parentSchoolRegistrationRepository;
         this.recoveryTokenRepository = recoveryTokenRepository;
         this.initialPasswordGenerator = initialPasswordGenerator;
         this.passwordEncoder = passwordEncoder;
@@ -81,13 +86,17 @@ public class AdminPasswordResetService {
                     .orElse(false);
             case PARENT -> parentProfileRepository.findByUserAccountId(targetAccountId)
                     .map(ParentProfile::getId)
-                    .map(parentId -> studentProfileRepository.existsByParentProfileIdAndSchoolIdAndIsActiveTrue(parentId, schoolId))
+                    .map(parentId -> parentSchoolRegistrationRepository.existsBySchoolIdAndParentProfileId(schoolId, parentId)
+                            || studentProfileRepository.existsByParentProfileIdAndSchoolIdAndIsActiveTrue(parentId, schoolId))
                     .orElse(false);
             default -> false;
         };
 
         if (!authorized) {
             throw new ResourceNotFoundException("Account not found with id: " + targetAccountId);
+        }
+        if (target.getRole() == UserRole.STUDENT && StringUtils.hasText(target.getEmail()) && target.isEmailVerified()) {
+            throw new ForbiddenOperationException("A student with a verified email address must use the account recovery flow.");
         }
         return reset(target);
     }
@@ -105,6 +114,9 @@ public class AdminPasswordResetService {
         String temporaryPassword = initialPasswordGenerator.generatePassword();
         target.setPasswordHash(passwordEncoder.encode(temporaryPassword));
         target.setCredentialVersion(target.getCredentialVersion() + 1);
+        if (target.getRole() == UserRole.STUDENT || target.getRole() == UserRole.TEACHER || target.getRole() == UserRole.PARENT) {
+            target.setMustChangePassword(true);
+        }
         userAccountRepository.save(target);
 
         Instant now = Instant.now();

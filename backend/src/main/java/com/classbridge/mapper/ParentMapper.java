@@ -21,6 +21,7 @@ public class ParentMapper {
         account.setEmail(StringUtils.hasText(request.getEmail()) ? request.getEmail().trim() : null);
         account.setPhoneNumber(StringUtils.hasText(request.getPhoneNumber()) ? request.getPhoneNumber().trim() : null);
         account.setActive(true);
+        account.setMustChangePassword(true);
         return account;
     }
 

@@ -3,6 +3,7 @@ package com.classbridge.dto;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.Email;
 
 public class CreateStudentRequest {
 
@@ -26,6 +27,13 @@ public class CreateStudentRequest {
 
     @Size(max = 255, message = "Student username must not exceed 255 characters.")
     private String studentUsername;
+
+    @Email(message = "Enter a valid student email address.")
+    @Size(max = 254, message = "Student email must not exceed 254 characters.")
+    private String email;
+
+    @Size(max = 32, message = "Student phone number must not exceed 32 characters.")
+    private String phoneNumber;
 
     public String getSchoolNumber() {
         return schoolNumber;
@@ -74,4 +82,12 @@ public class CreateStudentRequest {
     public void setStudentUsername(String studentUsername) {
         this.studentUsername = studentUsername;
     }
+
+    public String getEmail() { return email; }
+
+    public void setEmail(String email) { this.email = email; }
+
+    public String getPhoneNumber() { return phoneNumber; }
+
+    public void setPhoneNumber(String phoneNumber) { this.phoneNumber = phoneNumber; }
 }

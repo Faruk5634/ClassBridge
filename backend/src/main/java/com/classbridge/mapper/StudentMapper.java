@@ -87,8 +87,21 @@ public class StudentMapper {
             UserAccount studentAccount = profile.getUserAccount();
             response.setStudentUserAccountId(studentAccount.getId());
             response.setStudentUsername(studentAccount.getUsername());
+            response.setStudentEmail(studentAccount.getEmail());
+            response.setStudentEmailVerified(studentAccount.isEmailVerified());
+            response.setStudentPhoneNumber(studentAccount.getPhoneNumber());
+            response.setMustChangePassword(studentAccount.isMustChangePassword());
         }
 
+        return response;
+    }
+
+    public StudentProfileResponse toRosterResponse(StudentProfile profile) {
+        StudentProfileResponse response = toProfileResponse(profile);
+        response.setStudentEmail(null);
+        response.setStudentEmailVerified(false);
+        response.setStudentPhoneNumber(null);
+        response.setMustChangePassword(false);
         return response;
     }
 }

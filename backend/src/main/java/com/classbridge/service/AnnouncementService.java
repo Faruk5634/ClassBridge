@@ -206,6 +206,34 @@ public class AnnouncementService {
         return announcementMapper.toResponse(announcement, authorDisplayName, attachments);
     }
 
+    @Transactional
+    public void deleteSchoolAnnouncement(Long actorAccountId, Long announcementId) {
+        SchoolMembership membership = schoolMembershipRepository.findByUserAccountId(actorAccountId)
+                .orElseThrow(() -> new ForbiddenOperationException("Authenticated user is not associated with any school."));
+        UserRole role = membership.getUserAccount().getRole();
+        if (role != UserRole.SCHOOL_ADMIN && role != UserRole.SCHOOL_VICE_ADMIN) {
+            throw new ForbiddenOperationException("Only school administrators may delete announcements.");
+        }
+
+        Announcement announcement = announcementRepository.findByIdAndSchoolId(announcementId, membership.getSchool().getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Announcement not found with id: " + announcementId));
+        List<String> storageKeys = announcementAttachmentRepository
+                .findByAnnouncementIdOrderByCreatedAtAscIdAsc(announcementId)
+                .stream()
+                .map(AnnouncementAttachment::getStorageKey)
+                .toList();
+
+        announcementRepository.delete(announcement);
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    storageKeys.forEach(attachmentStorageService::deleteFile);
+                }
+            });
+        }
+    }
+
     @Transactional(readOnly = true)
     public AttachmentDownload downloadSchoolAttachment(Long staffAccountId, Long announcementId, Long attachmentId) {
         SchoolMembership membership = schoolMembershipRepository.findByUserAccountId(staffAccountId)

@@ -91,6 +91,15 @@ public class StudentController {
         return ResponseEntity.ok(response);
     }
 
+    @PostMapping("/{studentProfileId}/restore")
+    public ResponseEntity<StudentProfileResponse> restoreStudent(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable Long studentProfileId) {
+        Long actorAccountId = Long.valueOf(jwt.getSubject());
+        StudentProfileResponse response = studentService.restoreStudent(actorAccountId, studentProfileId);
+        return ResponseEntity.ok(response);
+    }
+
     @ExceptionHandler(ArchivedStudentProfileException.class)
     public ResponseEntity<ErrorResponse> handleArchivedStudentProfile(ArchivedStudentProfileException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorResponse(ex.getMessage()));

@@ -82,7 +82,10 @@ public class ClassroomService {
                 .orElseThrow(() -> new ResourceNotFoundException("Classroom not found with id: " + classroomId));
 
         validateGradeLevel(school.getEducationLevel(), request.getGradeLevel());
-        UserAccount homeroomTeacher = validateAndGetHomeroomTeacher(request.getHomeroomTeacherAccountId(), school.getId());
+        Long requestedTeacherId = request.isHomeroomTeacherAccountIdProvided()
+                ? request.getHomeroomTeacherAccountId()
+                : (classroom.getHomeroomTeacher() == null ? null : classroom.getHomeroomTeacher().getId());
+        UserAccount homeroomTeacher = validateAndGetHomeroomTeacher(requestedTeacherId, school.getId());
 
         String sectionName = request.getSectionName() != null ? request.getSectionName().trim() : "";
         if (classroomRepository.existsBySchoolIdAndGradeLevelAndSectionNameAndIdNot(school.getId(), request.getGradeLevel(), sectionName, classroomId)) {
@@ -120,13 +123,16 @@ public class ClassroomService {
 
     private UserAccount validateAndGetHomeroomTeacher(Long teacherAccountId, Long schoolId) {
         if (teacherAccountId == null) {
-            throw new InvalidHomeroomTeacherException("Homeroom teacher account ID is required.");
+            return null;
         }
         UserAccount teacherAccount = userAccountRepository.findById(teacherAccountId)
                 .orElseThrow(() -> new InvalidHomeroomTeacherException("Homeroom teacher account not found with id: " + teacherAccountId));
 
         if (teacherAccount.getRole() != UserRole.TEACHER) {
             throw new InvalidHomeroomTeacherException("Account with id " + teacherAccountId + " does not have the TEACHER role.");
+        }
+        if (!teacherAccount.isActive()) {
+            throw new InvalidHomeroomTeacherException("Archived teachers cannot be assigned as homeroom teachers.");
         }
 
         SchoolMembership teacherMembership = schoolMembershipRepository.findByUserAccountId(teacherAccountId)

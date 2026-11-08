@@ -21,6 +21,7 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -87,6 +88,15 @@ public class AnnouncementController {
         Long actorAccountId = Long.valueOf(jwt.getSubject());
         AnnouncementResponse announcement = announcementService.getSchoolAnnouncement(actorAccountId, id);
         return ResponseEntity.ok(announcement);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteSchoolAnnouncement(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable Long id) {
+        Long actorAccountId = Long.valueOf(jwt.getSubject());
+        announcementService.deleteSchoolAnnouncement(actorAccountId, id);
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/{announcementId}/attachments/{attachmentId}")

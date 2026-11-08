@@ -2,6 +2,7 @@ package com.classbridge.service;
 
 import com.classbridge.domain.Classroom;
 import com.classbridge.domain.ParentProfile;
+import com.classbridge.domain.ParentSchoolRegistration;
 import com.classbridge.domain.School;
 import com.classbridge.domain.SchoolLevel;
 import com.classbridge.domain.SchoolMembership;
@@ -23,6 +24,7 @@ import com.classbridge.exception.ResourceNotFoundException;
 import com.classbridge.mapper.StudentMapper;
 import com.classbridge.repository.ClassroomRepository;
 import com.classbridge.repository.ParentProfileRepository;
+import com.classbridge.repository.ParentSchoolRegistrationRepository;
 import com.classbridge.repository.SchoolMembershipRepository;
 import com.classbridge.repository.StudentProfileRepository;
 import com.classbridge.repository.UserAccountRepository;
@@ -46,6 +48,7 @@ public class StudentService {
     private final ClassroomRepository classroomRepository;
     private final UserAccountRepository userAccountRepository;
     private final ParentProfileRepository parentProfileRepository;
+    private final ParentSchoolRegistrationRepository parentSchoolRegistrationRepository;
     private final StudentProfileRepository studentProfileRepository;
     private final InitialPasswordGenerator initialPasswordGenerator;
     private final PasswordEncoder passwordEncoder;
@@ -55,6 +58,7 @@ public class StudentService {
                           ClassroomRepository classroomRepository,
                           UserAccountRepository userAccountRepository,
                           ParentProfileRepository parentProfileRepository,
+                          ParentSchoolRegistrationRepository parentSchoolRegistrationRepository,
                           StudentProfileRepository studentProfileRepository,
                           InitialPasswordGenerator initialPasswordGenerator,
                           PasswordEncoder passwordEncoder,
@@ -63,6 +67,7 @@ public class StudentService {
         this.classroomRepository = classroomRepository;
         this.userAccountRepository = userAccountRepository;
         this.parentProfileRepository = parentProfileRepository;
+        this.parentSchoolRegistrationRepository = parentSchoolRegistrationRepository;
         this.studentProfileRepository = studentProfileRepository;
         this.initialPasswordGenerator = initialPasswordGenerator;
         this.passwordEncoder = passwordEncoder;
@@ -90,6 +95,9 @@ public class StudentService {
         String initialPassword = null;
 
         if (school.getEducationLevel() == SchoolLevel.PRIMARY || school.getEducationLevel() == SchoolLevel.MIDDLE) {
+            if (StringUtils.hasText(request.getEmail()) || StringUtils.hasText(request.getPhoneNumber())) {
+                throw new InvalidStudentEnrollmentException("Primary- and middle-school students do not have individual login contact details.");
+            }
             if (StringUtils.hasText(request.getStudentUsername())) {
                 throw new InvalidStudentEnrollmentException(
                         "Student accounts are not permitted for " + school.getEducationLevel() + " school students."
@@ -100,7 +108,7 @@ public class StudentService {
                         "A parent username is required for " + school.getEducationLevel() + " school students."
                 );
             }
-            parentProfile = validateAndGetParentProfile(request.getParentUsername());
+            parentProfile = validateAndGetParentProfile(request.getParentUsername(), school.getId());
         } else if (school.getEducationLevel() == SchoolLevel.HIGH_SCHOOL) {
             if (!StringUtils.hasText(request.getStudentUsername())) {
                 throw new InvalidStudentEnrollmentException(
@@ -113,7 +121,7 @@ public class StudentService {
             }
 
             if (StringUtils.hasText(request.getParentUsername())) {
-                parentProfile = validateAndGetParentProfile(request.getParentUsername());
+                parentProfile = validateAndGetParentProfile(request.getParentUsername(), school.getId());
             }
 
             initialPassword = initialPasswordGenerator.generatePassword();
@@ -124,6 +132,9 @@ public class StudentService {
             account.setPasswordHash(passwordHash);
             account.setRole(UserRole.STUDENT);
             account.setActive(true);
+            account.setMustChangePassword(true);
+            account.setEmail(StringUtils.hasText(request.getEmail()) ? request.getEmail().trim() : null);
+            account.setPhoneNumber(StringUtils.hasText(request.getPhoneNumber()) ? request.getPhoneNumber().trim() : null);
             studentAccount = userAccountRepository.save(account);
         }
 
@@ -131,8 +142,25 @@ public class StudentService {
                 request, school, classroom, parentProfile, studentAccount
         );
         StudentProfile savedProfile = studentProfileRepository.save(studentProfile);
+        if (parentProfile != null) {
+            registerParentForSchool(actorAccountId, school, parentProfile);
+        }
 
         return studentMapper.toResponse(savedProfile, initialPassword);
+    }
+
+    private void registerParentForSchool(Long actorAccountId, School school, ParentProfile parentProfile) {
+        if (parentSchoolRegistrationRepository.existsBySchoolIdAndParentProfileId(school.getId(), parentProfile.getId())) {
+            return;
+        }
+        SchoolMembership membership = schoolMembershipRepository.findByUserAccountId(actorAccountId)
+                .filter(candidate -> candidate.getSchool().getId().equals(school.getId()))
+                .orElseThrow(() -> new ForbiddenOperationException("Authenticated administrator is not associated with this school."));
+        ParentSchoolRegistration registration = new ParentSchoolRegistration();
+        registration.setSchool(school);
+        registration.setParentProfile(parentProfile);
+        registration.setRegisteredBy(membership.getUserAccount());
+        parentSchoolRegistrationRepository.save(registration);
     }
 
     private void validateGradeLevel(SchoolLevel educationLevel, Integer gradeLevel) {
@@ -151,7 +179,7 @@ public class StudentService {
         }
     }
 
-    private ParentProfile validateAndGetParentProfile(String parentUsername) {
+    private ParentProfile validateAndGetParentProfile(String parentUsername, Long schoolId) {
         String trimmedUsername = parentUsername.trim();
         UserAccount parentAccount = userAccountRepository.findByUsername(trimmedUsername)
                 .orElseThrow(() -> new InvalidStudentEnrollmentException(
@@ -170,10 +198,16 @@ public class StudentService {
             );
         }
 
-        return parentProfileRepository.findByUserAccountId(parentAccount.getId())
+        ParentProfile parentProfile = parentProfileRepository.findByUserAccountId(parentAccount.getId())
                 .orElseThrow(() -> new InvalidStudentEnrollmentException(
                         "Parent profile not found for account: " + trimmedUsername
                 ));
+        boolean registeredForSchool = parentSchoolRegistrationRepository.existsBySchoolIdAndParentProfileId(schoolId, parentProfile.getId());
+        boolean alreadyLinkedToSchool = studentProfileRepository.existsByParentProfileIdAndSchoolIdAndIsActiveTrue(parentProfile.getId(), schoolId);
+        if (!registeredForSchool && !alreadyLinkedToSchool) {
+            throw new InvalidStudentEnrollmentException("Select a parent account registered with this school.");
+        }
+        return parentProfile;
     }
 
     @Transactional(readOnly = true)
@@ -212,7 +246,7 @@ public class StudentService {
         }
 
         List<StudentProfileResponse> content = studentPage.getContent().stream()
-                .map(studentMapper::toProfileResponse)
+                .map(studentMapper::toRosterResponse)
                 .collect(Collectors.toList());
 
         return new PageResponse<>(content, studentPage.getNumber(), studentPage.getSize(),
@@ -278,6 +312,29 @@ public class StudentService {
 
         StudentProfile archivedProfile = studentProfileRepository.saveAndFlush(profile);
         return studentMapper.toProfileResponse(archivedProfile);
+    }
+
+    @Transactional
+    public StudentProfileResponse restoreStudent(Long actorAccountId, Long studentProfileId) {
+        School school = getActorSchool(actorAccountId);
+
+        StudentProfile profile = studentProfileRepository.findByIdAndSchoolId(studentProfileId, school.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Student profile not found with id: " + studentProfileId));
+
+        boolean restoringArchivedProfile = !profile.isActive();
+        profile.setActive(true);
+
+        if (profile.getUserAccount() != null) {
+            UserAccount studentAccount = profile.getUserAccount();
+            if (restoringArchivedProfile || !studentAccount.isActive()) {
+                studentAccount.setCredentialVersion(studentAccount.getCredentialVersion() + 1);
+            }
+            studentAccount.setActive(true);
+            userAccountRepository.save(studentAccount);
+        }
+
+        StudentProfile restoredProfile = studentProfileRepository.saveAndFlush(profile);
+        return studentMapper.toProfileResponse(restoredProfile);
     }
 
     private School getActorSchool(Long actorAccountId) {
