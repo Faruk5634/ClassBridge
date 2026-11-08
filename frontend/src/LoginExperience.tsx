@@ -91,14 +91,15 @@ function StoryPanel({ portal, role }: { portal: EntryPortal | null; role: Campus
   const content = role ? roleContent[role] : null
   const management = portal === 'management'
   const home = portal === null && role === null
-  const hideCampusStoryDetails = portal === 'campus'
+  const hideCampusStoryDetails = portal === 'campus' || management
   const scene = role === 'PARENT'
     ? 'parent-home-scene-v2.png'
     : role === 'STUDENT'
       ? 'student-campus-scene-v2.png'
     : role === 'TEACHER'
       ? 'teacher-classroom-scene-v2.png'
-    : portal === 'campus' ? 'forest-school-scene.jpg'
+    : management ? 'management-office-scene.png'
+      : portal === 'campus' ? 'forest-school-scene.jpg'
       : portal === null ? 'campus-river-scene.png' : 'forest-school-scene.jpg'
   const storyVariant = content
     ? `story-${content.color}`
@@ -147,11 +148,11 @@ export default function LoginExperience({
   }
 
   return (
-    <main className={`entry-page${portal === null ? ' entry-page-home' : ''}${portal === 'campus' && !selectedRole ? ' entry-page-school-roles' : ''}${portal === 'campus' && selectedRole ? ' entry-page-campus-login' : ''}`}>
+    <main className={`entry-page${portal === null ? ' entry-page-home' : ''}${portal === 'campus' && !selectedRole ? ' entry-page-school-roles' : ''}${portal === 'campus' && selectedRole ? ' entry-page-campus-login' : ''}${portal === 'management' ? ' entry-page-management-login' : ''}`}>
       <header className="entry-header">
         <Brand />
         <div className="entry-header-actions">
-          {portal && !(portal === 'campus' && (!selectedRole || selectedRole === 'PARENT' || selectedRole === 'STUDENT' || selectedRole === 'TEACHER')) && <button className="entry-back-link" type="button" onClick={onBack}>← <span>Geri</span></button>}
+          {portal && portal !== 'management' && !(portal === 'campus' && (!selectedRole || selectedRole === 'PARENT' || selectedRole === 'STUDENT' || selectedRole === 'TEACHER')) && <button className="entry-back-link" type="button" onClick={onBack}>← <span>Geri</span></button>}
           <ThemeButton theme={theme} onClick={onToggleTheme} />
         </div>
       </header>
@@ -246,12 +247,13 @@ export default function LoginExperience({
               </button>
             </form>
             <p className="entry-help">Need help accessing your account? <span>Contact your school administrator.</span></p>
+              {portal === 'management' && <button className="entry-return-link entry-login-return" type="button" onClick={onBack}>← Back to portal selection</button>}
               {(role === 'PARENT' || role === 'STUDENT' || role === 'TEACHER') && <button className="entry-return-link entry-login-return" type="button" onClick={onBack}>← Back to school portal</button>}
           </div>
         </section>
       )}
 
-      <footer className="entry-page-footer"><span>ClassBridge</span><i aria-hidden="true" /> A more connected school community.</footer>
+      <footer className="entry-page-footer"><span>ClassBridge</span>{portal !== 'management' && <><i aria-hidden="true" /> A more connected school community.</>}</footer>
     </main>
   )
 }

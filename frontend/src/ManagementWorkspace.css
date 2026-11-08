@@ -1,0 +1,1253 @@
+.management-workspace {
+  --mw-page: #f3f1eb;
+  --mw-surface: #fffdf8;
+  --mw-panel: #faf8f2;
+  --mw-ink: #27323a;
+  --mw-muted: #748087;
+  --mw-faint: #929b9f;
+  --mw-line: #e3e2dc;
+  --mw-accent: #78638b;
+  --mw-accent-dark: #5d4a73;
+  --mw-accent-soft: #f0ebf2;
+  --mw-green: #567d68;
+  --mw-green-soft: #e9f0e8;
+  --mw-warm: #b68154;
+  --mw-warm-soft: #f4eadf;
+  --mw-blue: #5b8291;
+  --mw-blue-soft: #e8f0f2;
+  --mw-shadow: 0 18px 45px rgb(49 56 52 / 7%);
+  display: grid;
+  min-height: 100vh;
+  grid-template-columns: 252px minmax(0, 1fr);
+  color: var(--mw-ink);
+  background: radial-gradient(ellipse at 75% 0%, rgb(233 229 250 / 50%), transparent 28%), linear-gradient(135deg, var(--mw-page), #eef0eb 70%, #e9eeeb);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+html[data-theme="dark"] .management-workspace {
+  --mw-page: #1d2730;
+  --mw-surface: #27343c;
+  --mw-panel: #2d3941;
+  --mw-ink: #f1f0e8;
+  --mw-muted: #bec8c5;
+  --mw-faint: #91a09e;
+  --mw-line: #40515a;
+  --mw-accent: #c3add3;
+  --mw-accent-dark: #d4c4df;
+  --mw-accent-soft: #403746;
+  --mw-green: #a8c9ac;
+  --mw-green-soft: #35493e;
+  --mw-warm: #e2b78f;
+  --mw-warm-soft: #4b4037;
+  --mw-blue: #a6cbd4;
+  --mw-blue-soft: #354a52;
+  --mw-shadow: 0 18px 45px rgb(0 0 0 / 16%);
+  background: radial-gradient(ellipse at 75% 0%, rgb(108 91 150 / 14%), transparent 28%), linear-gradient(135deg, #1d2730, #22323a 70%, #24383a);
+}
+.management-workspace button, .management-workspace input, .management-workspace select { font: inherit; }
+.management-workspace button { color: inherit; }
+.management-workspace button:focus-visible { outline: 3px solid color-mix(in srgb,var(--mw-accent),transparent 38%); outline-offset: 3px; }
+.management-workspace button:disabled { cursor: default; }
+.management-sidebar { position: sticky; top: 0; display: flex; height: 100vh; min-height: 620px; flex-direction: column; border-right: 1px solid color-mix(in srgb,var(--mw-line),transparent 18%); padding: 20px 16px 15px; background: color-mix(in srgb,var(--mw-surface),transparent 24%); backdrop-filter: blur(18px); }
+.management-brand { display: flex; height: 72px; align-items: center; gap: 8px; border: 0; padding: 0 9px; background: transparent; cursor: pointer; text-align: left; }
+.management-brand img { width: 111px; height: 64px; object-fit: contain; }
+.management-brand span { align-self: end; margin: 0 0 15px -7px; color: var(--mw-accent); font-size: 7px; font-weight: 850; letter-spacing: .13em; }
+.management-sidebar-footer > span:nth-child(2) { display: grid; min-width: 0; gap: 4px; }
+.management-sidebar-footer strong { overflow: hidden; color: var(--mw-ink); font-size: 10px; font-weight: 750; text-overflow: ellipsis; white-space: nowrap; }
+.management-sidebar-footer small { overflow: hidden; color: var(--mw-muted); font-size: 8px; text-overflow: ellipsis; white-space: nowrap; }
+.management-avatar { display: grid; width: 34px; height: 34px; flex: 0 0 auto; place-items: center; border: 1px solid color-mix(in srgb,var(--mw-accent),transparent 70%); border-radius: 12px 12px 12px 4px; color: var(--mw-accent-dark); background: var(--mw-accent-soft); font-family: Georgia,serif; font-size: 10px; font-weight: 700; }
+.management-nav-label { margin: 0 11px 10px; color: var(--mw-faint); font-size: 8px; font-weight: 850; letter-spacing: .15em; }
+.management-nav { display: grid; gap: 8px; }
+.management-nav-link { position: relative; display: grid; min-height: 52px; grid-template-columns: 21px minmax(0,1fr) 14px; align-items: center; gap: 12px; border: 1px solid transparent; border-radius: 9px; padding: 0 13px; color: var(--mw-muted) !important; background: transparent; cursor: pointer; font-size: 12px !important; font-weight: 620; text-align: left; transition: color 150ms ease, background 150ms ease, border-color 150ms ease, transform 150ms ease; }
+.management-nav-link svg, .management-theme-button svg, .management-section-heading > button svg { width: 19px; height: 19px; }
+.management-nav-link > i { color: transparent; font-size: 12px; font-style: normal; text-align: right; }
+.management-nav-link:hover { border-color: var(--mw-line); color: var(--mw-ink) !important; background: var(--mw-panel); transform: translateX(2px); }
+.management-nav-link.is-active { border-color: color-mix(in srgb,var(--mw-accent),transparent 82%); color: var(--mw-accent-dark) !important; background: var(--mw-accent-soft); }
+.management-nav-link.is-active > i { color: var(--mw-accent); }
+.management-sidebar-footer { display: grid; width: 100%; grid-template-columns: 34px minmax(0,1fr) 25px; align-items: center; gap: 9px; margin-top: auto; border: 0; border-top: 1px solid var(--mw-line); padding: 15px 4px 1px; background: transparent; cursor: pointer; text-align: left; }
+.management-sidebar-footer:hover > i { color: var(--mw-accent); border-color: var(--mw-accent); }
+.management-sidebar-footer > i { display: grid; width: 25px; height: 25px; place-items: center; border: 1px solid var(--mw-line); border-radius: 7px; color: var(--mw-muted); background: var(--mw-surface); font-size: 12px; font-style: normal; transition: color 150ms ease,border-color 150ms ease; }
+.management-main { min-width: 0; }
+.management-topbar { display: flex; width: min(1330px,calc(100% - 70px)); min-height: 72px; align-items: center; justify-content: space-between; gap: 20px; margin: 0 auto; border-bottom: 1px solid color-mix(in srgb,var(--mw-line),transparent 20%); }
+.management-breadcrumb { display: flex; align-items: center; gap: 10px; color: var(--mw-faint); font-size: 8px; font-weight: 850; letter-spacing: .12em; }
+.management-breadcrumb i { color: var(--mw-line); font-size: 13px; font-style: normal; }
+.management-breadcrumb strong { color: var(--mw-accent); font-size: inherit; }
+.management-top-actions { display: flex; align-items: center; gap: 17px; }
+.management-theme-button, .management-user-button { display: inline-flex; min-height: 35px; align-items: center; justify-content: center; gap: 7px; border: 0; padding: 0 5px; color: var(--mw-muted) !important; background: transparent; cursor: pointer; font-size: 10px !important; font-weight: 650; }
+.management-theme-button:hover { color: var(--mw-accent) !important; }
+.management-theme-button svg { width: 15px; height: 15px; }
+.management-user-button { gap: 8px; color: var(--mw-ink) !important; }
+.management-user-button .management-avatar { width: 31px; height: 31px; border-radius: 50%; font-size: 9px; }
+.management-user-button i { color: var(--mw-faint); font-size: 12px; font-style: normal; }
+.management-content { width: min(1330px,calc(100% - 70px)); min-height: calc(100vh - 72px); margin: 0 auto; padding: 33px 0 22px; }
+.management-page-heading { display: flex; align-items: end; justify-content: space-between; gap: 25px; margin-bottom: 25px; }
+.management-eyebrow { margin: 0; color: var(--mw-accent); font-size: 8px; font-weight: 850; letter-spacing: .15em; }
+.management-page-heading h1 { margin: 7px 0 7px; color: var(--mw-ink); font-family: Georgia,"Times New Roman",serif; font-size: clamp(28px,3.3vw,38px); font-weight: 500; letter-spacing: -.045em; line-height: 1.05; }
+.management-page-heading > div > p:last-child { max-width: 650px; margin: 0; color: var(--mw-muted); font-size: 11px; line-height: 1.55; }
+.management-role-pill, .management-count-chip { display: inline-flex; min-height: 27px; align-items: center; border: 1px solid color-mix(in srgb,var(--mw-accent),transparent 78%); border-radius: 99px; padding: 0 10px; color: var(--mw-accent-dark); background: var(--mw-accent-soft); font-size: 8px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; white-space: nowrap; }
+.management-welcome-card { position: relative; display: grid; min-height: 194px; grid-template-columns: minmax(0,1fr) 240px; overflow: hidden; margin-bottom: 19px; border: 1px solid color-mix(in srgb,var(--mw-accent),transparent 80%); border-radius: 14px 14px 14px 4px; background: linear-gradient(108deg,var(--mw-surface) 0%,color-mix(in srgb,var(--mw-accent-soft),var(--mw-surface) 45%) 100%); box-shadow: var(--mw-shadow); }
+.management-welcome-copy { position: relative; z-index: 1; align-self: center; padding: 24px 29px; }
+.management-welcome-spark { position: absolute; top: 22px; right: 10px; color: var(--mw-warm); font-size: 12px; }
+.management-welcome-copy h2 { max-width: 510px; margin: 8px 0 6px; color: var(--mw-ink); font-family: Georgia,"Times New Roman",serif; font-size: clamp(23px,2.5vw,30px); font-weight: 500; letter-spacing: -.04em; }
+.management-welcome-copy > p:not(.management-eyebrow) { max-width: 490px; margin: 0; color: var(--mw-muted); font-size: 10px; line-height: 1.55; }
+.management-section-heading > button { display: inline-flex; align-items: center; gap: 8px; border: 0; padding: 0; color: var(--mw-accent-dark); background: transparent; cursor: pointer; font-size: 9px; font-weight: 800; }
+.management-section-heading > button:hover { color: var(--mw-warm); }
+.management-section-heading > button svg { width: 13px; height: 13px; }
+.management-welcome-art { position: relative; display: grid; align-items: end; justify-items: center; min-height: 194px; }
+.management-mascot { position: relative; z-index: 2; display: grid; width: 155px; height: 156px; align-items: end; justify-items: center; cursor: pointer; }
+.management-mascot > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; object-position: center bottom; filter: drop-shadow(0 10px 14px rgb(52 54 67 / 12%)); transition: opacity .28s ease, transform .32s cubic-bezier(.2,.75,.2,1); }
+.management-mascot > img.management-pose-rest { opacity: 1; transform: translateY(0) scale(1); }
+.management-mascot > img.management-pose-hover { opacity: 0; transform: translateY(5px) scale(.97); }
+.management-mascot:hover > img.management-pose-rest, .management-mascot:focus-visible > img.management-pose-rest { opacity: 0; transform: translateY(-2px) scale(.98); }
+.management-mascot:hover > img.management-pose-hover, .management-mascot:focus-visible > img.management-pose-hover { opacity: 1; transform: translateY(0) scale(1); }
+.management-mascot:focus-visible { outline: 2px solid var(--mw-accent); outline-offset: 5px; border-radius: 18px; }
+.management-art-orbit { position: absolute; top: 33px; left: 50%; border: 1px solid color-mix(in srgb,var(--mw-accent),transparent 75%); border-radius: 50%; transform: translateX(-50%); }
+.orbit-one { width: 116px; height: 116px; }.orbit-two { width: 160px; height: 160px; top: 11px; }
+.management-stat-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 13px; margin: 0 0 19px; }
+.management-stat-card { position: relative; display: grid; min-height: 122px; grid-template-columns: 46px minmax(0,1fr); align-content: center; align-items: center; column-gap: 12px; border: 1px solid var(--mw-line); border-radius: 11px 11px 11px 4px; padding: 15px 17px; color: inherit; background: var(--mw-surface); box-shadow: 0 7px 22px rgb(40 49 46 / 3%); text-align: left; }
+.management-stat-icon { display: grid; width: 44px; height: 44px; grid-row: 1 / span 3; place-items: center; overflow: hidden; border-radius: 11px 11px 11px 4px; color: var(--mw-accent-dark); background: var(--mw-accent-soft); }
+.management-stat-icon img { display: block; width: 100%; height: 100%; object-fit: contain; }
+.management-stat-icon svg { width: 17px; height: 17px; }.management-stat-icon.warm { color: var(--mw-warm); background: var(--mw-warm-soft); font-size: 18px; }.management-stat-icon.lilac { color: var(--mw-blue); background: var(--mw-blue-soft); font-size: 15px; }
+.management-stat-card > small { color: var(--mw-faint); font-size: 7px; font-weight: 850; letter-spacing: .11em; }
+.management-stat-card > strong { margin-top: 3px; color: var(--mw-ink); font-family: Georgia,"Times New Roman",serif; font-size: 25px; font-weight: 500; letter-spacing: -.04em; }
+.management-stat-card > span:last-of-type { color: var(--mw-muted); font-size: 8px; }
+.management-stat-featured { border-color: color-mix(in srgb,var(--mw-accent),transparent 79%); background: linear-gradient(120deg,var(--mw-surface),var(--mw-accent-soft)); }
+.management-stat-featured .management-stat-icon:not(.warm):not(.lilac) { color: var(--mw-accent-dark); background: color-mix(in srgb,var(--mw-accent),transparent 87%); }
+.management-stat-spark { position: absolute; right: 14px; bottom: 4px; color: color-mix(in srgb,var(--mw-accent),transparent 73%); font-size: 43px; font-style: normal; line-height: 1; }
+.management-status-value { color: var(--mw-green) !important; font-family: inherit !important; font-size: 17px !important; font-weight: 700 !important; letter-spacing: -.02em !important; }
+.management-overview-grid { display: grid; grid-template-columns: minmax(0,1.25fr) minmax(280px,.75fr); gap: 15px; }
+.management-section-card { min-width: 0; border: 1px solid var(--mw-line); border-radius: 12px 12px 12px 4px; padding: 19px 20px; background: var(--mw-surface); box-shadow: 0 8px 24px rgb(40 49 46 / 3%); }
+.management-section-heading { display: flex; align-items: center; justify-content: space-between; gap: 15px; margin-bottom: 14px; }
+.management-section-heading h2 { margin: 5px 0 0; color: var(--mw-ink); font-family: Georgia,"Times New Roman",serif; font-size: 19px; font-weight: 500; letter-spacing: -.025em; }
+.management-empty { display: grid; min-height: 96px; place-items: center; border: 1px dashed var(--mw-line); border-radius: 8px; padding: 17px; color: var(--mw-muted); background: var(--mw-panel); font-size: 10px; text-align: center; }
+.management-announcement-list, .management-class-list, .management-school-list { display: grid; }
+.management-announcement-row { display: grid; grid-template-columns: 23px 32px minmax(0,1fr) 14px; align-items: start; gap: 9px; border-top: 1px solid var(--mw-line); padding: 12px 0; }
+.management-announcement-index { padding-top: 2px; color: var(--mw-faint); font-family: Georgia,"Times New Roman",serif; font-size: 10px; }
+.management-announcement-symbol { display: grid; width: 30px; height: 30px; place-items: center; border-radius: 10px 10px 10px 4px; color: var(--mw-accent); background: var(--mw-accent-soft); }
+.management-announcement-symbol svg { width: 15px; height: 15px; }.management-announcement-symbol.type-homework { color: var(--mw-warm); background: var(--mw-warm-soft); }.management-announcement-symbol.type-exam,.management-announcement-symbol.type-exam_results { color: var(--mw-blue); background: var(--mw-blue-soft); }
+.management-announcement-copy { min-width: 0; }
+.management-announcement-meta { display: flex; align-items: center; justify-content: space-between; gap: 9px; color: var(--mw-accent); font-size: 7px; font-weight: 850; letter-spacing: .07em; text-transform: uppercase; }
+.management-announcement-meta time { color: var(--mw-faint); font-size: 8px; font-weight: 500; letter-spacing: 0; text-transform: none; white-space: nowrap; }
+.management-announcement-copy h3 { overflow: hidden; margin: 5px 0 3px; color: var(--mw-ink); font-family: Georgia,"Times New Roman",serif; font-size: 14px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+.management-announcement-copy p { display: -webkit-box; overflow: hidden; margin: 0 0 5px; color: var(--mw-muted); font-size: 9px; line-height: 1.5; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+.management-announcement-copy > small { display: flex; align-items: center; flex-wrap: wrap; gap: 4px; color: var(--mw-faint); font-size: 8px; }
+.management-announcement-copy > small strong { color: var(--mw-muted); font-weight: 750; }.management-announcement-copy > small i { width: 3px; height: 3px; margin: 0 2px; border-radius: 50%; background: var(--mw-faint); }
+.management-announcement-arrow { color: var(--mw-faint); font-size: 13px; text-align: right; }
+.management-announcement-list.is-compact .management-announcement-row { grid-template-columns: 23px 32px minmax(0,1fr) 22px; padding: 10px 0; }
+.management-announcement-compact-open { display: grid; width: 22px; height: 22px; place-items: center; border: 0; border-radius: 50%; padding: 0; color: var(--mw-faint); background: transparent; cursor: pointer; transition: color .15s ease,background-color .15s ease; }
+.management-announcement-compact-open svg { width: 13px; height: 13px; }
+.management-announcement-compact-open:hover { color: var(--mw-accent-dark); background: var(--mw-accent-soft); }
+.management-announcement-compact-open:focus-visible { outline: 2px solid color-mix(in srgb,var(--mw-accent),transparent 25%); outline-offset: 2px; }
+.management-class-row, .management-school-row { display: grid; grid-template-columns: 35px minmax(0,1fr) auto; align-items: center; gap: 10px; border-top: 1px solid var(--mw-line); padding: 11px 0; }
+.management-class-icon, .management-school-tile { display: grid; width: 33px; height: 33px; place-items: center; border-radius: 10px 10px 10px 4px; color: var(--mw-green); background: var(--mw-green-soft); }
+.management-class-icon svg, .management-school-tile svg { width: 16px; height: 16px; }.management-class-icon.tone-1,.management-school-tile.tone-1 { color: var(--mw-warm); background: var(--mw-warm-soft); }.management-class-icon.tone-2,.management-school-tile.tone-2 { color: var(--mw-blue); background: var(--mw-blue-soft); }
+.management-class-copy, .management-school-copy { display: grid; min-width: 0; gap: 4px; }
+.management-class-copy strong, .management-school-copy strong { overflow: hidden; color: var(--mw-ink); font-size: 10px; font-weight: 750; text-overflow: ellipsis; white-space: nowrap; }
+.management-class-copy small, .management-school-copy small { overflow: hidden; color: var(--mw-muted); font-size: 8px; text-overflow: ellipsis; white-space: nowrap; }
+.management-class-grade { display: grid; width: 25px; height: 25px; place-items: center; border-radius: 8px; color: var(--mw-green); background: var(--mw-green-soft); font-family: Georgia,"Times New Roman",serif; font-size: 10px; }
+.management-class-list.is-detailed .management-class-row { grid-template-columns: 40px minmax(0,1fr) 35px; padding: 14px 3px; }.management-class-list.is-detailed .management-class-copy strong { font-size: 12px; }.management-class-list.is-detailed .management-class-copy small { font-size: 9px; }
+.management-directory-card { padding: 21px 22px; }
+.management-directory-card .management-section-heading { margin-bottom: 18px; }
+.management-directory-card .management-section-heading h2 { font-size: 22px; }
+.management-table-wrap { overflow-x: auto; }
+.management-table { width: 100%; border-collapse: collapse; text-align: left; }
+.management-table th { border-bottom: 1px solid var(--mw-line); padding: 10px 12px; color: var(--mw-faint); font-size: 7px; font-weight: 850; letter-spacing: .1em; white-space: nowrap; }
+.management-table td { border-bottom: 1px solid var(--mw-line); padding: 12px; color: var(--mw-muted); font-size: 9px; white-space: nowrap; }
+.management-table tr:last-child td { border-bottom: 0; }
+.management-person-cell { display: inline-flex; min-width: 170px; align-items: center; gap: 9px; }
+.management-table-avatar { display: grid; width: 30px; height: 30px; flex: 0 0 auto; place-items: center; border-radius: 50%; color: var(--mw-accent-dark); background: var(--mw-accent-soft); font-family: Georgia,"Times New Roman",serif; font-size: 9px; font-weight: 700; }
+.management-person-cell > span:last-child { display: grid; gap: 3px; }.management-person-cell strong { color: var(--mw-ink); font-size: 9px; font-weight: 750; }.management-person-cell small { color: var(--mw-faint); font-size: 8px; }
+.management-class-chip { border: 1px solid color-mix(in srgb,var(--mw-green),transparent 80%); border-radius: 99px; padding: 4px 8px; color: var(--mw-green); background: var(--mw-green-soft); font-size: 8px; font-weight: 750; }
+.management-state-pill { display: inline-flex; align-items: center; gap: 5px; border-radius: 99px; padding: 4px 8px; color: var(--mw-faint); background: var(--mw-panel); font-size: 8px; font-weight: 750; }.management-state-pill::before { width: 5px; height: 5px; border-radius: 50%; background: currentColor; content: ""; }.management-state-pill.is-active { color: var(--mw-green); background: var(--mw-green-soft); }
+.management-muted { color: var(--mw-faint); font-style: italic; }
+.management-pagination { display: flex; align-items: center; justify-content: space-between; gap: 12px; border-top: 1px solid var(--mw-line); padding-top: 15px; color: var(--mw-muted); font-size: 9px; }
+.management-pagination > div { display: flex; align-items: center; gap: 12px; }.management-pagination button { min-height: 30px; border: 1px solid var(--mw-line); border-radius: 7px; padding: 0 9px; color: var(--mw-ink); background: var(--mw-surface); cursor: pointer; font-size: 8px !important; font-weight: 700; }.management-pagination button:not(:disabled):hover { border-color: var(--mw-accent); color: var(--mw-accent-dark) !important; }.management-pagination button:disabled { color: var(--mw-faint) !important; opacity: .55; }
+.management-school-row { grid-template-columns: 39px minmax(0,1fr) minmax(110px,auto) 14px; padding: 12px 3px; }.management-school-row:first-child { border-top: 1px solid var(--mw-line); }.management-school-tile { width: 36px; height: 36px; }.management-school-level { color: var(--mw-faint); font-size: 8px; font-weight: 750; letter-spacing: .05em; text-align: right; }.management-school-list.is-detailed .management-school-row { padding: 16px 4px; }.management-school-list.is-detailed .management-school-copy strong { font-size: 11px; }.management-school-list.is-detailed .management-school-copy small { font-size: 9px; }
+.management-footer { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 26px 0 0; color: var(--mw-faint); font-size: 8px; }.management-footer > span:first-child { color: var(--mw-accent); font-weight: 850; letter-spacing: .1em; }.management-footer > i { width: 3px; height: 3px; border-radius: 50%; background: var(--mw-warm); }.management-footer-role { margin-left: 10px; color: var(--mw-muted); text-transform: capitalize; }
+@media (max-width: 1100px) { .management-workspace { grid-template-columns: 220px minmax(0,1fr); }.management-sidebar { padding-inline: 12px; }.management-topbar,.management-content { width: calc(100% - 42px); }.management-overview-grid { grid-template-columns: minmax(0,1fr); }.management-class-section { max-width: none; } }
+@media (max-width: 760px) { .management-workspace { display: block; }.management-sidebar { position: relative; height: auto; min-height: 0; border-right: 0; border-bottom: 1px solid var(--mw-line); padding: 8px 14px 0; }.management-brand { height: 51px; padding-left: 0; }.management-brand img { width: 89px; height: 50px; }.management-brand span { margin-bottom: 10px; font-size: 6px; }.management-school-chip,.management-sidebar-footer,.management-nav-label { display: none; }.management-nav { display: flex; overflow-x: auto; gap: 5px; scrollbar-width: thin; }.management-nav-link { display: inline-flex; min-width: max-content; min-height: 41px; gap: 7px; padding: 0 11px; }.management-nav-link svg { width: 14px; height: 14px; }.management-nav-link > i { display: none; }.management-topbar { width: calc(100% - 28px); min-height: 57px; }.management-breadcrumb { font-size: 7px; }.management-top-actions { gap: 8px; }.management-theme-button span,.management-user-button > span:nth-child(2) { display: none; }.management-user-button { padding: 0; }.management-content { width: calc(100% - 28px); min-height: calc(100vh - 160px); padding-top: 24px; }.management-page-heading { align-items: start; margin-bottom: 18px; }.management-page-heading h1 { font-size: 29px; }.management-page-heading > div > p:last-child { font-size: 10px; }.management-role-pill { margin-top: 3px; font-size: 7px; }.management-welcome-card { min-height: 170px; grid-template-columns: minmax(0,1fr) 125px; }.management-welcome-copy { padding: 19px 17px; }.management-welcome-copy h2 { font-size: 22px; }.management-welcome-copy > p:not(.management-eyebrow) { font-size: 9px; }.management-welcome-art { min-height: 170px; }.management-welcome-art img { width: 120px; height: 128px; }.orbit-one { width: 92px; height: 92px; top: 35px; }.orbit-two { width: 126px; height: 126px; top: 18px; }.management-stat-grid { gap: 8px; }.management-stat-card { min-height: 108px; grid-template-columns: 30px minmax(0,1fr); column-gap: 8px; padding: 11px 9px; }.management-stat-icon { width: 29px; height: 29px; border-radius: 9px 9px 9px 4px; }.management-stat-icon svg { width: 14px; height: 14px; }.management-stat-card > small { font-size: 6px; letter-spacing: .07em; }.management-stat-card > strong { font-size: 20px; }.management-stat-card > span:last-of-type { font-size: 7px; }.management-status-value { font-size: 14px !important; }.management-section-card { padding: 15px 13px; }.management-section-heading h2 { font-size: 17px; }.management-announcement-row { grid-template-columns: 18px 27px minmax(0,1fr) 10px; gap: 7px; }.management-announcement-symbol { width: 27px; height: 27px; }.management-announcement-copy h3 { font-size: 12px; }.management-announcement-copy > small { font-size: 7px; }.management-directory-card { padding: 16px 11px; }.management-table th,.management-table td { padding-right: 8px; padding-left: 8px; }.management-pagination { align-items: start; flex-direction: column; }.management-pagination > div { width: 100%; justify-content: space-between; }.management-school-row { grid-template-columns: 34px minmax(0,1fr) 13px; gap: 7px; }.management-school-level { display: none; }.management-footer { flex-wrap: wrap; padding-bottom: 12px; } }
+@media (max-width: 430px) { .management-stat-grid { grid-template-columns: 1fr; }.management-stat-card { min-height: 82px; grid-template-columns: 36px minmax(0,1fr); }.management-stat-icon { width: 34px; height: 34px; }.management-welcome-card { grid-template-columns: minmax(0,1fr) 96px; }.management-welcome-copy h2 { font-size: 19px; }.management-welcome-copy > p:not(.management-eyebrow) { max-width: 220px; }.management-welcome-art img { width: 98px; height: 113px; }.management-announcement-meta { align-items: start; flex-direction: column; gap: 3px; }.management-announcement-meta time { white-space: normal; }.management-page-heading { flex-direction: column; gap: 10px; }.management-role-pill { margin: 0; } }
+@media (prefers-reduced-motion: reduce) { .management-workspace *, .management-workspace *::before, .management-workspace *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; } }
+
+/* School administrator overview and account navigation refinements. */
+.management-user-menu { position: relative; }
+.management-profile-dropdown { position: absolute; z-index: 30; top: calc(100% + 12px); right: 0; display: grid; width: 255px; overflow: hidden; border: 1px solid var(--mw-line); border-radius: 12px; background: var(--mw-surface); box-shadow: 0 20px 50px rgb(20 30 35 / 18%); }
+.management-profile-card { display: grid; justify-items: start; gap: 4px; padding: 16px; border-bottom: 1px solid var(--mw-line); background: linear-gradient(135deg,var(--mw-panel),var(--mw-surface)); }
+.management-profile-card .management-avatar { margin-bottom: 4px; }
+.management-profile-card strong { color: var(--mw-ink); font-size: 12px; }
+.management-profile-card small { max-width: 100%; overflow: hidden; color: var(--mw-muted); font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
+.management-profile-dropdown > button { display: flex; justify-content: space-between; gap: 12px; border: 0; border-bottom: 1px solid var(--mw-line); padding: 12px 15px; color: var(--mw-ink); background: transparent; cursor: pointer; font-size: 10px; font-weight: 700; text-align: left; }
+.management-profile-dropdown > button:hover { background: color-mix(in srgb,var(--mw-panel),transparent 20%); }
+.management-profile-dropdown > button span { color: var(--mw-muted); font-size: 9px; font-weight: 500; }
+.management-profile-dropdown > .management-profile-signout { justify-content: flex-start; border: 0; color: #a9513e; }
+.management-art-bubble { position: absolute; z-index: 3; top: 6px; right: -24px; border: 1px solid color-mix(in srgb,var(--mw-accent),transparent 70%); border-radius: 13px 13px 13px 4px; padding: 9px 12px; color: var(--mw-accent-dark); background: var(--mw-surface); box-shadow: 0 7px 18px rgb(35 45 48 / 12%); font-family: Georgia,serif; font-size: 9px; font-weight: 750; opacity: 0; pointer-events: none; transform: translateY(4px); transition: .18s ease; }
+.management-art-bubble::after { position: absolute; right: 13px; bottom: -5px; width: 8px; height: 8px; border-right: 1px solid color-mix(in srgb,var(--mw-accent),transparent 70%); border-bottom: 1px solid color-mix(in srgb,var(--mw-accent),transparent 70%); background: var(--mw-surface); content: ""; transform: rotate(45deg); }
+.management-mascot-interactive:hover .management-art-bubble, .management-mascot-interactive:focus-visible .management-art-bubble { opacity: 1; transform: translateY(-4px) rotate(-2deg); }
+.management-welcome-supplies { position: absolute; z-index: 0; inset: 0; width: 100%; height: 100%; color: color-mix(in srgb,var(--mw-accent),transparent 94%); pointer-events: none; }
+.management-stat-card[type="button"] { cursor: pointer; transition: transform 150ms ease, box-shadow 150ms ease; }
+.management-stat-card[type="button"]:hover { transform: translateY(-3px); border-color: color-mix(in srgb,var(--mw-accent),transparent 48%); background: linear-gradient(120deg,var(--mw-surface),color-mix(in srgb,var(--mw-accent-soft),var(--mw-accent) 16%)); box-shadow: 0 14px 30px color-mix(in srgb,var(--mw-accent),transparent 78%); }
+.management-stat-card[type="button"] .management-stat-icon { transition: transform 180ms ease,box-shadow 180ms ease; }
+.management-stat-card[type="button"]:hover .management-stat-icon { transform: scale(1.08); box-shadow: 0 0 0 4px color-mix(in srgb,var(--mw-accent),transparent 89%); }
+.management-stat-card[type="button"]:focus-visible { outline: 3px solid color-mix(in srgb,var(--mw-accent),transparent 38%); outline-offset: 3px; }
+.management-profile-page { max-width: 800px; }
+.management-profile-details { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 20px; border-top: 1px solid var(--mw-line); padding-top: 19px; }
+.management-profile-details > div { display: grid; gap: 6px; min-width: 0; }
+.management-profile-details small { color: var(--mw-faint); font-size: 8px; font-weight: 850; letter-spacing: .12em; }
+.management-profile-details strong { overflow-wrap: anywhere; color: var(--mw-ink); font-size: 11px; font-weight: 700; }
+@media (max-width: 760px) { .management-mascot { width: 120px; height: 128px; }.management-art-bubble { top: 9px; right: -10px; padding: 7px 9px; font-size: 7px; }.management-profile-dropdown { right: 0; width: min(255px,calc(100vw - 32px)); } }
+@media (max-width: 430px) { .management-mascot { width: 98px; height: 113px; }.management-art-bubble { right: -4px; } }
+@media (max-width: 600px) { .management-profile-details { grid-template-columns: 1fr; gap: 15px; } }
+@media (max-width: 760px) { .management-stat-card { grid-template-columns: 38px minmax(0,1fr); }.management-stat-icon { width: 36px; height: 36px; } }
+@media (max-width: 430px) { .management-stat-card { grid-template-columns: 42px minmax(0,1fr); }.management-stat-icon { width: 40px; height: 40px; } }
+
+/* Administrator inbox and account pages. */
+.management-message-page, .management-message-compose-page, .management-profile-page { min-width: 0; }
+.management-message-heading { display: flex; align-items: end; justify-content: space-between; gap: 18px; margin-bottom: 16px; }
+.management-message-heading h2, .management-message-compose-intro h2 { margin: 6px 0 5px; color: var(--mw-ink); font: 500 clamp(23px,2.5vw,30px)/1.1 Georgia,"Times New Roman",serif; letter-spacing: -.04em; }
+.management-message-heading > div:first-child > p:last-child, .management-message-compose-intro > p:not(.management-eyebrow) { margin: 0; color: var(--mw-muted); font-size: 10px; line-height: 1.55; }
+.management-message-heading-actions { display: flex; align-items: center; gap: 10px; }
+.management-message-layout { display: grid; min-height: 560px; grid-template-columns: minmax(260px, .76fr) minmax(0, 1.65fr); overflow: hidden; border: 1px solid var(--mw-line); border-radius: 12px 12px 12px 4px; background: var(--mw-surface); box-shadow: var(--mw-shadow); }
+.management-message-list-panel { min-width: 0; border-right: 1px solid var(--mw-line); padding: 16px; }
+.management-message-list-heading { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; border-bottom: 1px solid var(--mw-line); padding-bottom: 11px; }
+.management-message-list-heading > div { display: grid; gap: 5px; }
+.management-message-list-heading strong { color: var(--mw-ink); font-size: 10px; }
+.management-message-list { display: grid; }
+.management-message-list-item { display: grid; width: 100%; min-width: 0; grid-template-columns: 35px minmax(0,1fr) auto; align-items: center; gap: 9px; border: 0; border-bottom: 1px solid var(--mw-line); padding: 11px 5px; color: var(--mw-ink); background: transparent; cursor: pointer; text-align: left; transition: background-color 150ms ease; }
+.management-message-list-item:hover, .management-message-list-item.is-selected { background: color-mix(in srgb,var(--mw-accent-soft),transparent 30%); }
+.management-message-list-item.is-selected { box-shadow: inset 3px 0 var(--mw-accent); }
+.management-message-avatar { display: grid; width: 34px; height: 34px; flex: 0 0 auto; overflow: hidden; place-items: center; border: 1px solid color-mix(in srgb,var(--mw-accent),transparent 79%); border-radius: 50%; color: var(--mw-accent-dark); background: var(--mw-accent-soft); font-family: Georgia,serif; font-size: 9px; font-weight: 800; }
+.management-message-avatar > img { width: 100%; height: 100%; object-fit: cover; }
+.management-message-avatar-animal { width: 24px; height: 24px; border-radius: 6px; background-repeat: no-repeat; }
+.management-message-list-copy { display: grid; min-width: 0; gap: 3px; }
+.management-message-list-copy > strong, .management-message-list-copy > small, .management-message-list-copy > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.management-message-list-copy > strong { color: var(--mw-ink); font-size: 10px; font-weight: 750; }
+.management-message-list-copy > small { color: var(--mw-accent); font-size: 8px; font-weight: 750; }
+.management-message-list-copy > span { color: var(--mw-muted); font-size: 9px; }
+.management-message-list-meta { display: grid; justify-items: end; gap: 6px; }
+.management-message-list-meta time { color: var(--mw-faint); font-size: 7px; white-space: nowrap; }
+.management-message-list-meta i { display: grid; min-width: 17px; height: 17px; place-items: center; border-radius: 50%; padding: 0 4px; color: var(--mw-surface); background: var(--mw-accent-dark); font-size: 8px; font-style: normal; font-weight: 800; }
+.management-message-thread-panel { display: flex; min-width: 0; min-height: 560px; flex-direction: column; padding: 17px 20px 15px; }
+.management-message-thread-heading { display: flex; align-items: center; gap: 11px; border-bottom: 1px solid var(--mw-line); padding-bottom: 13px; }
+.management-message-thread-heading .management-message-avatar { width: 39px; height: 39px; }
+.management-message-thread-heading > div { display: grid; gap: 3px; }
+.management-message-thread-heading h3 { margin: 0; color: var(--mw-ink); font: 500 18px/1.2 Georgia,"Times New Roman",serif; }
+.management-message-thread-heading > div > span { color: var(--mw-muted); font-size: 9px; }
+.management-message-thread { display: flex; min-height: 0; flex: 1; flex-direction: column; gap: 11px; overflow-y: auto; padding: 18px 4px; scroll-behavior: smooth; }
+.management-message-bubble { width: fit-content; max-width: min(78%, 530px); border: 1px solid var(--mw-line); border-radius: 11px 11px 11px 3px; padding: 10px 12px; color: var(--mw-ink); background: var(--mw-panel); }
+.management-message-bubble.is-own { align-self: flex-end; border-color: color-mix(in srgb,var(--mw-accent),transparent 75%); border-radius: 11px 11px 3px 11px; background: var(--mw-accent-soft); }
+.management-message-bubble-meta { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+.management-message-bubble-meta strong { color: var(--mw-accent-dark); font-size: 8px; font-weight: 800; }
+.management-message-bubble-meta time { color: var(--mw-faint); font-size: 7px; white-space: nowrap; }
+.management-message-bubble > p { margin: 7px 0 0; color: var(--mw-ink); font-size: 10px; line-height: 1.6; overflow-wrap: anywhere; white-space: pre-wrap; }
+.management-message-attachments { display: grid; gap: 5px; margin-top: 9px; }
+.management-message-attachments button { display: inline-flex; max-width: 100%; align-items: center; gap: 7px; border: 1px solid var(--mw-line); border-radius: 7px; padding: 7px 9px; color: var(--mw-accent-dark); background: var(--mw-surface); cursor: pointer; font-size: 8px; font-weight: 700; text-align: left; }
+.management-message-attachments button > span { font-size: 13px; }
+.management-message-attachments button small { color: var(--mw-muted); font-size: 7px; font-weight: 500; white-space: nowrap; }
+.management-message-reply { display: grid; gap: 8px; border-top: 1px solid var(--mw-line); padding-top: 12px; }
+.management-message-reply textarea, .management-message-body-field textarea { width: 100%; min-height: 74px; resize: vertical; border: 1px solid var(--mw-line); border-radius: 8px; padding: 10px 12px; color: var(--mw-ink); background: var(--mw-panel); font: inherit; font-size: 10px; line-height: 1.5; }
+.management-message-reply textarea:focus, .management-message-body-field textarea:focus { outline: 2px solid color-mix(in srgb,var(--mw-accent),transparent 55%); outline-offset: 1px; }
+.management-message-reply > div { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.management-message-reply > div > small, .management-message-body-field > small { color: var(--mw-faint); font-size: 8px; }
+.management-message-readonly { border-top: 1px solid var(--mw-line); padding-top: 12px; color: var(--mw-muted); font-size: 9px; }
+.management-message-no-selection { display: grid; min-height: 100%; align-content: center; justify-items: center; gap: 8px; padding: 35px; text-align: center; }
+.management-message-no-selection > span { display: grid; width: 47px; height: 47px; place-items: center; margin-bottom: 5px; border: 1px solid color-mix(in srgb,var(--mw-accent),transparent 75%); border-radius: 14px 14px 14px 4px; color: var(--mw-accent); background: var(--mw-accent-soft); font-size: 21px; }
+.management-message-no-selection h3 { margin: 0; color: var(--mw-ink); font: 500 20px Georgia,"Times New Roman",serif; }
+.management-message-no-selection > p:not(.management-eyebrow) { max-width: 290px; margin: 0 0 8px; color: var(--mw-muted); font-size: 9px; line-height: 1.55; }
+.management-message-error { display: grid; justify-items: start; gap: 8px; padding: 12px 2px; }
+.management-message-error p, .management-inline-error { margin: 0; color: #a54f47; font-size: 9px; line-height: 1.5; }
+.management-message-compose-page { max-width: 1030px; margin: 0 auto; }
+.management-back-link { border: 0; padding: 0; color: var(--mw-accent-dark); background: transparent; cursor: pointer; font-size: 10px; font-weight: 750; }
+.management-back-link:hover { color: var(--mw-warm); }
+.management-message-compose-layout { display: grid; grid-template-columns: minmax(220px,.75fr) minmax(0,1.5fr); align-items: start; gap: 22px; margin-top: 18px; }
+.management-message-compose-intro { padding: 18px 0; }
+.management-message-compose-intro h2 { max-width: 290px; font-size: clamp(26px,3vw,36px); }
+.management-message-compose-note { display: flex; align-items: center; gap: 10px; margin-top: 20px; border: 1px solid var(--mw-line); border-radius: 10px 10px 10px 3px; padding: 10px; background: var(--mw-surface); }
+.management-message-compose-note img { width: 44px; height: 48px; object-fit: contain; }
+.management-message-compose-note span { display: grid; gap: 4px; }
+.management-message-compose-note strong { color: var(--mw-ink); font-size: 9px; }
+.management-message-compose-note small { color: var(--mw-muted); font-size: 8px; line-height: 1.4; }
+.management-message-compose-form { display: grid; gap: 12px; padding: 19px; }
+.management-message-recipient-search { width: 100%; min-height: 43px; }
+.management-message-recipient-search input { font-size: 9px; }
+.management-message-recipient-hint { margin: -5px 0 0; color: var(--mw-faint); font-size: 8px; }
+.management-message-recipient-results { display: grid; max-height: 250px; overflow-y: auto; border-top: 1px solid var(--mw-line); }
+.management-message-recipient-results > button { display: grid; grid-template-columns: 34px minmax(0,1fr) 17px; align-items: center; gap: 10px; border: 0; border-bottom: 1px solid var(--mw-line); padding: 9px 4px; color: var(--mw-ink); background: transparent; cursor: pointer; text-align: left; }
+.management-message-recipient-results > button:hover { background: var(--mw-accent-soft); }
+.management-message-recipient-results > button > span:nth-child(2) { display: grid; gap: 3px; }
+.management-message-recipient-results strong, .management-message-recipient-selected strong { font-size: 9px; }
+.management-message-recipient-results small, .management-message-recipient-selected small { color: var(--mw-muted); font-size: 8px; }
+.management-message-recipient-results i { color: var(--mw-accent); font-size: 14px; font-style: normal; }
+.management-message-recipient-selected { display: grid; grid-template-columns: 36px minmax(0,1fr) auto; align-items: center; gap: 9px; border: 1px solid color-mix(in srgb,var(--mw-accent),transparent 75%); border-radius: 8px; padding: 9px; background: var(--mw-accent-soft); }
+.management-message-recipient-selected > span:nth-child(2) { display: grid; gap: 3px; }
+.management-text-button { justify-self: start; border: 0; padding: 3px; color: var(--mw-accent-dark); background: transparent; cursor: pointer; font-size: 8px; font-weight: 800; }
+.management-text-button:hover { text-decoration: underline; }
+.management-message-body-field { gap: 7px; }
+.management-message-body-field textarea { min-height: 138px; }
+.management-message-body-field textarea:disabled { opacity: .65; }
+.management-message-compose-actions { display: flex; justify-content: flex-end; gap: 9px; border-top: 1px solid var(--mw-line); padding-top: 12px; }
+.management-profile-layout { display: grid; grid-template-columns: minmax(0,1.45fr) minmax(300px,.9fr); align-items: start; gap: 17px; }
+.management-profile-main-column, .management-profile-side-column { display: grid; min-width: 0; gap: 14px; }
+.management-profile-panel { padding: 18px; }
+.management-profile-panel .management-section-heading { margin-bottom: 13px; }
+.management-profile-account-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 15px 20px; border-bottom: 1px solid var(--mw-line); padding: 2px 0 15px; }
+.management-profile-account-grid > div { display: grid; min-width: 0; gap: 5px; }
+.management-profile-account-grid small { color: var(--mw-faint); font-size: 7px; font-weight: 850; letter-spacing: .11em; }
+.management-profile-account-grid strong { overflow-wrap: anywhere; color: var(--mw-ink); font-size: 10px; font-weight: 750; }
+.management-profile-note { margin: 10px 0 0; color: var(--mw-muted); font-size: 8px; line-height: 1.5; }
+.management-profile-field-form { display: grid; gap: 7px; margin: 0 0 14px; }
+.management-profile-field-form > label { display: flex; align-items: center; gap: 8px; color: var(--mw-ink); font-size: 9px; font-weight: 750; }
+.management-email-status { border-radius: 99px; padding: 4px 7px; color: var(--mw-muted); background: var(--mw-panel); font-size: 7px; font-weight: 800; }
+.management-email-status.is-verified { color: var(--mw-green); background: var(--mw-green-soft); }
+.management-profile-inline-field { display: flex; align-items: center; gap: 8px; }
+.management-profile-inline-field > input { width: 100%; min-width: 0; min-height: 37px; border: 1px solid var(--mw-line); border-radius: 7px; padding: 0 10px; color: var(--mw-ink); background: var(--mw-panel); font-size: 9px; }
+.management-profile-inline-field > input:focus { outline: 2px solid color-mix(in srgb,var(--mw-accent),transparent 55%); outline-offset: 1px; }
+.management-profile-inline-field > button { flex: 0 0 auto; }
+.management-profile-verification { display: grid; justify-items: start; gap: 9px; margin: -8px 0 14px; }
+.management-profile-code-form { width: min(100%,390px); }
+.management-profile-code-form > input { flex: 1; }
+.management-password-form { display: grid; gap: 13px; }
+.management-password-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; }
+.management-password-grid > .management-form-field > input { width: 100%; min-height: 37px; border: 1px solid var(--mw-line); border-radius: 7px; padding: 0 10px; color: var(--mw-ink); background: var(--mw-panel); font-size: 9px; }
+.management-password-grid > .management-form-field > input:focus { outline: 2px solid color-mix(in srgb,var(--mw-accent),transparent 55%); outline-offset: 1px; }
+.management-password-actions { display: flex; align-items: center; justify-content: space-between; gap: 10px; border-top: 1px solid var(--mw-line); padding-top: 11px; }
+.management-password-actions > small { color: var(--mw-muted); font-size: 8px; line-height: 1.45; }
+.management-avatar-preview { display: flex; align-items: center; gap: 10px; margin: 0 0 13px; border: 1px solid var(--mw-line); border-radius: 9px; padding: 9px; background: var(--mw-panel); }
+.management-avatar-preview-image { display: grid; width: 49px; height: 49px; flex: 0 0 auto; overflow: hidden; place-items: center; border: 1px solid var(--mw-line); border-radius: 11px 11px 11px 4px; color: var(--mw-accent-dark); background: var(--mw-accent-soft); font: 700 12px Georgia,serif; }
+.management-avatar-preview-image img, .management-avatar-preview-image > span { width: 100%; height: 100%; object-fit: cover; }
+.management-avatar-preview > span:last-child { display: grid; gap: 4px; }
+.management-avatar-preview strong { color: var(--mw-ink); font-size: 9px; }
+.management-avatar-preview small { color: var(--mw-muted); font-size: 8px; line-height: 1.4; }
+.management-avatar-initial-choice { margin-bottom: 10px; }
+.management-avatar-choice { display: grid; min-width: 57px; min-height: 61px; justify-items: center; align-content: center; gap: 4px; border: 1px solid transparent; border-radius: 8px; padding: 5px; color: var(--mw-muted); background: transparent; cursor: pointer; }
+.management-avatar-choice:hover, .management-avatar-choice.is-selected { border-color: color-mix(in srgb,var(--mw-accent),transparent 35%); color: var(--mw-accent-dark); background: var(--mw-accent-soft); }
+.management-avatar-choice > strong { font-size: 7px; font-weight: 750; }
+.management-avatar-option-initials { display: grid; width: 35px; height: 35px; place-items: center; border: 1px solid var(--mw-line); border-radius: 10px 10px 10px 3px; color: var(--mw-accent-dark); background: var(--mw-panel); font-family: Georgia,serif; font-size: 9px; font-weight: 800; }
+.management-avatar-groups { max-height: 390px; overflow-y: auto; scrollbar-color: var(--mw-faint) transparent; }
+.management-avatar-group { border-top: 1px solid var(--mw-line); padding: 10px 0; }
+.management-avatar-group h3 { margin: 0 0 7px; color: var(--mw-accent); font-size: 8px; font-weight: 850; letter-spacing: .08em; text-transform: uppercase; }
+.management-avatar-options { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 5px; }
+.management-avatar-option-animal { display: block; width: 38px; height: 38px; border-radius: 8px; background-repeat: no-repeat; }
+.management-avatar-upload { display: grid; min-height: 37px; place-items: center; border: 1px dashed color-mix(in srgb,var(--mw-accent),transparent 45%); border-radius: 7px; color: var(--mw-accent-dark); background: var(--mw-panel); cursor: pointer; font-size: 8px; font-weight: 800; }
+.management-avatar-upload:hover { background: var(--mw-accent-soft); }
+.management-avatar-upload input { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; clip-path: inset(50%); }
+.management-avatar-upload:focus-within { outline: 2px solid var(--mw-accent); outline-offset: 2px; }
+.management-avatar-hint { display: block; margin: 6px 0 11px; color: var(--mw-muted); font-size: 7px; }
+.management-avatar-save { width: 100%; }
+.management-avatar-loading { margin: 9px 0 0; color: var(--mw-muted); font-size: 8px; }
+.management-profile-shortcuts > .management-eyebrow { border-bottom: 1px solid var(--mw-line); padding-bottom: 9px; }
+.management-profile-shortcuts > button { display: grid; width: 100%; grid-template-columns: minmax(0,1fr) 20px; gap: 4px 10px; border: 0; border-bottom: 1px solid var(--mw-line); padding: 10px 1px; color: var(--mw-ink); background: transparent; cursor: pointer; text-align: left; }
+.management-profile-shortcuts > button:last-child { border-bottom: 0; }
+.management-profile-shortcuts > button > span { color: var(--mw-accent-dark); font-size: 9px; font-weight: 800; }
+.management-profile-shortcuts > button > small { color: var(--mw-muted); font-size: 8px; }
+.management-profile-shortcuts > button > b { grid-column: 2; grid-row: 1 / span 2; align-self: center; color: var(--mw-accent); font-size: 11px; text-align: right; }
+.management-profile-shortcuts > button:hover > span { text-decoration: underline; }
+.management-profile-shortcuts > .management-profile-signout-link > span { color: #a9513e; }
+.management-profile-shortcuts > .management-profile-signout-link > b { color: #a9513e; }
+@media (max-width: 900px) { .management-profile-layout { grid-template-columns: minmax(0,1fr); }.management-profile-side-column { grid-template-columns: repeat(2,minmax(0,1fr)); align-items: start; }.management-avatar-panel { grid-row: span 2; } }
+@media (max-width: 760px) { .management-message-layout { min-height: 0; grid-template-columns: minmax(0,1fr); }.management-message-list-panel { border-right: 0; border-bottom: 1px solid var(--mw-line); }.management-message-thread-panel { min-height: 430px; }.management-message-layout.has-selection .management-message-list-panel { max-height: 220px; overflow-y: auto; }.management-message-compose-layout { grid-template-columns: minmax(0,1fr); gap: 8px; }.management-message-compose-intro { padding: 8px 0; }.management-message-compose-note { display: none; }.management-profile-side-column { grid-template-columns: minmax(0,1fr); }.management-avatar-panel { grid-row: auto; } }
+@media (max-width: 540px) { .management-message-heading { align-items: flex-start; flex-direction: column; }.management-message-heading-actions { width: 100%; justify-content: space-between; }.management-message-thread-panel { padding: 13px 12px; }.management-message-bubble { max-width: 92%; }.management-profile-account-grid, .management-password-grid { grid-template-columns: minmax(0,1fr); }.management-profile-panel { padding: 14px; }.management-profile-inline-field { align-items: stretch; flex-direction: column; }.management-profile-inline-field > button { align-self: flex-start; }.management-password-actions { align-items: flex-start; flex-direction: column; }.management-profile-code-form { align-items: stretch; }.management-profile-code-form > input { width: 100%; }.management-message-compose-form { padding: 14px; } }
+
+.management-table-tools { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 0 13px; }
+.management-search { display: flex; width: min(100%, 370px); min-height: 39px; align-items: center; gap: 9px; border: 1px solid var(--mw-line); border-radius: 8px; padding: 0 11px; color: var(--mw-faint); background: var(--mw-panel); }
+.management-search svg { width: 15px; height: 15px; flex: 0 0 auto; }
+.management-search input { width: 100%; min-width: 0; border: 0; outline: 0; color: var(--mw-ink); background: transparent; font: inherit; font-size: 10px; }
+.management-search input::placeholder { color: var(--mw-faint); }
+.management-primary-button, .management-secondary-button, .management-danger-button { display: inline-flex; min-height: 36px; align-items: center; justify-content: center; gap: 7px; border: 1px solid transparent; border-radius: 8px; padding: 0 13px; cursor: pointer; font: inherit; font-size: 9px; font-weight: 800; transition: transform 150ms ease, box-shadow 150ms ease, background-color 150ms ease; }
+.management-primary-button { border-color: color-mix(in srgb,var(--mw-accent),transparent 15%); color: var(--mw-surface); background: var(--mw-accent-dark); box-shadow: 0 4px 10px color-mix(in srgb,var(--mw-accent),transparent 82%); }
+.management-primary-button:hover { transform: translateY(-1px); box-shadow: 0 7px 16px color-mix(in srgb,var(--mw-accent),transparent 75%); }
+.management-primary-button svg, .management-secondary-button svg, .management-danger-button svg { width: 14px; height: 14px; }
+.management-secondary-button { border-color: var(--mw-line); color: var(--mw-ink); background: var(--mw-surface); }
+.management-secondary-button:hover { border-color: var(--mw-accent); background: var(--mw-accent-soft); }
+.management-danger-button { border-color: #bd7369; color: #fff; background: #a54f47; }
+.management-danger-button:hover { background: #8f4039; }
+.management-prototype-note { display: flex; align-items: flex-start; gap: 10px; margin: 0 0 16px; border: 1px solid color-mix(in srgb,var(--mw-accent),transparent 83%); border-radius: 8px; padding: 10px 12px; background: var(--mw-accent-soft); }
+.management-prototype-note > span { flex: 0 0 auto; border-radius: 99px; padding: 4px 7px; color: var(--mw-accent-dark); background: var(--mw-surface); font-size: 7px; font-weight: 850; letter-spacing: .08em; }
+.management-prototype-note p { margin: 1px 0 0; color: var(--mw-muted); font-size: 9px; line-height: 1.5; }
+.management-child-chips { display: flex; max-width: 260px; flex-wrap: wrap; gap: 5px; }
+.management-class-list.is-detailed .management-class-row { grid-template-columns: 40px minmax(0,1fr) 35px 34px; }
+.management-table td:last-child { width: 46px; text-align: right; }
+.management-row-action { display: inline-grid; width: 31px; height: 31px; place-items: center; border: 1px solid var(--mw-line); border-radius: 8px; color: var(--mw-muted); background: var(--mw-surface); cursor: pointer; transition: border-color 150ms ease, color 150ms ease, background-color 150ms ease; }
+.management-row-action svg { width: 14px; height: 14px; }
+.management-row-action:hover { border-color: var(--mw-accent); color: var(--mw-accent-dark); background: var(--mw-accent-soft); }
+.management-row-action.management-row-danger:hover { border-color: #bd7369; color: #a54f47; background: #faece9; }
+.management-table-avatar.parent { color: var(--mw-warm); background: var(--mw-warm-soft); }
+.management-modal-backdrop { position: fixed; z-index: 1000; inset: 0; display: grid; overflow-y: auto; place-items: center; padding: 24px; background: rgb(18 25 31 / 55%); backdrop-filter: blur(5px); }
+.management-modal { width: min(100%, 650px); max-height: min(90vh, 850px); overflow-y: auto; border: 1px solid var(--mw-line); border-radius: 15px; padding: 23px; color: var(--mw-ink); background: var(--mw-surface); box-shadow: 0 24px 80px rgb(0 0 0 / 24%); }
+.management-modal-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 16px; }
+.management-modal-head h2 { margin: 4px 0 5px; font-family: Georgia,"Times New Roman",serif; font-size: 25px; font-weight: 500; letter-spacing: -.04em; }
+.management-modal-head > div > p:last-child { margin: 0; color: var(--mw-muted); font-size: 10px; line-height: 1.5; }
+.management-modal-close { display: grid; width: 33px; height: 33px; flex: 0 0 auto; place-items: center; border: 1px solid var(--mw-line); border-radius: 9px; color: var(--mw-muted); background: var(--mw-panel); cursor: pointer; font-size: 20px; line-height: 1; }
+.management-modal-close:hover { color: var(--mw-ink); border-color: var(--mw-accent); }
+.management-modal-preview-note { margin-bottom: 15px; border-left: 3px solid var(--mw-warm); border-radius: 5px; padding: 9px 11px; color: var(--mw-muted); background: var(--mw-warm-soft); font-size: 9px; line-height: 1.5; }
+.management-parent-mode { display: flex; gap: 5px; margin-bottom: 16px; border: 1px solid var(--mw-line); border-radius: 9px; padding: 4px; background: var(--mw-panel); }
+.management-parent-mode button { flex: 1; min-height: 34px; border: 0; border-radius: 6px; color: var(--mw-muted); background: transparent; cursor: pointer; font: inherit; font-size: 9px; font-weight: 700; }
+.management-parent-mode button.is-selected { color: var(--mw-accent-dark); background: var(--mw-surface); box-shadow: 0 1px 5px rgb(20 30 30 / 9%); }
+.management-form { display: grid; gap: 14px; }
+.management-form-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 13px; }
+.management-form-field { display: grid; min-width: 0; gap: 6px; color: var(--mw-ink); font-size: 9px; font-weight: 750; }
+.management-form-field > span { color: var(--mw-muted); }
+.management-form-field input, .management-form-field select, .management-form-field textarea { width: 100%; min-width: 0; min-height: 39px; border: 1px solid var(--mw-line); border-radius: 8px; padding: 9px 10px; outline: 0; color: var(--mw-ink); background: var(--mw-panel); font: inherit; font-size: 10px; font-weight: 500; }
+.management-form-field select[multiple] { min-height: 95px; padding: 6px; }
+.management-form-field select[multiple] option { border-radius: 4px; padding: 5px 7px; }
+.management-form-field textarea { resize: vertical; }
+.management-form-field input:focus, .management-form-field select:focus, .management-form-field textarea:focus { border-color: var(--mw-accent); box-shadow: 0 0 0 3px color-mix(in srgb,var(--mw-accent),transparent 84%); }
+.management-form-field input::placeholder, .management-form-field textarea::placeholder { color: var(--mw-faint); }
+.management-form-wide { grid-column: 1 / -1; }
+.management-form-hint { margin: -4px 0 0; color: var(--mw-faint); font-size: 9px; line-height: 1.5; }
+.management-global-info { display: grid; gap: 4px; border: 1px solid color-mix(in srgb,var(--mw-blue),transparent 78%); border-radius: 8px; padding: 10px 12px; color: var(--mw-muted); background: var(--mw-blue-soft); font-size: 9px; line-height: 1.5; }
+.management-global-info strong { color: var(--mw-ink); font-size: 9px; }
+.management-student-signin-note { display: flex; align-items: center; gap: 11px; min-height: 66px; }
+.management-student-note-mascot { position: relative; display: block; width: 43px; height: 48px; flex: 0 0 43px; cursor: pointer; }
+.management-student-note-mascot > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 4px 5px rgb(35 45 48 / 12%)); transition: opacity .24s ease, transform .28s cubic-bezier(.2,.75,.2,1); }
+.management-student-note-mascot > .management-pose-rest { opacity: 1; transform: translateY(0) scale(1); }
+.management-student-note-mascot > .management-pose-hover { opacity: 0; transform: translateY(3px) scale(.97); }
+.management-student-note-mascot:hover > .management-pose-rest, .management-student-note-mascot:focus-visible > .management-pose-rest { opacity: 0; transform: translateY(-2px) scale(.98); }
+.management-student-note-mascot:hover > .management-pose-hover, .management-student-note-mascot:focus-visible > .management-pose-hover { opacity: 1; transform: translateY(0) scale(1); }
+.management-student-note-mascot:focus-visible, .management-student-roster-mascots:focus-visible { outline: 2px solid var(--mw-accent); outline-offset: 3px; border-radius: 10px; }
+.management-student-note-copy { display: grid; gap: 4px; }
+.management-student-note-copy > strong { color: var(--mw-ink); font-size: 9px; }
+.management-student-note-copy > span { color: var(--mw-muted); font-size: 9px; line-height: 1.5; }
+.management-preview-response { border: 1px solid color-mix(in srgb,var(--mw-green),transparent 75%); border-radius: 8px; padding: 10px 12px; color: var(--mw-green); background: var(--mw-green-soft); font-size: 9px; line-height: 1.5; }
+.management-modal-actions { display: flex; justify-content: flex-end; gap: 8px; border-top: 1px solid var(--mw-line); padding-top: 14px; }
+.management-modal :focus-visible, .management-search:focus-within { outline: 2px solid var(--mw-accent); outline-offset: 2px; }
+@media (max-width: 600px) { .management-table-tools { align-items: stretch; flex-direction: column; }.management-search { width: 100%; }.management-directory-card .management-section-heading { align-items: flex-start; flex-direction: column; }.management-form-grid { grid-template-columns: 1fr; }.management-form-wide { grid-column: auto; }.management-modal-backdrop { align-items: end; padding: 0; }.management-modal { width: 100%; max-height: 92vh; border-radius: 15px 15px 0 0; padding: 19px 16px calc(18px + env(safe-area-inset-bottom)); }.management-modal-head h2 { font-size: 22px; }.management-modal-actions { position: sticky; bottom: -18px; margin: 0 -16px; padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); background: var(--mw-surface); }.management-modal-actions button { flex: 1; } }
+
+.management-student-tools { align-items: end; justify-content: flex-start; flex-wrap: wrap; }
+.management-student-search { width: auto; max-width: 760px; flex: 1 1 390px; }
+.management-student-filter { display: grid; min-width: 170px; gap: 5px; color: var(--mw-faint); font-size: 8px; font-weight: 850; letter-spacing: .1em; }
+.management-student-filter select { width: 100%; min-height: 39px; border: 1px solid var(--mw-line); border-radius: 8px; padding: 0 30px 0 11px; color: var(--mw-ink); background: var(--mw-panel); font: inherit; font-size: 10px; font-weight: 600; cursor: pointer; }
+.management-student-detail { display: grid; gap: 16px; }
+
+/* School roster details use the same quiet, handmade language as member pages. */
+.management-students-page .management-section-heading > .management-student-add-button, .management-student-record .management-student-save-button, .management-student-table-wrap .management-detail-button, .management-student-create-form .management-student-create-submit, .management-student-created-actions .management-student-create-submit { display: inline-flex; min-height: 43px; align-items: center; justify-content: center; gap: 9px; border: 1px solid var(--mw-accent-dark); border-radius: 5px 12px 5px 12px; padding: 0 16px; color: var(--mw-surface); background: var(--mw-accent-dark); box-shadow: 0 4px 0 color-mix(in srgb,var(--mw-accent-dark),#322742 25%); cursor: pointer; font: inherit; font-size: 12px !important; font-weight: 700; text-decoration: none; transition: transform .15s ease,box-shadow .15s ease; }
+.management-student-table-wrap .management-detail-button { min-height: 36px; gap: 7px; padding: 0 12px; font-size: 10px !important; }
+.management-student-add-button svg { width: 14px; height: 14px; }
+.management-students-page .management-section-heading > .management-student-add-button:hover, .management-student-record .management-student-save-button:hover:not(:disabled), .management-student-table-wrap .management-detail-button:hover, .management-student-create-form .management-student-create-submit:hover:not(:disabled), .management-student-created-actions .management-student-create-submit:hover { transform: translateY(2px); box-shadow: 0 2px 0 color-mix(in srgb,var(--mw-accent-dark),#322742 25%); }
+.management-student-add-button:focus-visible, .management-student-save-button:focus-visible, .management-student-create-submit:focus-visible, .management-student-back-link:focus-visible { outline: 2px solid color-mix(in srgb,var(--mw-accent),transparent 25%); outline-offset: 4px; }
+.management-student-tabs { display: flex; align-items: stretch; gap: 16px; border-bottom: 1px solid var(--mw-line); }
+.management-student-tabs button { position: relative; min-height: 38px; border: 0; padding: 0 2px; color: var(--mw-muted); background: transparent; cursor: pointer; font: inherit; font-size: 9px; font-weight: 650; }
+.management-student-tabs button::after { position: absolute; right: 0; bottom: -1px; left: 0; height: 2px; background: transparent; content: ""; }
+.management-student-tabs button:hover, .management-student-tabs button.is-selected { color: var(--mw-accent-dark); }
+.management-student-tabs button.is-selected::after { background: var(--mw-accent); }
+.management-student-class { color: var(--mw-ink); font-size: 10px; font-weight: 600; white-space: nowrap; }
+.management-student-status { display: inline-flex; align-items: center; gap: 6px; color: var(--mw-muted); font-size: 9px; font-weight: 600; white-space: nowrap; }
+.management-student-status > i { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+.management-student-status.is-active { color: var(--mw-green); }
+.management-student-status.is-active > i { background: var(--mw-green); }
+.management-student-status:not(.is-active) { color: var(--mw-faint); }
+.management-student-status:not(.is-active) > i { background: var(--mw-faint); }
+.management-student-heading-copy { display: flex; min-width: 0; align-items: center; gap: 19px; }
+.management-student-roster-mascots { position: relative; width: 96px; height: 66px; flex: 0 0 96px; cursor: pointer; }
+.management-student-roster-mascots > img { position: absolute; bottom: 0; object-fit: contain; transition: opacity .24s ease, transform .3s cubic-bezier(.2,.75,.2,1); }
+.management-student-roster-mascots > .management-student-roster-beaver { left: 0; width: 59px; height: 64px; }
+.management-student-roster-mascots > .management-pose-rest { opacity: 1; transform: translateY(0) scale(1); }
+.management-student-roster-mascots > .management-pose-hover { opacity: 0; transform: translateY(4px) scale(.97); }
+.management-student-roster-mascots:hover > .management-pose-rest, .management-student-roster-mascots:focus-visible > .management-pose-rest { opacity: 0; transform: translateY(-2px) scale(.98); }
+.management-student-roster-mascots:hover > .management-pose-hover, .management-student-roster-mascots:focus-visible > .management-pose-hover { opacity: 1; transform: translateY(0) scale(1); }
+.management-student-roster-otter { right: 0; z-index: 1; width: 48px; height: 56px; transform: translateY(0) rotate(-2deg); }
+.management-student-roster-mascots:hover > .management-student-roster-otter, .management-student-roster-mascots:focus-visible > .management-student-roster-otter { transform: translateY(-5px) rotate(3deg) scale(1.04); }
+.management-student-roster-bubble { position: absolute; top: -16px; right: auto; left: 4px; z-index: 2; border: 1px solid color-mix(in srgb,var(--mw-accent),transparent 70%); border-radius: 10px 10px 10px 3px; padding: 5px 7px; color: var(--mw-accent-dark); background: var(--mw-surface); box-shadow: 0 5px 13px rgb(35 45 48 / 10%); font-family: Georgia,"Times New Roman",serif; font-size: 8px; font-weight: 700; opacity: 0; pointer-events: none; transform: translateY(4px); transition: opacity .18s ease,transform .18s ease; white-space: nowrap; }
+.management-student-roster-bubble::after { position: absolute; bottom: -4px; left: 36px; width: 6px; height: 6px; border-right: 1px solid color-mix(in srgb,var(--mw-accent),transparent 70%); border-bottom: 1px solid color-mix(in srgb,var(--mw-accent),transparent 70%); background: var(--mw-surface); content: ""; transform: rotate(45deg); }
+.management-student-roster-mascots:hover > .management-student-roster-bubble, .management-student-roster-mascots:focus-visible > .management-student-roster-bubble { opacity: 1; transform: translateY(0); }
+.management-student-table-wrap .management-table td:last-child { width: 102px; white-space: nowrap; }
+.management-student-table-wrap .management-detail-button svg { width: 13px; height: 13px; }
+.management-student-pagination { border-top: 1px solid var(--mw-line); padding-top: 13px; }
+.management-student-pagination button { min-height: 28px; border: 0; border-radius: 0; padding: 2px; color: var(--mw-accent-dark); background: transparent; font-size: 9px !important; font-weight: 650; }
+.management-student-pagination button:not(:disabled):hover { border: 0; color: var(--mw-warm) !important; text-decoration: underline; text-underline-offset: 3px; }
+.management-student-pagination button:disabled { color: var(--mw-faint) !important; opacity: .55; }
+.management-student-pagination > div > span { color: var(--mw-faint); }
+.management-student-back-link { justify-self: start; margin: 0 0 1px; border: 0; padding: 6px 0; color: var(--mw-accent-dark); background: transparent; cursor: pointer; font: 700 12px/1.3 Inter,ui-sans-serif,system-ui,sans-serif; transition: color 150ms ease; }
+.management-student-back-link:hover { color: var(--mw-warm); }
+.management-student-record { display: grid; grid-template-columns: 88px minmax(0,1fr); overflow: hidden; border: 1px solid var(--mw-line); border-radius: 8px 14px 14px 8px; background: var(--mw-surface); box-shadow: var(--mw-shadow); }
+.management-student-record-rail { display: flex; min-height: 100%; flex-direction: column; align-items: flex-start; gap: 17px; border-right: 1px solid var(--mw-line); padding: 23px 14px; color: var(--mw-accent-dark); background: linear-gradient(180deg,var(--mw-accent-soft),color-mix(in srgb,var(--mw-surface),var(--mw-accent-soft) 38%)); }
+.management-student-record-rail > span, .management-student-record-rail > small { color: var(--mw-accent); font-size: 7px; font-weight: 850; letter-spacing: .1em; line-height: 1.5; }
+.management-student-record-rail > strong { font-family: Georgia,"Times New Roman",serif; font-size: 27px; font-weight: 500; letter-spacing: -.04em; }
+.management-student-record-rail > i { width: 100%; max-width: 42px; height: 1px; background: color-mix(in srgb,var(--mw-accent),transparent 68%); }
+.management-student-record-main { min-width: 0; padding: 24px 27px 20px; }
+.management-student-record-head { display: flex; align-items: center; gap: 12px; border-bottom: 1px solid var(--mw-line); padding-bottom: 16px; }
+.management-student-record-head > .management-table-avatar { width: 44px; height: 44px; border: 1px solid color-mix(in srgb,var(--mw-accent),transparent 78%); font-size: 11px; }
+.management-student-record-head .management-eyebrow { margin: 0 0 4px; }
+.management-student-record-head h2 { margin: 0; color: var(--mw-ink); font-family: Georgia,"Times New Roman",serif; font-size: 25px; font-weight: 500; letter-spacing: -.035em; }
+.management-student-record-meta { display: flex; align-items: center; gap: 12px; margin: 5px 0 0; color: var(--mw-muted); font-size: 9px; }
+.management-student-record-section { display: flex; align-items: baseline; justify-content: space-between; gap: 14px; margin: 17px 0 13px; }
+.management-student-record-section .management-eyebrow { color: var(--mw-accent); }
+.management-student-record-caption { color: var(--mw-faint); font-size: 9px; }
+.management-student-record-form { gap: 13px; }
+.management-student-record-form .management-form-field { gap: 6px; font-size: 9px; }
+.management-student-record-form .management-form-field > span { color: var(--mw-muted); }
+.management-student-record-form .management-form-field input, .management-student-record-form .management-form-field select { min-height: 42px; border-radius: 5px 10px 5px 10px; padding: 9px 11px; background: var(--mw-panel); font-size: 10px; }
+.management-student-record-form .management-form-field input:disabled, .management-student-record-form .management-form-field select:disabled { color: var(--mw-muted); background: color-mix(in srgb,var(--mw-panel),var(--mw-line) 22%); cursor: not-allowed; }
+.management-student-account-strip { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); border-top: 1px solid var(--mw-line); border-bottom: 1px solid var(--mw-line); margin-top: 2px; padding: 12px 0; }
+.management-student-account-strip > div { display: grid; min-width: 0; gap: 5px; padding: 0 12px; border-left: 1px solid var(--mw-line); }
+.management-student-account-strip > div:first-child { padding-left: 0; border-left: 0; }
+.management-student-account-strip small { color: var(--mw-faint); font-size: 7px; font-weight: 850; letter-spacing: .09em; }
+.management-student-account-strip strong { overflow-wrap: anywhere; color: var(--mw-ink); font-size: 9px; font-weight: 650; line-height: 1.45; }
+.management-student-form-actions { display: flex; align-items: center; justify-content: space-between; gap: 14px; border-top: 0; padding-top: 1px; }
+.management-student-form-actions > span { color: var(--mw-faint); font-size: 9px; }
+.management-student-save-button:disabled { border-color: var(--mw-line); color: var(--mw-faint); background: var(--mw-panel); box-shadow: none; cursor: not-allowed; opacity: 1; }
+.management-student-create-page { display: grid; gap: 15px; }
+.management-student-create-card { max-width: 960px; }
+.management-student-create-card .management-section-heading { margin-bottom: 18px; }
+.management-student-create-form { gap: 17px; }
+.management-student-create-section { display: flex; align-items: baseline; justify-content: space-between; gap: 14px; border-top: 1px solid var(--mw-line); padding-top: 15px; }
+.management-student-create-section > span { color: var(--mw-muted); font-size: 9px; }
+.management-student-create-submit svg { width: 14px; height: 14px; }
+.management-student-create-submit:disabled { border-color: var(--mw-line); color: var(--mw-faint); background: var(--mw-panel); box-shadow: none; cursor: not-allowed; }
+.management-student-create-submit.is-busy:disabled { cursor: wait; }
+.management-student-created-card { max-width: 960px; }
+.management-student-created-card .management-section-heading { margin-bottom: 18px; }
+.management-created-mark { display: grid; width: 32px; height: 32px; place-items: center; border: 1px solid color-mix(in srgb,var(--mw-green),transparent 65%); border-radius: 50%; color: var(--mw-green); background: var(--mw-green-soft); font-size: 15px; }
+.management-student-created-summary { display: grid; gap: 6px; margin-bottom: 16px; color: var(--mw-muted); font-size: 10px; }
+.management-student-created-summary > strong { color: var(--mw-ink); font-family: Georgia,"Times New Roman",serif; font-size: 20px; font-weight: 500; }
+.management-student-credentials { display: grid; gap: 11px; border-left: 3px solid var(--mw-accent); padding: 12px 15px; background: var(--mw-accent-soft); }
+.management-student-credentials .management-eyebrow { margin-bottom: 1px; }
+.management-student-credentials > div { display: grid; gap: 4px; }
+.management-student-credentials small { color: var(--mw-muted); font-size: 8px; font-weight: 800; letter-spacing: .1em; }
+.management-student-credentials strong { overflow-wrap: anywhere; color: var(--mw-ink); font-size: 12px; font-weight: 700; }
+.management-student-credentials > p:last-child { margin: 0; color: var(--mw-muted); font-size: 9px; line-height: 1.5; }
+.management-student-created-actions { display: flex; align-items: center; justify-content: space-between; gap: 14px; border-top: 1px solid var(--mw-line); margin-top: 17px; padding-top: 14px; }
+.management-student-created-actions > span { color: var(--mw-faint); font-size: 9px; }
+@media (max-width: 760px) { .management-student-record { grid-template-columns: 58px minmax(0,1fr); }.management-student-record-rail { gap: 13px; padding: 18px 8px; }.management-student-record-rail > span,.management-student-record-rail > small { font-size: 6px; overflow-wrap: anywhere; }.management-student-record-main { padding: 19px 16px 17px; } }
+@media (max-width: 600px) { .management-student-tools { align-items: stretch; }.management-student-search { flex-basis: auto; }.management-student-filter { width: 100%; }.management-student-tabs { justify-content: flex-start; }.management-student-record-section { align-items: flex-start; flex-direction: column; gap: 4px; }.management-student-account-strip { grid-template-columns: 1fr; gap: 0; }.management-student-account-strip > div { border-left: 0; border-top: 1px solid var(--mw-line); padding: 9px 0; }.management-student-account-strip > div:first-child { border-top: 0; }.management-student-form-actions { align-items: flex-start; flex-direction: column; }.management-student-form-actions .management-student-save-button { align-self: flex-end; width: auto; } }
+@media (max-width: 600px) { .management-student-create-section { align-items: flex-start; flex-direction: column; gap: 5px; }.management-student-created-actions { align-items: flex-start; flex-direction: column; }.management-student-created-actions .management-student-create-submit { align-self: flex-end; } }
+
+/* Account details, parent selection and sign-in actions for school roster records. */
+.management-student-account-strip { grid-template-columns: repeat(5,minmax(0,1fr)); }
+.management-student-account-strip em { display: inline-flex; width: max-content; margin-top: 3px; border-radius: 99px; padding: 3px 6px; font-size: 7px; font-style: normal; font-weight: 750; }
+.management-student-account-strip em.is-verified { color: var(--mw-green); background: var(--mw-green-soft); }
+.management-student-account-strip em.is-unverified { color: var(--mw-warm); background: var(--mw-warm-soft); }
+.management-student-action-buttons { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 9px; }
+.management-student-secondary-action:focus-visible, .management-student-archive-button:focus-visible { outline: 2px solid var(--mw-accent); outline-offset: 3px; }
+.management-student-reset-credentials { margin: 12px 0 15px; border-radius: 0 9px 9px 0; }
+.management-directory-intro { max-width: 720px; margin: -2px 0 15px; color: var(--mw-muted); font-size: 10px; line-height: 1.6; }
+.management-table-muted { color: var(--mw-faint); font-size: 9px; }
+.management-parent-picker { position: relative; align-content: start; }
+.management-parent-picker > label > span { color: var(--mw-muted); font-size: 9px; font-weight: 750; }
+.management-parent-picker > input { font-size: 10px; }
+.management-parent-selected { color: var(--mw-green); font-size: 8px; font-weight: 700; }
+.management-form-error-note { color: #a64d47; font-size: 8px; font-weight: 600; }
+.management-parent-options { position: absolute; z-index: 12; top: calc(100% + 3px); right: 0; left: 0; display: grid; max-height: 250px; overflow-y: auto; border: 1px solid var(--mw-line); border-radius: 8px; padding: 5px; background: var(--mw-surface); box-shadow: 0 14px 30px rgb(20 28 32 / 16%); }
+.management-parent-options > button:not(.management-parent-add-inline) { display: grid; gap: 3px; border: 0; border-radius: 6px; padding: 9px 10px; color: var(--mw-ink); background: transparent; cursor: pointer; text-align: left; }
+.management-parent-options > button:not(.management-parent-add-inline):hover, .management-parent-options > button[aria-selected="true"] { background: var(--mw-accent-soft); }
+.management-parent-options > button > strong { font-size: 10px; font-weight: 750; }
+.management-parent-options > button > span { color: var(--mw-muted); font-size: 8px; }
+.management-parent-options > p { margin: 0; padding: 11px 9px; color: var(--mw-muted); font-size: 9px; }
+.management-parent-options > .management-parent-add-inline { display: flex; min-height: 35px; align-items: center; gap: 7px; border: 0; border-top: 1px solid var(--mw-line); margin-top: 3px; padding: 7px 9px; color: var(--mw-accent-dark); background: transparent; cursor: pointer; font: inherit; font-size: 9px; font-weight: 750; text-align: left; }
+.management-parent-options > .management-parent-add-inline:hover { color: var(--mw-warm); }
+.management-parent-add-inline svg { width: 12px; height: 12px; }
+.management-parent-directory-note { display: grid; gap: 4px; border-left: 3px solid var(--mw-accent); border-radius: 0 7px 7px 0; padding: 10px 12px; color: var(--mw-muted); background: var(--mw-accent-soft); font-size: 9px; line-height: 1.5; }
+.management-parent-directory-note strong { color: var(--mw-accent-dark); font-size: 10px; }
+.management-parent-created-credentials { margin-bottom: 15px; }
+.management-parent-create-modal .management-modal-actions { display: flex; justify-content: flex-end; gap: 9px; border-top: 1px solid var(--mw-line); margin-top: 16px; padding-top: 14px; }
+.management-parent-create-modal .management-modal-actions button:disabled { cursor: wait; opacity: .7; }
+.management-student-roster-mascots { width: 150px; height: 112px; flex: 0 0 150px; }
+.management-student-roster-mascots > img { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: contain; transition: transform .28s cubic-bezier(.2,.75,.2,1); }
+.management-student-roster-mascots:hover > img, .management-student-roster-mascots:focus-visible > img { transform: translateY(-5px) scale(1.015); }
+.management-student-roster-bubble { left: 4px; right: auto; top: -16px; }
+.management-parent-roster-mascots { position: relative; width: 240px; height: 80px; flex: 0 0 240px; cursor: pointer; }
+.management-parent-roster-mascots:focus-visible { outline: 2px solid var(--mw-accent); outline-offset: 3px; border-radius: 10px; }
+.management-parent-roster-family-frame { position: absolute; z-index: 1; inset: 0; overflow: hidden; pointer-events: none; }
+.management-parent-roster-family { position: absolute; top: 0; left: 0; display: block; width: 100%; height: auto; max-width: none; transition: opacity .2s ease,transform .28s cubic-bezier(.2,.75,.2,1); }
+.management-parent-roster-family.management-family-rest { opacity: 1; }
+.management-parent-roster-family.management-family-laugh { opacity: 0; transform: translateY(-50%); }
+.management-parent-roster-mascots:hover .management-family-rest, .management-parent-roster-mascots:focus-visible .management-family-rest { opacity: 0; transform: translateY(3px); }
+.management-parent-roster-mascots:hover .management-family-laugh, .management-parent-roster-mascots:focus-visible .management-family-laugh { opacity: 1; transform: translateY(calc(-50% - 2px)); }
+.management-parent-roster-bubble { position: absolute; top: -20px; right: auto; left: 4px; z-index: 2; border: 1px solid color-mix(in srgb,var(--mw-accent),transparent 70%); border-radius: 10px 10px 10px 3px; padding: 5px 7px; color: var(--mw-accent-dark); background: var(--mw-surface); box-shadow: 0 5px 13px rgb(35 45 48 / 10%); font-family: Georgia,"Times New Roman",serif; font-size: 8px; font-weight: 700; opacity: 0; pointer-events: none; transform: translateY(4px); transition: opacity .18s ease,transform .18s ease; white-space: nowrap; }
+.management-parent-roster-bubble::after { position: absolute; bottom: -4px; left: 62px; width: 6px; height: 6px; border-right: 1px solid color-mix(in srgb,var(--mw-accent),transparent 70%); border-bottom: 1px solid color-mix(in srgb,var(--mw-accent),transparent 70%); background: var(--mw-surface); content: ""; transform: rotate(45deg); }
+.management-parent-roster-mascots:hover > .management-parent-roster-bubble, .management-parent-roster-mascots:focus-visible > .management-parent-roster-bubble { opacity: 1; transform: translateY(0); }
+@media (max-width: 900px) { .management-student-account-strip { grid-template-columns: repeat(3,minmax(0,1fr)); row-gap: 10px; }.management-student-account-strip > div:nth-child(4) { border-left: 0; padding-left: 0; } }
+@media (max-width: 600px) { .management-student-account-strip { grid-template-columns: 1fr; gap: 0; }.management-student-account-strip > div { border-left: 0; border-top: 1px solid var(--mw-line); padding: 9px 0; }.management-student-account-strip > div:first-child { border-top: 0; }.management-student-form-actions .management-student-action-buttons { width: 100%; justify-content: flex-end; }.management-student-roster-mascots { width: 112px; height: 84px; flex-basis: 112px; }.management-student-heading-copy { gap: 8px; }.management-student-roster-bubble { left: 3px; right: auto; top: -15px; font-size: 7px; }.management-student-roster-bubble::after { left: 27px; }.management-parent-create-modal .management-modal-actions { position: static; margin: 0; padding: 14px 0 0; background: transparent; }.management-parent-create-modal .management-modal-actions button { flex: initial; } }
+
+.management-student-status-backdrop { z-index: 1100; place-items: center; padding: 22px; }
+.management-student-status-dialog { display: grid; width: min(100%, 690px); grid-template-columns: minmax(190px, .78fr) minmax(0, 1.55fr); overflow: hidden; border: 1px solid var(--mw-line); border-radius: 10px 20px 10px 20px; color: var(--mw-ink); background: var(--mw-surface); box-shadow: 0 26px 80px rgb(0 0 0 / 28%); }
+.management-student-status-guide { position: relative; display: flex; min-height: 310px; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; border-right: 1px solid var(--mw-line); background: radial-gradient(ellipse at 50% 46%, color-mix(in srgb,var(--mw-accent),transparent 82%), transparent 61%), linear-gradient(155deg,var(--mw-accent-soft),var(--mw-panel)); }
+.management-student-status-guide > .management-eyebrow { position: absolute; top: 22px; margin: 0; color: var(--mw-accent-dark); text-align: center; }
+.management-student-status-mascot { position: relative; width: min(88%, 185px); height: 218px; margin-top: 18px; }
+.management-student-status-mascot img { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 9px 10px rgb(35 45 48 / 13%)); transition: opacity .2s ease,transform .25s ease; }
+.management-student-status-mascot .management-pose-rest { opacity: 1; transform: translateY(0); }
+.management-student-status-mascot .management-pose-hover { opacity: 0; transform: translateY(4px) scale(.98); }
+.management-student-status-guide:hover .management-pose-rest { opacity: 0; transform: translateY(-3px) scale(.98); }
+.management-student-status-guide:hover .management-pose-hover { opacity: 1; transform: translateY(0) scale(1); }
+.management-student-status-bubble { position: absolute; right: 12px; bottom: 20px; border: 1px solid color-mix(in srgb,var(--mw-accent),var(--mw-line) 60%); border-radius: 10px 10px 3px 10px; padding: 7px 9px; color: var(--mw-accent-dark); background: var(--mw-surface); box-shadow: 0 5px 14px rgb(34 42 45 / 10%); font-family: Georgia,"Times New Roman",serif; font-size: 10px; font-weight: 700; }
+.management-student-status-copy { position: relative; align-self: center; padding: 34px 31px; }
+.management-student-status-copy > .management-eyebrow { margin: 0 40px 8px 0; color: var(--mw-accent-dark); }
+.management-student-status-copy h2 { margin: 0 35px 9px 0; font-family: Georgia,"Times New Roman",serif; font-size: clamp(23px,3vw,31px); font-weight: 500; letter-spacing: -.04em; }
+.management-student-status-copy > p:not(.management-eyebrow) { max-width: 380px; margin: 0; color: var(--mw-muted); font-size: 11px; line-height: 1.7; }
+.management-student-status-close { position: absolute; top: 17px; right: 17px; }
+.management-student-status-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 9px; border-top: 1px solid var(--mw-line); margin-top: 23px; padding-top: 16px; }
+.management-student-status-actions button:disabled,.management-student-status-close:disabled { cursor: wait; opacity: .7; }
+@media (max-width: 600px) {
+  .management-student-status-backdrop { padding: 12px; }
+  .management-student-status-dialog { width: min(100%, 430px); grid-template-columns: 1fr; border-radius: 12px 18px 12px 18px; }
+  .management-student-status-guide { min-height: 155px; border-right: 0; border-bottom: 1px solid var(--mw-line); }
+  .management-student-status-guide > .management-eyebrow { top: 16px; }
+  .management-student-status-mascot { width: 120px; height: 145px; margin: 19px 0 -16px; }
+  .management-student-status-bubble { right: calc(50% - 120px); bottom: 14px; }
+  .management-student-status-copy { padding: 24px 20px 20px; }
+  .management-student-status-close { top: 13px; right: 13px; }
+  .management-student-status-actions { margin-top: 18px; }
+  .management-student-status-actions button { flex: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) { .management-student-status-mascot img { transition: none; } }
+
+/* Management actions follow the same pressed, softly offset button language as Save changes. */
+.management-student-action-buttons > .management-student-secondary-action,
+.management-student-action-buttons > .management-student-archive-button,
+.management-student-status-actions > .management-primary-button,
+.management-student-status-actions > .management-secondary-button,
+.management-student-status-actions > .management-danger-button {
+  display: inline-flex;
+  min-height: 43px;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  border: 1px solid var(--mw-accent-dark);
+  border-radius: 5px 12px 5px 12px;
+  padding: 0 16px;
+  color: var(--mw-surface);
+  background: var(--mw-accent-dark);
+  box-shadow: 0 4px 0 color-mix(in srgb,var(--mw-accent-dark),#322742 25%);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 12px !important;
+  font-weight: 700;
+  line-height: 1.2;
+  transition: transform .15s ease,box-shadow .15s ease,background-color .15s ease;
+}
+.management-student-action-buttons > .management-student-secondary-action:not(:disabled):hover,
+.management-student-action-buttons > .management-student-archive-button:not(:disabled):hover,
+.management-student-status-actions > button:not(:disabled):hover {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 color-mix(in srgb,var(--mw-accent-dark),#322742 25%);
+}
+.management-student-action-buttons > .management-student-archive-button,
+.management-student-status-actions > .management-danger-button {
+  border-color: #a54f47;
+  color: #fff;
+  background: #a54f47;
+  box-shadow: 0 4px 0 color-mix(in srgb,#a54f47,#322742 25%);
+}
+.management-student-action-buttons > .management-student-archive-button:not(:disabled):hover,
+.management-student-status-actions > .management-danger-button:not(:disabled):hover {
+  background: #8f4039;
+  box-shadow: 0 2px 0 color-mix(in srgb,#8f4039,#322742 25%);
+}
+.management-student-status-actions > .management-secondary-button {
+  border-color: var(--mw-line);
+  color: var(--mw-ink);
+  background: var(--mw-panel);
+  box-shadow: 0 4px 0 color-mix(in srgb,var(--mw-line),transparent 20%);
+}
+.management-student-status-actions > .management-secondary-button:not(:disabled):hover {
+  border-color: var(--mw-accent);
+  background: var(--mw-accent-soft);
+  box-shadow: 0 2px 0 color-mix(in srgb,var(--mw-line),transparent 20%);
+}
+.management-student-action-buttons > button:disabled,
+.management-student-status-actions > button:disabled {
+  transform: none;
+  border-color: var(--mw-line);
+  color: var(--mw-faint);
+  background: var(--mw-panel);
+  box-shadow: none;
+  cursor: wait;
+  opacity: 1;
+}
+.management-student-status-actions > .management-secondary-button:disabled {
+  color: var(--mw-faint);
+  background: var(--mw-panel);
+}
+
+.management-toast {
+  position: fixed;
+  z-index: 1200;
+  right: 22px;
+  bottom: 22px;
+  display: grid;
+  width: min(430px,calc(100vw - 32px));
+  grid-template-columns: 68px minmax(0,1fr) 28px;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid var(--mw-line);
+  border-radius: 12px 12px 12px 4px;
+  padding: 12px 13px;
+  color: var(--mw-ink);
+  background: var(--mw-surface);
+  box-shadow: 0 16px 44px rgb(24 37 30 / 18%);
+  animation: management-toast-enter .22s ease-out;
+}
+.management-toast-error { border-color: color-mix(in srgb,#b85642,var(--mw-line) 58%); }
+.management-toast-success { border-color: color-mix(in srgb,#4a9b70,var(--mw-line) 48%); }
+.management-toast > img { width: 68px; height: 68px; object-fit: contain; }
+.management-toast > div { min-width: 0; }
+.management-toast > div > strong { font-size: 12px; }
+.management-toast-error > div > strong { color: #a44e3d; }
+.management-toast-success > div > strong { color: #327754; }
+html[data-theme="dark"] .management-toast-error > div > strong { color: #f0aa96; }
+html[data-theme="dark"] .management-toast-success > div > strong { color: #9ed8b6; }
+.management-toast > div > p { margin: 4px 0 0; color: var(--mw-muted); font-size: 10px; line-height: 1.5; overflow-wrap: anywhere; }
+.management-toast-dismiss { align-self: start; width: 27px; height: 27px; border: 1px solid var(--mw-line) !important; border-radius: 50%; color: var(--mw-muted) !important; background: transparent !important; font-size: 19px !important; line-height: 1; cursor: pointer; }
+.management-toast-retry { margin: 7px 0 0; border: 0; padding: 0; color: var(--mw-accent-dark) !important; background: transparent !important; cursor: pointer; font-size: 10px !important; font-weight: 750; text-decoration: underline; text-underline-offset: 3px; }
+@keyframes management-toast-enter { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+@media (max-width: 640px) {
+  .management-toast { right: 12px; bottom: 12px; grid-template-columns: 54px minmax(0,1fr) 26px; gap: 9px; padding: 10px; }
+  .management-toast > img { width: 54px; height: 54px; }
+}
+
+/* School teacher management mirrors the roster controls and uses the same pressed button language. */
+.management-teacher-directory .management-section-heading { align-items: center; }
+.management-teacher-directory .management-section-heading > .management-teacher-add-button,
+.management-teacher-action-button,
+.management-teacher-detail-button {
+  display: inline-flex;
+  min-height: 43px;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  border: 1px solid var(--mw-accent-dark);
+  border-radius: 5px 12px 5px 12px;
+  padding: 0 16px;
+  color: var(--mw-surface) !important;
+  background: var(--mw-accent-dark);
+  box-shadow: 0 4px 0 color-mix(in srgb,var(--mw-accent-dark),#322742 25%);
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px !important;
+  font-weight: 700;
+  text-decoration: none;
+  transition: transform .15s ease,box-shadow .15s ease;
+}
+.management-teacher-add-button svg,.management-teacher-action-button svg,.management-teacher-detail-button svg { width: 14px; height: 14px; }
+.management-workspace .management-teacher-detail-button { min-height: 36px; gap: 7px; padding: 0 12px; font-size: 10px !important; font-weight: 750; }
+.management-teacher-add-button:hover:not(:disabled),
+.management-teacher-action-button:hover:not(:disabled),
+.management-teacher-detail-button:hover:not(:disabled) { transform: translateY(2px); box-shadow: 0 2px 0 color-mix(in srgb,var(--mw-accent-dark),#322742 25%); }
+.management-teacher-add-button:disabled,.management-teacher-action-button:disabled,.management-teacher-detail-button:disabled { border-color: var(--mw-line); color: var(--mw-faint) !important; background: var(--mw-panel); box-shadow: none; cursor: default; }
+.management-teacher-add-button:focus-visible,.management-teacher-action-button:focus-visible,.management-teacher-detail-button:focus-visible { outline: 2px solid color-mix(in srgb,var(--mw-accent),transparent 25%); outline-offset: 4px; }
+.management-teacher-contact-readonly { display: grid; min-width: 0; gap: 6px; color: var(--mw-ink); font-size: 9px; font-weight: 750; }
+.management-teacher-contact-readonly > span { color: var(--mw-muted); }
+.management-teacher-contact-readonly > strong { display: flex; min-height: 42px; align-items: center; flex-wrap: wrap; gap: 7px; overflow-wrap: anywhere; border: 1px solid var(--mw-line); border-radius: 5px 10px 5px 10px; padding: 9px 11px; color: var(--mw-ink); background: color-mix(in srgb,var(--mw-panel),var(--mw-line) 12%); font-size: 10px; font-weight: 500; }
+.management-teacher-tools { align-items: end; margin-top: 4px; }
+.management-teacher-search { width: min(100%,520px); }
+.management-teacher-tools .management-student-tabs { margin-left: auto; }
+.management-teacher-table-wrap { min-height: 80px; }
+.management-teacher-table-wrap .management-table { min-width: 760px; }
+.management-teacher-table-wrap .management-table th:last-child,.management-teacher-table-wrap .management-table td:last-child { width: 125px; text-align: right; }
+.management-teacher-table-wrap .management-person-cell { min-width: 190px; }
+.management-teacher-table-wrap .management-child-chips { display: flex; flex-wrap: wrap; gap: 5px; }
+.management-teacher-pagination { border-top: 1px solid var(--mw-line); padding-top: 13px; }
+.management-teacher-pagination button { min-height: 28px; border: 0; border-radius: 0; padding: 2px; color: var(--mw-accent-dark); background: transparent; font-size: 9px !important; font-weight: 650; }
+.management-teacher-pagination button:not(:disabled):hover { border: 0; color: var(--mw-warm) !important; text-decoration: underline; text-underline-offset: 3px; }
+.management-teacher-pagination button:disabled { color: var(--mw-faint) !important; opacity: .55; }
+.management-teacher-pagination > div > span { color: var(--mw-faint); }
+.management-teacher-detail { max-width: 1120px; }
+.management-teacher-record .management-student-account-strip { grid-template-columns: repeat(4,minmax(0,1fr)); }
+.management-teacher-record .management-student-save-button { display: inline-flex; min-height: 43px; align-items: center; justify-content: center; border: 1px solid var(--mw-accent-dark); border-radius: 5px 12px 5px 12px; padding: 0 16px; color: var(--mw-surface); background: var(--mw-accent-dark); box-shadow: 0 4px 0 color-mix(in srgb,var(--mw-accent-dark),#322742 25%); cursor: pointer; font: inherit; font-size: 12px !important; font-weight: 700; transition: transform .15s ease,box-shadow .15s ease; }
+.management-teacher-record .management-student-save-button:not(:disabled):hover { transform: translateY(2px); box-shadow: 0 2px 0 color-mix(in srgb,var(--mw-accent-dark),#322742 25%); }
+.management-teacher-record .management-student-action-buttons > button:disabled:not([aria-busy="true"]) { cursor: default; }
+.management-teacher-record .management-student-action-buttons > button[aria-busy="true"]:disabled,.management-teacher-record .management-teacher-action-button[aria-busy="true"]:disabled { cursor: wait; }
+.management-teacher-form-actions { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding-top: 1px; }
+.management-teacher-form-actions > span { color: var(--mw-faint); font-size: 9px; }
+.management-teacher-archive-note { margin: 2px 0 0; color: var(--mw-warm); font-size: 9px; line-height: 1.5; }
+.management-teacher-homerooms { border-top: 1px solid var(--mw-line); margin-top: 18px; padding-top: 1px; }
+.management-teacher-homerooms .management-student-record-section { margin-top: 15px; }
+.management-teacher-homeroom-row { display: grid; grid-template-columns: minmax(150px,.75fr) minmax(200px,1fr) auto; align-items: center; gap: 12px; border-top: 1px solid var(--mw-line); padding: 11px 0; }
+.management-teacher-homeroom-row > strong { color: var(--mw-ink); font-size: 10px; font-weight: 650; }
+.management-teacher-homeroom-row > select { min-width: 0; min-height: 37px; border: 1px solid var(--mw-line); border-radius: 5px 10px 5px 10px; padding: 0 10px; color: var(--mw-ink); background: var(--mw-panel); font-size: 10px; }
+.management-teacher-homeroom-row > select:disabled { color: var(--mw-muted); cursor: not-allowed; }
+.management-teacher-homeroom-row .management-teacher-action-button { min-height: 36px; padding-inline: 12px; font-size: 10px !important; }
+.management-teacher-create-page { display: grid; justify-items: start; gap: 13px; }
+.management-teacher-create-card,.management-teacher-created-card { width: min(100%,960px); }
+.management-teacher-create-card .management-section-heading,.management-teacher-created-card .management-section-heading { margin-bottom: 18px; }
+.management-teacher-create-form { gap: 17px; }
+.management-teacher-signin-note { position: relative; display: flex; min-height: 72px; align-items: center; gap: 13px; overflow: visible; border: 1px solid color-mix(in srgb,var(--mw-blue),transparent 62%); border-radius: 5px 11px 5px 11px; padding: 8px 13px; background: var(--mw-blue-soft); }
+.management-teacher-signin-note .management-student-note-mascot { width: 46px; height: 54px; flex: 0 0 46px; }
+.management-teacher-signin-note .management-student-note-copy { display: grid; gap: 4px; color: var(--mw-muted); font-size: 9px; line-height: 1.5; }
+.management-teacher-signin-note .management-student-note-copy strong { color: var(--mw-ink); font-size: 10px; }
+.management-teacher-create-page .management-student-form-actions { border-top: 1px solid var(--mw-line); padding-top: 14px; }
+.management-teacher-created-card .management-student-created-actions .management-teacher-action-button { flex: 0 0 auto; }
+.management-teacher-created-card .management-student-credentials { margin-top: 10px; }
+@media (max-width: 760px) {
+  .management-teacher-detail { max-width: none; }
+  .management-teacher-record .management-student-account-strip { grid-template-columns: repeat(3,minmax(0,1fr)); }
+  .management-teacher-record .management-student-account-strip > div:nth-child(4) { border-left: 0; padding-left: 0; }
+}
+@media (max-width: 600px) {
+  .management-teacher-directory .management-section-heading { align-items: flex-start; flex-direction: row; }
+  .management-teacher-directory .management-section-heading > .management-teacher-add-button { min-height: 38px; gap: 6px; padding: 0 10px; font-size: 10px !important; }
+  .management-teacher-tools { align-items: stretch; }
+  .management-teacher-search { width: 100%; }
+  .management-teacher-tools .management-student-tabs { margin-left: 0; }
+  .management-teacher-pagination { align-items: start; flex-direction: column; }
+  .management-teacher-pagination > div { width: 100%; justify-content: space-between; }
+  .management-teacher-form-actions { align-items: flex-start; flex-direction: column; }
+  .management-teacher-form-actions .management-student-action-buttons { width: 100%; flex-wrap: wrap; justify-content: flex-end; }
+  .management-teacher-form-actions .management-student-save-button { width: auto; }
+  .management-teacher-homeroom-row { grid-template-columns: minmax(0,1fr) auto; gap: 8px; }
+  .management-teacher-homeroom-row > strong { grid-column: 1 / -1; }
+  .management-teacher-homeroom-row > select { width: 100%; }
+  .management-teacher-create-page .management-student-form-actions { align-items: flex-start; }
+  .management-teacher-create-page .management-student-form-actions .management-teacher-action-button { align-self: flex-end; }
+}
+
+/* Parent account pages follow the school roster button and record patterns. */
+.management-parent-directory .management-section-heading { align-items: center; }
+.management-parent-add-button,
+.management-parent-detail-button {
+  display: inline-flex;
+  min-height: 43px;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  border: 1px solid var(--mw-accent-dark);
+  border-radius: 5px 12px 5px 12px;
+  padding: 0 16px;
+  color: var(--mw-surface) !important;
+  background: var(--mw-accent-dark);
+  box-shadow: 0 4px 0 color-mix(in srgb,var(--mw-accent-dark),#322742 25%);
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px !important;
+  font-weight: 700;
+  text-decoration: none;
+  transition: transform .15s ease,box-shadow .15s ease;
+}
+.management-workspace .management-parent-detail-button { min-height: 36px; gap: 7px; padding: 0 12px; font-size: 10px !important; font-weight: 750; }
+.management-parent-add-button svg,.management-parent-detail-button svg { width: 14px; height: 14px; }
+.management-parent-add-button:hover:not(:disabled),.management-parent-detail-button:hover:not(:disabled) { transform: translateY(2px); box-shadow: 0 2px 0 color-mix(in srgb,var(--mw-accent-dark),#322742 25%); }
+.management-parent-add-button:disabled,.management-parent-detail-button:disabled { border-color: var(--mw-line); color: var(--mw-faint) !important; background: var(--mw-panel); box-shadow: none; cursor: default; }
+.management-parent-add-button:focus-visible,.management-parent-detail-button:focus-visible { outline: 2px solid color-mix(in srgb,var(--mw-accent),transparent 25%); outline-offset: 4px; }
+.management-parent-tools { align-items: end; flex-wrap: wrap; }
+.management-parent-search { width: min(100%,620px); flex: 1 1 340px; }
+.management-parent-tools .management-student-tabs { margin-left: auto; }
+.management-parent-tools .management-count-chip { flex: 0 0 auto; }
+.management-parent-table { min-width: 800px; }
+.management-parent-table th:last-child,.management-parent-table td:last-child { width: 126px; text-align: right; }
+.management-parent-table .management-person-cell { min-width: 190px; }
+.management-parent-table .management-child-chips { max-width: 340px; }
+.management-parent-create-page { display: grid; justify-items: start; gap: 13px; }
+.management-parent-create-card { width: min(100%,960px); }
+.management-parent-create-card .management-section-heading { margin-bottom: 18px; }
+.management-parent-create-form { gap: 17px; }
+.management-parent-create-form .management-global-info { border-radius: 5px 11px 5px 11px; }
+.management-parent-create-page .management-student-form-actions { border-top: 1px solid var(--mw-line); padding-top: 14px; }
+.management-parent-create-page .management-student-form-actions .management-student-create-submit { display: inline-flex; min-height: 43px; align-items: center; justify-content: center; gap: 9px; border: 1px solid var(--mw-accent-dark); border-radius: 5px 12px 5px 12px; padding: 0 16px; color: var(--mw-surface); background: var(--mw-accent-dark); box-shadow: 0 4px 0 color-mix(in srgb,var(--mw-accent-dark),#322742 25%); cursor: pointer; font: inherit; font-size: 12px !important; font-weight: 700; transition: transform .15s ease,box-shadow .15s ease; }
+.management-parent-create-page .management-student-form-actions .management-student-create-submit:not(:disabled):hover { transform: translateY(2px); box-shadow: 0 2px 0 color-mix(in srgb,var(--mw-accent-dark),#322742 25%); }
+.management-parent-create-page .management-student-form-actions .management-student-create-submit:disabled { border-color: var(--mw-line); color: var(--mw-faint); background: var(--mw-panel); box-shadow: none; cursor: default; }
+.management-parent-record { width: min(100%,1120px); }
+.management-parent-record .management-student-account-strip { grid-template-columns: repeat(4,minmax(0,1fr)); }
+.management-parent-record .management-parent-shared-note { display: grid; gap: 4px; border-left: 3px solid var(--mw-accent); border-radius: 0 7px 7px 0; padding: 10px 12px; color: var(--mw-muted); background: var(--mw-accent-soft); font-size: 9px; line-height: 1.55; }
+.management-parent-record .management-parent-shared-note strong { color: var(--mw-accent-dark); font-size: 10px; }
+.management-parent-record .management-parent-archive-note { margin: -4px 0 0; color: var(--mw-warm); font-size: 9px; line-height: 1.5; }
+.management-parent-record .management-student-action-buttons > button:disabled:not([aria-busy="true"]) { cursor: default; }
+.management-parent-record .management-student-action-buttons > button[aria-busy="true"]:disabled { cursor: wait; }
+.management-parent-children { border-top: 1px solid var(--mw-line); margin-top: 18px; }
+.management-parent-children .management-student-record-section { margin-top: 15px; }
+.management-parent-children ul { display: grid; grid-template-columns: repeat(auto-fit,minmax(220px,1fr)); gap: 8px; margin: 0; padding: 0; list-style: none; }
+.management-parent-children li { border: 1px solid var(--mw-line); border-radius: 5px 10px 5px 10px; padding: 10px 12px; color: var(--mw-ink); background: var(--mw-panel); font-size: 10px; font-weight: 650; }
+.management-parent-reset-credentials { width: min(100%,1120px); }
+@media (max-width: 900px) { .management-parent-record .management-student-account-strip { grid-template-columns: repeat(3,minmax(0,1fr)); }.management-parent-record .management-student-account-strip > div:nth-child(4) { border-left: 0; padding-left: 0; } }
+@media (max-width: 760px) { .management-parent-record { width: 100%; } }
+@media (max-width: 600px) {
+  .management-parent-directory .management-section-heading { align-items: flex-start; flex-direction: row; }
+  .management-parent-directory .management-section-heading > .management-parent-add-button { min-height: 38px; gap: 6px; padding: 0 10px; font-size: 10px !important; }
+  .management-parent-tools { align-items: stretch; }
+  .management-parent-search { width: 100%; }
+  .management-parent-tools .management-student-tabs { margin-left: 0; }
+  .management-parent-tools .management-count-chip { margin-left: auto; }
+  .management-parent-create-page .management-student-form-actions { align-items: flex-start; flex-direction: column; }
+  .management-parent-create-page .management-student-form-actions .management-student-create-submit { align-self: flex-end; }
+  .management-parent-record .management-student-account-strip { grid-template-columns: 1fr; gap: 0; }
+  .management-parent-record .management-student-account-strip > div { border-left: 0; border-top: 1px solid var(--mw-line); padding: 9px 0; }
+  .management-parent-record .management-student-account-strip > div:first-child { border-top: 0; }
+  .management-parent-record .management-student-form-actions { align-items: flex-start; flex-direction: column; }
+  .management-parent-record .management-student-action-buttons { width: 100%; flex-wrap: wrap; justify-content: flex-end; }
+  .management-parent-record .management-student-save-button { width: auto; }
+}
+
+/* Keep the parent directory action above the generic heading-link reset. */
+.management-parent-directory .management-section-heading > .management-parent-add-button {
+  display: inline-flex;
+  min-height: 43px;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  border: 1px solid var(--mw-accent-dark);
+  border-radius: 5px 12px 5px 12px;
+  padding: 0 16px;
+  color: var(--mw-surface) !important;
+  background: var(--mw-accent-dark);
+  box-shadow: 0 4px 0 color-mix(in srgb,var(--mw-accent-dark),#322742 25%);
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px !important;
+  font-weight: 700;
+  text-decoration: none;
+  transition: transform .15s ease,box-shadow .15s ease;
+}
+.management-parent-directory .management-section-heading > .management-parent-add-button:hover:not(:disabled) {
+  color: var(--mw-surface) !important;
+  background: var(--mw-accent-dark);
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 color-mix(in srgb,var(--mw-accent-dark),#322742 25%);
+}
+.management-parent-directory .management-section-heading > .management-parent-add-button:disabled {
+  border-color: var(--mw-line);
+  color: var(--mw-faint) !important;
+  background: var(--mw-panel);
+  box-shadow: none;
+  cursor: default;
+}
+.management-parent-record .management-parent-shared-note {
+  grid-template-columns: minmax(0,1fr) 70px;
+  align-items: center;
+  min-height: 78px;
+  padding-right: 10px;
+}
+.management-parent-record .management-parent-shared-note > div:first-child { display: grid; gap: 4px; }
+.management-parent-note-mascot { position: relative; display: grid; width: 64px; height: 62px; place-items: end center; justify-self: end; }
+.management-parent-note-mascot img { position: absolute; bottom: 0; width: 53px; height: 58px; object-fit: contain; object-position: bottom; }
+.management-parent-children ul { grid-template-columns: 1fr; }
+.management-parent-children li { display: flex; min-height: 48px; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
+.management-parent-children li > span:first-child { display: grid; flex: 1 1 auto; gap: 3px; }
+.management-parent-children li > span:first-child strong { color: var(--mw-ink); font-size: 10px; }
+.management-parent-children li > span:first-child small,.management-parent-required-link { color: var(--mw-muted); font-size: 8px; }
+.management-parent-reassign { display: flex; align-items: center; flex-wrap: wrap; justify-content: flex-end; gap: 7px; }
+.management-parent-reassign select { min-height: 33px; max-width: 230px; border: 1px solid var(--mw-line); border-radius: 6px 10px 6px 10px; padding: 0 9px; color: var(--mw-ink); background: var(--mw-panel); font: inherit; font-size: 9px; }
+.management-parent-reassign select:focus-visible { outline: 2px solid color-mix(in srgb,var(--mw-accent),transparent 25%); outline-offset: 2px; }
+.management-parent-link-student { display: flex; align-items: end; gap: 9px; margin-top: 12px; }
+.management-parent-link-student .management-form-field { flex: 1; }
+.management-parent-inline-button { display: inline-flex; min-height: 34px; align-items: center; justify-content: center; border: 1px solid var(--mw-accent-dark); border-radius: 5px 10px 5px 10px; padding: 0 11px; color: var(--mw-surface); background: var(--mw-accent-dark); box-shadow: 0 3px 0 color-mix(in srgb,var(--mw-accent-dark),#322742 25%); cursor: pointer; font: inherit; font-size: 9px; font-weight: 700; transition: transform .15s ease,box-shadow .15s ease; white-space: nowrap; }
+.management-parent-inline-button:not(:disabled):hover { transform: translateY(2px); box-shadow: 0 1px 0 color-mix(in srgb,var(--mw-accent-dark),#322742 25%); }
+.management-parent-inline-button.is-quiet { border-color: var(--mw-line); color: var(--mw-ink); background: transparent; box-shadow: none; }
+.management-parent-inline-button.is-quiet:not(:disabled):hover { border-color: var(--mw-accent); box-shadow: none; }
+.management-parent-inline-button:disabled { border-color: var(--mw-line); color: var(--mw-faint); background: var(--mw-panel); box-shadow: none; cursor: default; }
+.management-parent-link-confirm { display: grid; flex: 1 0 100%; min-width: 0; grid-template-columns: minmax(0,1fr) auto auto; align-items: center; gap: 8px; border-top: 1px solid var(--mw-line); margin-top: 5px; padding-top: 9px; }
+.management-parent-link-confirm > span:first-child { grid-column: 1 / -1; color: var(--mw-muted); font-size: 9px; font-weight: 600; line-height: 1.45; }
+.management-parent-link-confirm > .management-parent-inline-button:first-of-type { grid-column: 2; justify-self: end; }
+.management-parent-link-confirm > .management-parent-inline-button:last-of-type { grid-column: 3; justify-self: end; }
+.management-parent-move-confirm { display: grid; grid-template-columns: minmax(0,1fr) auto auto; align-items: center; gap: 10px; border-left: 3px solid var(--mw-warm); border-radius: 0 8px 8px 0; margin-top: 10px; padding: 12px 14px; background: var(--mw-warm-soft); }
+.management-parent-move-confirm > div { display: grid; min-width: 0; gap: 4px; color: var(--mw-muted); font-size: 9px; line-height: 1.5; }
+.management-parent-move-confirm strong { color: var(--mw-ink); font-size: 10px; }
+.management-parent-link-confirm .management-parent-inline-button,
+.management-parent-move-confirm .management-parent-inline-button { min-height: 38px; border-radius: 5px 12px 5px 12px; padding: 0 14px; font-size: 11px; font-weight: 750; }
+.management-parent-move-confirm .management-parent-inline-button:not(.is-quiet) { border-color: var(--mw-accent-dark); color: var(--mw-surface); background: var(--mw-accent-dark); box-shadow: 0 4px 0 color-mix(in srgb,var(--mw-accent-dark),#322742 25%); }
+.management-parent-move-confirm .management-parent-inline-button:not(.is-quiet):not(:disabled):hover { transform: translateY(2px); box-shadow: 0 2px 0 color-mix(in srgb,var(--mw-accent-dark),#322742 25%); }
+.management-parent-move-confirm .management-parent-inline-button:not(.is-quiet):disabled { border-color: var(--mw-line); color: var(--mw-faint); background: var(--mw-panel); box-shadow: none; cursor: default; }
+.management-parent-link-confirm .management-parent-inline-button.is-quiet,
+.management-parent-move-confirm .management-parent-inline-button.is-quiet { border-color: var(--mw-line); color: var(--mw-ink); background: var(--mw-panel); box-shadow: 0 4px 0 color-mix(in srgb,var(--mw-line),transparent 20%); }
+.management-parent-link-confirm .management-parent-inline-button.is-quiet:not(:disabled):hover,
+.management-parent-move-confirm .management-parent-inline-button.is-quiet:not(:disabled):hover { transform: translateY(2px); border-color: var(--mw-accent); background: var(--mw-accent-soft); box-shadow: 0 2px 0 color-mix(in srgb,var(--mw-line),transparent 20%); }
+@media (max-width: 600px) {
+  .management-parent-record .management-parent-shared-note { grid-template-columns: minmax(0,1fr) 52px; }
+  .management-parent-directory .management-section-heading > .management-parent-add-button { min-height: 38px; gap: 6px; padding: 0 10px; font-size: 10px !important; }
+  .management-parent-note-mascot { width: 50px; }
+  .management-parent-note-mascot img { width: 46px; }
+  .management-parent-move-confirm { grid-template-columns: minmax(0,1fr) auto; }
+  .management-parent-move-confirm > div { grid-column: 1 / -1; }
+  .management-parent-link-confirm { grid-template-columns: minmax(0,1fr) auto; }
+  .management-parent-link-confirm > span:first-child { grid-column: 1 / -1; }
+  .management-parent-link-confirm > .management-parent-inline-button:first-of-type { grid-column: 1; }
+  .management-parent-link-confirm > .management-parent-inline-button:last-of-type { grid-column: 2; }
+  .management-parent-link-student .management-parent-inline-button,.management-parent-move-confirm .management-parent-inline-button { align-self: flex-end; }
+  .management-parent-children li { align-items: flex-start; flex-direction: column; }
+}
+
+@media (max-width: 600px) { .management-parent-directory .management-section-heading { flex-wrap: wrap; }.management-parent-directory .management-section-heading > .management-parent-add-button { align-self: flex-end; }.management-parent-roster-mascots { width: 180px; height: 60px; flex-basis: 180px; }.management-parent-roster-bubble { top: -16px; right: auto; left: 2px; font-size: 7px; }.management-parent-roster-bubble::after { left: 47px; }.management-parent-directory .management-student-heading-copy { gap: 7px; } }
+
+/* Parent student-link actions use the same legible, pressed button treatment as roster actions. */
+.management-parent-children .management-parent-inline-button.is-primary,
+.management-parent-children .management-parent-inline-button.is-danger {
+  min-height: 38px;
+  border-radius: 5px 12px 5px 12px;
+  padding: 0 14px;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 750;
+  line-height: 1.2;
+  transition: transform .15s ease,box-shadow .15s ease,background-color .15s ease;
+}
+.management-parent-children .management-parent-inline-button.is-primary {
+  border-color: var(--mw-accent-dark);
+  color: var(--mw-surface);
+  background: var(--mw-accent-dark);
+  box-shadow: 0 4px 0 color-mix(in srgb,var(--mw-accent-dark),#322742 25%);
+}
+.management-parent-children .management-parent-inline-button.is-primary:not(:disabled):hover {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 color-mix(in srgb,var(--mw-accent-dark),#322742 25%);
+}
+.management-parent-children .management-parent-inline-button.is-danger {
+  border-color: #a54f47;
+  color: #fff;
+  background: #a54f47;
+  box-shadow: 0 4px 0 color-mix(in srgb,#a54f47,#322742 25%);
+}
+.management-parent-children .management-parent-inline-button.is-danger:not(:disabled):hover {
+  transform: translateY(2px);
+  background: #8f4039;
+  box-shadow: 0 2px 0 color-mix(in srgb,#8f4039,#322742 25%);
+}
+.management-parent-children .management-parent-inline-button.is-primary:disabled,
+.management-parent-children .management-parent-inline-button.is-danger:disabled {
+  transform: none;
+  border-color: var(--mw-line);
+  color: var(--mw-faint);
+  background: var(--mw-panel);
+  box-shadow: none;
+  cursor: default;
+}
+
+/* Classroom directory and record pages follow the same roster controls. */
+.management-classroom-directory .management-section-heading > .management-student-add-button,
+.management-classroom-page .management-student-create-submit {
+  display: inline-flex;
+  min-height: 43px;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  border: 1px solid var(--mw-accent-dark);
+  border-radius: 5px 12px 5px 12px;
+  padding: 0 16px;
+  color: var(--mw-surface) !important;
+  background: var(--mw-accent-dark);
+  box-shadow: 0 4px 0 color-mix(in srgb,var(--mw-accent-dark),#322742 25%);
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px !important;
+  font-weight: 700;
+  text-decoration: none;
+  transition: transform .15s ease,box-shadow .15s ease;
+}
+.management-classroom-directory .management-section-heading > .management-student-add-button:hover:not(:disabled),
+.management-classroom-page .management-student-create-submit:hover:not(:disabled) { transform: translateY(2px); box-shadow: 0 2px 0 color-mix(in srgb,var(--mw-accent-dark),#322742 25%); }
+.management-classroom-page .management-student-create-submit:disabled { border-color: var(--mw-line); color: var(--mw-faint) !important; background: var(--mw-panel); box-shadow: none; cursor: default; }
+.management-classroom-page .management-student-create-submit:focus-visible,
+.management-classroom-directory .management-student-add-button:focus-visible { outline: 2px solid color-mix(in srgb,var(--mw-accent),transparent 25%); outline-offset: 4px; }
+.management-classroom-tools { align-items: end; justify-content: flex-start; flex-wrap: wrap; }
+.management-classroom-search { width: auto; max-width: none; flex: 1 1 390px; }
+.management-classroom-filter { min-width: 155px; }
+.management-classroom-directory .management-section-heading { align-items: center; }
+.management-class-list.is-detailed .management-class-row { grid-template-columns: 40px minmax(0,1fr) 34px auto; gap: 12px; }
+.management-classroom-form-buttons { display: flex; align-items: center; gap: 10px; }
+.management-classroom-form-buttons .management-secondary-button { min-height: 43px; border-radius: 5px 12px 5px 12px; padding: 0 16px; font: inherit; font-size: 12px; font-weight: 700; }
+.management-classroom-record-icon { display: grid; width: 44px; height: 44px; flex: 0 0 auto; place-items: center; border: 1px solid color-mix(in srgb,var(--mw-accent),transparent 78%); border-radius: 13px 13px 13px 5px; color: var(--mw-accent-dark); background: var(--mw-accent-soft); }
+.management-classroom-record-icon svg { width: 21px; height: 21px; }
+.management-classroom-account-strip { grid-template-columns: repeat(3,minmax(0,1fr)); }
+.management-classroom-roster { margin-top: 2px; }
+.management-classroom-roster .management-section-heading { margin-bottom: 12px; }
+.management-classroom-roster .management-section-heading h2 { font-size: 20px; }
+.management-classroom-roster-list { display: grid; }
+.management-classroom-roster-row { display: grid; grid-template-columns: 32px minmax(0,1fr) auto; align-items: center; gap: 10px; border-top: 1px solid var(--mw-line); padding: 10px 2px; }
+.management-classroom-roster-row > span:nth-child(2) { display: grid; min-width: 0; gap: 4px; }
+.management-classroom-roster-row > span:nth-child(2) strong { overflow: hidden; color: var(--mw-ink); font-size: 10px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+.management-classroom-roster-row > span:nth-child(2) small { overflow: hidden; color: var(--mw-faint); font-size: 8px; text-overflow: ellipsis; white-space: nowrap; }
+.management-classroom-roster-row .management-student-status { margin-left: 8px; }
+@media (max-width: 760px) {
+  .management-classroom-record .management-student-record-main { padding: 19px 16px 17px; }
+  .management-classroom-account-strip { grid-template-columns: 1fr; gap: 0; }
+  .management-classroom-account-strip > div { border-left: 0; border-top: 1px solid var(--mw-line); padding: 9px 0; }
+  .management-classroom-account-strip > div:first-child { border-top: 0; }
+}
+@media (max-width: 600px) {
+  .management-classroom-tools { align-items: stretch; }
+  .management-classroom-search,.management-classroom-filter { width: 100%; flex-basis: auto; }
+  .management-classroom-directory .management-section-heading { align-items: flex-start; }
+  .management-class-list.is-detailed .management-class-row { grid-template-columns: 34px minmax(0,1fr) 25px; gap: 8px; }
+  .management-class-list.is-detailed .management-class-grade { display: none; }
+  .management-class-list.is-detailed .management-teacher-detail-button { grid-column: 2 / 4; justify-self: start; margin: 0 0 4px; }
+  .management-classroom-form-buttons { width: 100%; justify-content: flex-end; }
+  .management-classroom-roster-row { grid-template-columns: 30px minmax(0,1fr); }
+  .management-classroom-roster-row .management-student-status { grid-column: 2; margin: -3px 0 1px; }
+}
+
+/* Mascot details for management rosters and account notices. */
+.management-student-note-mascot.is-static { cursor: default; }
+.management-student-note-mascot.is-static:hover > .management-pose-rest,
+.management-student-note-mascot.is-static:focus-visible > .management-pose-rest { opacity: 1; transform: none; }
+.management-student-note-mascot.is-static:focus-visible { outline: 0; }
+.management-static-guide-mascot { display: block; width: 42px; height: 48px; flex: 0 0 42px; }
+.management-static-guide-mascot img { display: block; width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 4px 5px rgb(35 45 48 / 12%)); }
+.management-parent-directory-note-with-mascot { grid-template-columns: minmax(0,1fr) 42px; align-items: center; gap: 12px; }
+.management-parent-directory-note-with-mascot > div,
+.management-parent-signin-note > span { display: grid; gap: 4px; }
+.management-parent-directory-note-with-mascot > div > span,
+.management-parent-signin-note > span > span { color: var(--mw-muted); font-size: 9px; line-height: 1.5; }
+.management-parent-signin-note { grid-template-columns: 42px minmax(0,1fr); align-items: center; gap: 11px; min-height: 68px; }
+
+.management-teacher-roster-mascots { position: relative; width: 140px; height: 124px; flex: 0 0 140px; cursor: pointer; }
+.management-teacher-roster-mascots:focus-visible { outline: 2px solid var(--mw-accent); outline-offset: 3px; border-radius: 10px; }
+.management-teacher-roster-duo { display: block; width: 100%; height: 100%; object-fit: contain; transition: transform .28s cubic-bezier(.2,.75,.2,1); }
+.management-teacher-roster-mascots:hover > .management-teacher-roster-duo,
+.management-teacher-roster-mascots:focus-visible > .management-teacher-roster-duo { transform: translateY(-5px) scale(1.015); }
+.management-teacher-roster-bubble { position: absolute; z-index: 3; top: -15px; left: 4px; border: 1px solid color-mix(in srgb,var(--mw-accent),transparent 70%); border-radius: 10px 10px 10px 3px; padding: 5px 7px; color: var(--mw-accent-dark); background: var(--mw-surface); box-shadow: 0 5px 13px rgb(35 45 48 / 10%); font-family: Georgia,"Times New Roman",serif; font-size: 8px; font-weight: 700; opacity: 0; pointer-events: none; transform: translateY(4px); transition: opacity .18s ease,transform .18s ease; white-space: nowrap; }
+.management-teacher-roster-bubble::after { position: absolute; bottom: -4px; left: 42px; width: 6px; height: 6px; border-right: 1px solid color-mix(in srgb,var(--mw-accent),transparent 70%); border-bottom: 1px solid color-mix(in srgb,var(--mw-accent),transparent 70%); background: var(--mw-surface); content: ""; transform: rotate(45deg); }
+.management-teacher-roster-mascots:hover > .management-teacher-roster-bubble,
+.management-teacher-roster-mascots:focus-visible > .management-teacher-roster-bubble { opacity: 1; transform: translateY(0); }
+
+.management-parent-roster-mascots { width: 240px; height: 80px; flex-basis: 240px; }
+.management-teacher-directory .management-section-heading { align-items: center; }
+@media (max-width: 600px) {
+  .management-teacher-directory .management-section-heading { flex-wrap: wrap; }
+  .management-teacher-roster-mascots { width: 112px; height: 100px; flex-basis: 112px; }
+  .management-teacher-roster-bubble { left: 2px; top: -13px; font-size: 7px; }
+  .management-teacher-roster-bubble::after { left: 31px; }
+  .management-parent-roster-mascots { width: 180px; height: 60px; flex-basis: 180px; }
+  .management-parent-roster-bubble { top: -16px; right: auto; left: 2px; font-size: 7px; }
+  .management-parent-roster-bubble::after { left: 47px; }
+  .management-parent-signin-note { grid-template-columns: 36px minmax(0,1fr); gap: 9px; }
+  .management-parent-signin-note .management-static-guide-mascot { width: 36px; height: 42px; flex-basis: 36px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .management-student-note-mascot > img,
+  .management-teacher-roster-mascots *,
+  .management-parent-roster-mascots * { transition-duration: .01ms !important; }
+}
+
+/* Administrator announcement directory, publishing flow, and detail page. */
+.management-announcement-directory .management-section-heading > .management-student-add-button,
+.management-announcement-page .management-student-create-submit {
+  display: inline-flex;
+  min-height: 43px;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  border: 1px solid var(--mw-accent-dark);
+  border-radius: 5px 12px 5px 12px;
+  padding: 0 16px;
+  color: var(--mw-surface) !important;
+  background: var(--mw-accent-dark);
+  box-shadow: 0 4px 0 color-mix(in srgb,var(--mw-accent-dark),#322742 25%);
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px !important;
+  font-weight: 700;
+  text-decoration: none;
+  transition: transform .15s ease,box-shadow .15s ease;
+}
+.management-announcement-directory .management-section-heading > .management-student-add-button:hover:not(:disabled),
+.management-announcement-page .management-student-create-submit:hover:not(:disabled) { transform: translateY(2px); box-shadow: 0 2px 0 color-mix(in srgb,var(--mw-accent-dark),#322742 25%); }
+.management-announcement-page .management-student-create-submit:disabled { border-color: var(--mw-line); color: var(--mw-faint) !important; background: var(--mw-panel); box-shadow: none; cursor: default; }
+.management-announcement-directory .management-section-heading > .management-student-add-button:focus-visible,
+.management-announcement-page .management-student-create-submit:focus-visible { outline: 2px solid color-mix(in srgb,var(--mw-accent),transparent 25%); outline-offset: 4px; }
+.management-announcement-tools { align-items: end; justify-content: flex-start; flex-wrap: wrap; }
+.management-announcement-search { width: auto; max-width: none; flex: 1 1 340px; }
+.management-announcement-class-filter { min-width: 165px; }
+.management-announcement-tools .management-student-filter { min-width: 155px; }
+.management-announcement-heading-group { display: flex; min-width: 0; align-items: center; gap: 12px; }
+.management-announcement-mascot { position: relative; display: grid; width: 76px; height: 68px; flex: 0 0 auto; place-items: center; cursor: pointer; }
+.management-announcement-mascot > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 4px 5px rgb(30 35 40 / 12%)); transition: opacity .22s ease,transform .28s cubic-bezier(.2,.75,.2,1); }
+.management-announcement-mascot > .management-announcement-pose-rest { opacity: 1; transform: translateY(0) scale(1); }
+.management-announcement-mascot > .management-announcement-pose-hover { opacity: 0; transform: translateY(4px) scale(.97); }
+.management-announcement-mascot:hover > .management-announcement-pose-rest,
+.management-announcement-mascot:focus-visible > .management-announcement-pose-rest { opacity: 0; transform: translateY(-2px) scale(.98); }
+.management-announcement-mascot:hover > .management-announcement-pose-hover,
+.management-announcement-mascot:focus-visible > .management-announcement-pose-hover { opacity: 1; transform: translateY(0) scale(1); }
+.management-announcement-mascot:focus-visible { outline: 2px solid var(--mw-accent); outline-offset: 3px; border-radius: 12px; }
+.management-announcement-mascot > span { position: absolute; z-index: 2; right: -26px; bottom: calc(100% - 7px); width: max-content; max-width: 145px; border: 1px solid var(--mw-line); border-radius: 9px 9px 2px 9px; padding: 5px 7px; color: var(--mw-accent-dark); background: var(--mw-surface); box-shadow: var(--mw-shadow); font-family: Georgia,"Times New Roman",serif; font-size: 8px; font-weight: 700; opacity: 0; pointer-events: none; transform: translateY(4px); transition: opacity .18s ease,transform .18s ease; }
+.management-announcement-mascot:hover > span,
+.management-announcement-mascot:focus-visible > span { opacity: 1; transform: translateY(0); }
+.management-announcement-directory .management-announcement-row { grid-template-columns: 25px 38px minmax(0,1fr) auto; align-items: center; gap: 12px; padding: 17px 2px; }
+.management-announcement-directory .management-announcement-symbol { width: 36px; height: 36px; }
+.management-announcement-directory .management-announcement-copy h3 { margin: 4px 0; }
+.management-announcement-row-actions { display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
+.management-announcement-title-button { display: block; max-width: 100%; overflow: hidden; border: 0; padding: 0; color: var(--mw-ink) !important; background: transparent; cursor: pointer; font-family: Georgia,"Times New Roman",serif !important; font-size: 16px !important; font-weight: 650; text-align: left; text-overflow: ellipsis; white-space: nowrap; }
+.management-announcement-title-button:hover { color: var(--mw-accent-dark) !important; }
+.management-announcement-page .management-student-back-link { width: fit-content; }
+.management-announcement-create-card { max-width: 980px; }
+.management-announcement-form-grid { gap: 16px; }
+.management-announcement-form-grid .management-form-field textarea { min-height: 145px; line-height: 1.55; }
+.management-announcement-classrooms > span:first-child { display: flex; align-items: center; gap: 9px; }
+.management-announcement-classrooms > span:first-child small { color: var(--mw-faint); font-size: 8px; font-weight: 500; }
+.management-announcement-class-options { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; }
+.management-announcement-class-option { display: flex; min-width: 0; min-height: 54px; align-items: center; gap: 10px; border: 1px solid var(--mw-line); border-radius: 5px 12px 5px 12px; padding: 9px 11px; background: var(--mw-panel); cursor: pointer; transition: border-color .15s ease,background-color .15s ease; }
+.management-announcement-class-option:hover { border-color: color-mix(in srgb,var(--mw-accent),var(--mw-line) 35%); }
+.management-announcement-class-option.is-selected { border-color: color-mix(in srgb,var(--mw-accent),transparent 48%); background: var(--mw-accent-soft); }
+.management-announcement-class-option input { width: 15px; height: 15px; flex: 0 0 auto; accent-color: var(--mw-accent-dark); }
+.management-announcement-class-option > span { display: grid; min-width: 0; gap: 4px; }
+.management-announcement-class-option strong { color: var(--mw-ink); font-size: 10px; font-weight: 750; }
+.management-announcement-class-option small { color: var(--mw-faint); font-size: 8px; }
+.management-announcement-file-picker { display: flex; min-height: 58px; align-items: center; gap: 12px; border: 1px dashed color-mix(in srgb,var(--mw-accent),var(--mw-line) 45%); border-radius: 5px 12px 5px 12px; padding: 9px 12px; background: var(--mw-panel); cursor: pointer; }
+.management-announcement-file-picker input { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; clip-path: inset(50%); }
+.management-announcement-file-picker > span { display: inline-flex; min-height: 34px; flex: 0 0 auto; align-items: center; border: 1px solid var(--mw-line); border-radius: 5px 10px 5px 10px; padding: 0 11px; color: var(--mw-ink); background: var(--mw-surface); font-size: 9px; font-weight: 750; }
+.management-announcement-file-picker > small { color: var(--mw-faint); font-size: 8px; }
+.management-announcement-file-picker:focus-within { outline: 2px solid var(--mw-accent); outline-offset: 2px; }
+.management-announcement-attachments ul { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.management-announcement-attachments li { display: flex; min-width: 0; align-items: center; justify-content: space-between; gap: 12px; border-bottom: 1px solid var(--mw-line); padding: 8px 2px; }
+.management-announcement-attachments li > span { display: grid; min-width: 0; gap: 4px; }
+.management-announcement-attachments li strong { overflow: hidden; color: var(--mw-ink); font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
+.management-announcement-attachments li small { color: var(--mw-faint); font-size: 8px; }
+.management-announcement-remove-file { width: 27px; height: 27px; flex: 0 0 auto; border: 1px solid var(--mw-line); border-radius: 7px; color: var(--mw-muted) !important; background: var(--mw-surface); cursor: pointer; font-size: 16px !important; }
+.management-announcement-remove-file:hover:not(:disabled) { border-color: #a9513e; color: #a9513e !important; }
+.management-announcement-form-actions { align-items: center; }
+.management-announcement-form-actions > span { max-width: 340px; }
+.management-announcement-detail-card { max-width: 1080px; padding: 25px 28px; }
+.management-announcement-detail-header { display: grid; grid-template-columns: 48px minmax(0,1fr) auto; align-items: center; gap: 15px; border-bottom: 1px solid var(--mw-line); padding-bottom: 20px; }
+.management-announcement-detail-header .management-announcement-symbol { width: 46px; height: 46px; border-radius: 13px 13px 13px 5px; }
+.management-announcement-detail-header .management-announcement-symbol svg { width: 21px; height: 21px; }
+.management-announcement-detail-header h2 { margin: 5px 0; color: var(--mw-ink); font-family: Georgia,"Times New Roman",serif; font-size: clamp(22px,3vw,30px); font-weight: 500; letter-spacing: -.035em; line-height: 1.15; }
+.management-announcement-detail-header > div > p:last-child { margin: 0; color: var(--mw-muted); font-size: 9px; }
+.management-announcement-detail-header > div > p:last-child strong { color: var(--mw-ink); }
+.management-announcement-detail-body { padding: 22px 0 12px; color: var(--mw-ink); font-size: 12px; line-height: 1.75; overflow-wrap: anywhere; }
+.management-announcement-detail-body p { margin: 0 0 8px; }
+.management-announcement-detail-section { border-top: 1px solid var(--mw-line); padding: 18px 0; }
+.management-announcement-detail-section-heading { display: flex; align-items: end; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+.management-announcement-detail-section-heading h3 { margin: 4px 0 0; color: var(--mw-ink); font-family: Georgia,"Times New Roman",serif; font-size: 17px; font-weight: 500; }
+.management-announcement-detail-section-heading > span { color: var(--mw-faint); font-size: 8px; }
+.management-announcement-targets { display: grid; grid-template-columns: repeat(auto-fill,minmax(190px,1fr)); gap: 8px; margin: 0; padding: 0; list-style: none; }
+.management-announcement-targets li { display: flex; min-height: 43px; align-items: center; gap: 9px; border: 1px solid var(--mw-line); border-radius: 5px 10px 5px 10px; padding: 6px 9px; background: var(--mw-panel); }
+.management-announcement-targets .management-class-icon { width: 29px; height: 29px; flex: 0 0 auto; }
+.management-announcement-targets .management-class-icon svg { width: 15px; height: 15px; }
+.management-announcement-targets strong { color: var(--mw-ink); font-size: 9px; }
+.management-announcement-attachment-list { display: grid; margin: 0; padding: 0; list-style: none; }
+.management-announcement-attachment-list li { display: flex; align-items: center; justify-content: space-between; gap: 12px; border-top: 1px solid var(--mw-line); padding: 10px 2px; }
+.management-announcement-attachment-list li:first-child { border-top: 0; }
+.management-announcement-attachment-list li > span { display: grid; min-width: 0; gap: 4px; }
+.management-announcement-attachment-list li strong { overflow-wrap: anywhere; color: var(--mw-ink); font-size: 9px; }
+.management-announcement-attachment-list li small { color: var(--mw-faint); font-size: 8px; }
+.management-announcement-attachment-list .management-teacher-detail-button { min-height: 35px; flex: 0 0 auto; padding: 0 11px; font-size: 9px !important; }
+.management-announcement-detail-footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; border-top: 1px solid var(--mw-line); padding-top: 15px; color: var(--mw-faint); font-size: 8px; }
+.management-announcement-delete-button { display: inline-flex; min-height: 38px; align-items: center; justify-content: center; gap: 7px; border: 1px solid #a9513e; border-radius: 5px 12px 5px 12px; padding: 0 12px; color: #fff !important; background: #a9513e; box-shadow: 0 3px 0 color-mix(in srgb,#a9513e,#322742 25%); cursor: pointer; font: inherit; font-size: 9px !important; font-weight: 750; }
+.management-announcement-delete-button:hover { transform: translateY(2px); background: #8f4039; box-shadow: 0 1px 0 color-mix(in srgb,#8f4039,#322742 25%); }
+.management-announcement-delete-button svg { width: 14px; height: 14px; }
+.management-announcement-delete-modal { display: grid; width: min(720px,100%); grid-template-columns: 180px minmax(0,1fr); align-items: center; gap: 20px; padding: 25px; }
+.management-announcement-delete-mascot { display: grid; min-height: 200px; place-items: center; border-radius: 10px 10px 10px 4px; background: linear-gradient(145deg,var(--mw-accent-soft),var(--mw-panel)); }
+.management-announcement-delete-mascot img { width: 145px; height: 175px; object-fit: contain; }
+.management-announcement-delete-modal .management-modal-head { align-self: center; }
+.management-announcement-delete-modal .management-modal-head h2 { margin: 7px 0; color: var(--mw-ink); font-family: Georgia,"Times New Roman",serif; font-size: 25px; font-weight: 500; }
+.management-announcement-delete-modal .management-modal-head > p:last-child { color: var(--mw-muted); font-size: 10px; line-height: 1.6; overflow-wrap: anywhere; }
+.management-announcement-delete-modal .management-modal-actions { grid-column: 2; justify-content: flex-end; padding: 0; }
+.management-announcement-delete-modal .management-modal-actions button { min-height: 40px; border-radius: 5px 12px 5px 12px; font: inherit; font-size: 10px; font-weight: 750; }
+.management-announcement-delete-modal .management-danger-button { border-color: #a9513e; color: #fff; background: #a9513e; box-shadow: 0 3px 0 color-mix(in srgb,#a9513e,#322742 25%); }
+.management-announcement-delete-modal .management-danger-button:hover:not(:disabled) { transform: translateY(2px); background: #8f4039; box-shadow: 0 1px 0 color-mix(in srgb,#8f4039,#322742 25%); }
+@media (max-width: 760px) {
+  .management-announcement-detail-card { padding: 18px 16px; }
+  .management-announcement-directory .management-announcement-row { grid-template-columns: 20px 31px minmax(0,1fr) auto; gap: 8px; }
+  .management-announcement-directory .management-announcement-symbol { width: 29px; height: 29px; }
+  .management-announcement-heading-group { gap: 8px; }
+  .management-announcement-mascot { width: 62px; height: 56px; }
+}
+@media (max-width: 600px) {
+  .management-announcement-directory .management-section-heading { align-items: flex-start; flex-direction: row; }
+  .management-announcement-directory .management-section-heading > .management-student-add-button { min-height: 38px; gap: 6px; padding: 0 10px; font-size: 10px !important; }
+  .management-announcement-tools { align-items: stretch; }
+  .management-announcement-search,.management-announcement-tools .management-student-filter { width: 100%; flex-basis: auto; }
+  .management-announcement-class-options { grid-template-columns: 1fr; }
+  .management-announcement-form-actions { align-items: flex-start; }
+  .management-announcement-form-actions > span { max-width: none; }
+  .management-announcement-form-actions .management-classroom-form-buttons { width: 100%; justify-content: flex-end; }
+  .management-announcement-detail-header { grid-template-columns: 39px minmax(0,1fr) auto; gap: 10px; }
+  .management-announcement-detail-header .management-announcement-symbol { width: 38px; height: 38px; }
+  .management-announcement-detail-section-heading { align-items: flex-start; }
+  .management-announcement-detail-footer { align-items: flex-start; flex-direction: column; }
+  .management-announcement-delete-modal { width: 100%; max-height: 92vh; grid-template-columns: 70px minmax(0,1fr); gap: 12px; padding: 18px 16px calc(18px + env(safe-area-inset-bottom)); }
+  .management-announcement-delete-mascot { min-height: 85px; }
+  .management-announcement-delete-mascot img { width: 62px; height: 78px; }
+  .management-announcement-delete-modal .management-modal-head h2 { font-size: 20px; }
+  .management-announcement-delete-modal .management-modal-actions { position: static; grid-column: 1 / -1; margin: 0; padding: 11px 0 0; background: transparent; }
+  .management-announcement-delete-modal .management-modal-actions button { flex: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .management-announcement-mascot > img,
+  .management-announcement-mascot > span { transition-duration: .01ms !important; }
+}

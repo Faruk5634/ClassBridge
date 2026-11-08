@@ -3,6 +3,8 @@ import LoginExperience, { type CampusRole, type EntryPortal, type ThemeMode } fr
 import TeacherWorkspacePreview from './TeacherWorkspacePreview'
 import StudentWorkspace from './StudentWorkspace'
 import ParentWorkspace from './ParentWorkspace'
+import ManagementWorkspace from './ManagementWorkspace'
+import RequiredPasswordChange from './RequiredPasswordChange'
 import { fetchDeduplicated, invalidateCachedGetRequests } from './apiClient'
 
 type LoginResponse = { accessToken: string }
@@ -15,11 +17,15 @@ type AccountProfile = {
   email?: string | null
   emailVerified?: boolean
   phoneNumber?: string | null
+  schoolName?: string | null
+  mustChangePassword?: boolean
 }
 type EntryRoute = { portal: EntryPortal | null; role: CampusRole | null }
 type EntryHistoryState = { classBridgeEntryDepth?: number }
 type TeacherSession = { accessToken: string; profile: AccountProfile }
 type MemberSession = { accessToken: string; profile: Omit<AccountProfile, 'role'> & { role: 'PARENT' | 'STUDENT' } }
+type ManagementRole = 'SUPERADMIN' | 'SCHOOL_ADMIN' | 'SCHOOL_VICE_ADMIN'
+type ManagementSession = { accessToken: string; profile: Omit<AccountProfile, 'role'> & { role: ManagementRole } }
 
 const TOKEN_KEY = 'classbridge.accessToken'
 const THEME_KEY = 'classbridge.theme'
@@ -44,9 +50,11 @@ function entryHash(route: EntryRoute) {
 export default function App() {
   const [theme, setTheme] = useState<ThemeMode>(() => localStorage.getItem(THEME_KEY) === 'dark' ? 'dark' : 'light')
   const [entryRoute, setEntryRoute] = useState<EntryRoute>(readEntryRoute)
-  const [authStage, setAuthStage] = useState<'checking' | 'anonymous' | 'teacher' | 'member'>(() => sessionStorage.getItem(TOKEN_KEY) ? 'checking' : 'anonymous')
+  const [authStage, setAuthStage] = useState<'checking' | 'anonymous' | 'teacher' | 'member' | 'management'>(() => sessionStorage.getItem(TOKEN_KEY) ? 'checking' : 'anonymous')
   const [teacherSession, setTeacherSession] = useState<TeacherSession | null>(null)
   const [memberSession, setMemberSession] = useState<MemberSession | null>(null)
+  const [managementSession, setManagementSession] = useState<ManagementSession | null>(null)
+  const [requiredPasswordChange, setRequiredPasswordChange] = useState<{ token: string; username: string; firstName: string; role: AccountProfile['role'] } | null>(null)
   const [isSigningIn, setIsSigningIn] = useState(false)
   const [loginError, setLoginError] = useState('')
   const [sessionMessage, setSessionMessage] = useState('')
@@ -68,12 +76,19 @@ export default function App() {
       })
       .then((profile) => {
         if (!active) return
+        if (profile.mustChangePassword) {
+          setRequiredPasswordChange({ token, username: profile.username, firstName: profile.firstName, role: profile.role })
+          return
+        }
         if (profile.role === 'TEACHER') {
           setTeacherSession({ accessToken: token, profile })
           setAuthStage('teacher')
         } else if (profile.role === 'PARENT' || profile.role === 'STUDENT') {
           setMemberSession({ accessToken: token, profile: { ...profile, role: profile.role } })
           setAuthStage('member')
+        } else if (profile.role === 'SUPERADMIN' || profile.role === 'SCHOOL_ADMIN' || profile.role === 'SCHOOL_VICE_ADMIN') {
+          setManagementSession({ accessToken: token, profile: { ...profile, role: profile.role } })
+          setAuthStage('management')
         } else {
           setAuthStage('anonymous')
         }
@@ -156,6 +171,18 @@ export default function App() {
     setSessionMessage('')
   }, [memberSession, selectedRole])
 
+  const endManagementSession = useCallback(() => {
+    const token = sessionStorage.getItem(TOKEN_KEY)
+    if (token) invalidateCachedGetRequests('Bearer ' + token)
+    sessionStorage.removeItem(TOKEN_KEY)
+    setManagementSession(null)
+    setAuthStage('anonymous')
+    setEntryRoute({ portal: 'management', role: null })
+    window.history.replaceState({ classBridgeEntryDepth: 0 }, '', '#management')
+    setLoginError('')
+    setSessionMessage('')
+  }, [])
+
   async function handleSignIn(username: string, password: string) {
     setLoginError('')
     setSessionMessage('')
@@ -192,12 +219,19 @@ export default function App() {
         return
       }
       sessionStorage.setItem(TOKEN_KEY, login.accessToken)
+      if (profile.mustChangePassword) {
+        setRequiredPasswordChange({ token: login.accessToken, username: profile.username, firstName: profile.firstName, role: profile.role })
+        return
+      }
       if (profile.role === 'TEACHER') {
         setTeacherSession({ accessToken: login.accessToken, profile })
         setAuthStage('teacher')
       } else if (profile.role === 'PARENT' || profile.role === 'STUDENT') {
         setMemberSession({ accessToken: login.accessToken, profile: { ...profile, role: profile.role } })
         setAuthStage('member')
+      } else if (profile.role === 'SUPERADMIN' || profile.role === 'SCHOOL_ADMIN' || profile.role === 'SCHOOL_VICE_ADMIN') {
+        setManagementSession({ accessToken: login.accessToken, profile: { ...profile, role: profile.role } })
+        setAuthStage('management')
       } else {
         setSessionMessage('Sign-in successful. Your ClassBridge workspace is the next step.')
       }
@@ -208,8 +242,45 @@ export default function App() {
     }
   }
 
+  if (requiredPasswordChange) {
+    return <RequiredPasswordChange
+      theme={theme}
+      token={requiredPasswordChange.token}
+      username={requiredPasswordChange.username}
+      firstName={requiredPasswordChange.firstName}
+      role={requiredPasswordChange.role}
+      onComplete={() => {
+        invalidateCachedGetRequests('Bearer ' + requiredPasswordChange.token)
+        sessionStorage.removeItem(TOKEN_KEY)
+        setRequiredPasswordChange(null)
+        setAuthStage('anonymous')
+        const managementRole = ['SUPERADMIN', 'SCHOOL_ADMIN', 'SCHOOL_VICE_ADMIN'].includes(requiredPasswordChange.role)
+        const nextRoute: EntryRoute = managementRole
+          ? { portal: 'management', role: null }
+          : { portal: 'campus', role: requiredPasswordChange.role as CampusRole }
+        setEntryRoute(nextRoute)
+        window.history.replaceState({ classBridgeEntryDepth: 0 }, '', entryHash(nextRoute))
+        setSessionMessage('')
+        setLoginError('')
+      }}
+    />
+  }
+
   if (authStage === 'checking') {
     return <main className="teacher-session-loading" aria-live="polite">Opening your ClassBridge workspace…</main>
+  }
+
+  if (authStage === 'management' && managementSession) {
+    return (
+      <ManagementWorkspace
+        theme={theme}
+        token={managementSession.accessToken}
+        profile={managementSession.profile}
+        onToggleTheme={() => setTheme((current) => current === 'light' ? 'dark' : 'light')}
+        onSignOut={endManagementSession}
+        onSessionExpired={endManagementSession}
+      />
+    )
   }
 
   if (authStage === 'teacher' && teacherSession) {
