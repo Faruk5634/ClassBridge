@@ -13,6 +13,7 @@ import java.util.Optional;
 
 @Repository
 public interface SchoolMembershipRepository extends JpaRepository<SchoolMembership, Long> {
+    List<SchoolMembership> findAllBySchoolId(Long schoolId);
     Optional<SchoolMembership> findByUserAccountId(Long userAccountId);
 
     Optional<SchoolMembership> findBySchoolIdAndUserAccountId(Long schoolId, Long userAccountId);

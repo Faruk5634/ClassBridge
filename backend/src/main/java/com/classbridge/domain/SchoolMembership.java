@@ -31,6 +31,12 @@ public class SchoolMembership {
     @JoinColumn(name = "user_account_id", nullable = false, unique = true)
     private UserAccount userAccount;
 
+    @Column(name = "is_active", nullable = false)
+    private boolean isActive = true;
+
+    @Column(name = "archived_by_school", nullable = false)
+    private boolean archivedBySchool;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
@@ -62,6 +68,11 @@ public class SchoolMembership {
     public void setUserAccount(UserAccount userAccount) {
         this.userAccount = userAccount;
     }
+
+    public boolean isActive() { return isActive; }
+    public void setActive(boolean active) { this.isActive = active; }
+    public boolean isArchivedBySchool() { return archivedBySchool; }
+    public void setArchivedBySchool(boolean archivedBySchool) { this.archivedBySchool = archivedBySchool; }
 
     public Instant getCreatedAt() {
         return createdAt;

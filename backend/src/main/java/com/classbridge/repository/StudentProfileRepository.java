@@ -15,6 +15,9 @@ import java.util.Optional;
 @Repository
 public interface StudentProfileRepository extends JpaRepository<StudentProfile, Long> {
 
+    @EntityGraph(attributePaths = {"userAccount", "parentProfile", "parentProfile.userAccount"})
+    List<StudentProfile> findAllBySchoolId(Long schoolId);
+
     boolean existsBySchoolIdAndSchoolNumber(Long schoolId, String schoolNumber);
 
     @Query("SELECT CASE WHEN COUNT(sp) > 0 THEN TRUE ELSE FALSE END FROM StudentProfile sp " +

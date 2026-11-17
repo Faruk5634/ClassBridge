@@ -13,15 +13,17 @@ import java.util.Optional;
 @Repository
 public interface AnnouncementRepository extends JpaRepository<Announcement, Long> {
 
+    List<Announcement> findAllBySchoolId(Long schoolId);
+
     @EntityGraph(attributePaths = {"targetClassrooms", "targetClassrooms.classroom", "authorAccount"})
     @Query("SELECT DISTINCT a FROM Announcement a " +
-           "WHERE a.school.id = :schoolId " +
+           "WHERE a.school.id = :schoolId AND a.isActive = true " +
            "ORDER BY a.createdAt DESC, a.id DESC")
     List<Announcement> findBySchoolIdOrderByCreatedAtDesc(@Param("schoolId") Long schoolId);
 
     @EntityGraph(attributePaths = {"targetClassrooms", "targetClassrooms.classroom", "authorAccount"})
     @Query("SELECT DISTINCT a FROM Announcement a " +
-           "WHERE a.school.id = :schoolId AND a.authorAccount.id = :authorAccountId " +
+           "WHERE a.school.id = :schoolId AND a.isActive = true AND a.authorAccount.id = :authorAccountId " +
            "ORDER BY a.createdAt DESC, a.id DESC")
     List<Announcement> findBySchoolIdAndAuthorAccountIdOrderByCreatedAtDesc(@Param("schoolId") Long schoolId,
                                                                             @Param("authorAccountId") Long authorAccountId);
@@ -29,12 +31,12 @@ public interface AnnouncementRepository extends JpaRepository<Announcement, Long
     @EntityGraph(attributePaths = {"targetClassrooms", "targetClassrooms.classroom", "authorAccount"})
     @Query("SELECT DISTINCT a FROM Announcement a " +
            "JOIN a.targetClassrooms tc " +
-           "WHERE a.school.id = :schoolId AND tc.classroom.id = :classroomId " +
+           "WHERE a.school.id = :schoolId AND a.isActive = true AND tc.classroom.id = :classroomId " +
            "ORDER BY a.createdAt DESC, a.id DESC")
     List<Announcement> findBySchoolIdAndClassroomIdOrderByCreatedAtDesc(@Param("schoolId") Long schoolId,
                                                                         @Param("classroomId") Long classroomId);
 
     @EntityGraph(attributePaths = {"targetClassrooms", "targetClassrooms.classroom", "authorAccount"})
-    @Query("SELECT a FROM Announcement a WHERE a.id = :id AND a.school.id = :schoolId")
+    @Query("SELECT a FROM Announcement a WHERE a.id = :id AND a.school.id = :schoolId AND a.isActive = true")
     Optional<Announcement> findByIdAndSchoolId(@Param("id") Long id, @Param("schoolId") Long schoolId);
 }

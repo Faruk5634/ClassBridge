@@ -35,6 +35,12 @@ public class ParentSchoolRegistration {
     @JoinColumn(name = "registered_by_user_account_id", nullable = false)
     private UserAccount registeredBy;
 
+    @Column(name = "is_active", nullable = false)
+    private boolean isActive = true;
+
+    @Column(name = "archived_by_school", nullable = false)
+    private boolean archivedBySchool;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
@@ -46,5 +52,9 @@ public class ParentSchoolRegistration {
     public void setParentProfile(ParentProfile parentProfile) { this.parentProfile = parentProfile; }
     public UserAccount getRegisteredBy() { return registeredBy; }
     public void setRegisteredBy(UserAccount registeredBy) { this.registeredBy = registeredBy; }
+    public boolean isActive() { return isActive; }
+    public void setActive(boolean active) { this.isActive = active; }
+    public boolean isArchivedBySchool() { return archivedBySchool; }
+    public void setArchivedBySchool(boolean archivedBySchool) { this.archivedBySchool = archivedBySchool; }
     public Instant getCreatedAt() { return createdAt; }
 }

@@ -1,0 +1,29 @@
+ALTER TABLE user_accounts
+    ADD COLUMN archived_by_school BOOLEAN NOT NULL DEFAULT FALSE;
+
+ALTER TABLE school_memberships
+    ADD COLUMN is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    ADD COLUMN archived_by_school BOOLEAN NOT NULL DEFAULT FALSE;
+
+ALTER TABLE student_profiles
+    ADD COLUMN archived_by_school BOOLEAN NOT NULL DEFAULT FALSE;
+
+ALTER TABLE classrooms
+    ADD COLUMN is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    ADD COLUMN archived_by_school BOOLEAN NOT NULL DEFAULT FALSE;
+
+ALTER TABLE teaching_assignments
+    ADD COLUMN is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    ADD COLUMN archived_by_school BOOLEAN NOT NULL DEFAULT FALSE;
+
+ALTER TABLE parent_school_registrations
+    ADD COLUMN is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    ADD COLUMN archived_by_school BOOLEAN NOT NULL DEFAULT FALSE;
+
+ALTER TABLE announcements
+    ADD COLUMN is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    ADD COLUMN archived_by_school BOOLEAN NOT NULL DEFAULT FALSE;
+
+ALTER TABLE message_conversations
+    ADD COLUMN is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    ADD COLUMN archived_by_school BOOLEAN NOT NULL DEFAULT FALSE;

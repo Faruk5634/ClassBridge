@@ -38,6 +38,12 @@ public class Classroom {
     @Column(name = "section_name", nullable = false, length = 20)
     private String sectionName;
 
+    @Column(name = "is_active", nullable = false)
+    private boolean isActive = true;
+
+    @Column(name = "archived_by_school", nullable = false)
+    private boolean archivedBySchool;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "homeroom_teacher_account_id")
     private UserAccount homeroomTeacher;
@@ -81,6 +87,11 @@ public class Classroom {
     public void setSectionName(String sectionName) {
         this.sectionName = sectionName;
     }
+
+    public boolean isActive() { return isActive; }
+    public void setActive(boolean active) { this.isActive = active; }
+    public boolean isArchivedBySchool() { return archivedBySchool; }
+    public void setArchivedBySchool(boolean archivedBySchool) { this.archivedBySchool = archivedBySchool; }
 
     public UserAccount getHomeroomTeacher() {
         return homeroomTeacher;

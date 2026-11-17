@@ -12,6 +12,8 @@ import java.util.Optional;
 @Repository
 public interface ClassroomRepository extends JpaRepository<Classroom, Long> {
 
+    List<Classroom> findAllBySchoolId(Long schoolId);
+
     List<Classroom> findBySchoolIdOrderByGradeLevelAscSectionNameAsc(Long schoolId);
 
     @Query("SELECT c FROM Classroom c WHERE c.school.id = :schoolId AND c.homeroomTeacher.id = :teacherAccountId " +

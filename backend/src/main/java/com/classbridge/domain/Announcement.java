@@ -45,6 +45,12 @@ public class Announcement {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String body;
 
+    @Column(name = "is_active", nullable = false)
+    private boolean isActive = true;
+
+    @Column(name = "archived_by_school", nullable = false)
+    private boolean archivedBySchool;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "announcement_type", nullable = false, length = 32)
     private AnnouncementType type = AnnouncementType.GENERAL;
@@ -116,6 +122,11 @@ public class Announcement {
     public void setBody(String body) {
         this.body = body;
     }
+
+    public boolean isActive() { return isActive; }
+    public void setActive(boolean active) { this.isActive = active; }
+    public boolean isArchivedBySchool() { return archivedBySchool; }
+    public void setArchivedBySchool(boolean archivedBySchool) { this.archivedBySchool = archivedBySchool; }
 
     public AnnouncementType getType() { return type; }
 

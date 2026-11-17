@@ -6,6 +6,13 @@ import com.classbridge.domain.SchoolMembership;
 import com.classbridge.domain.StaffProfile;
 import com.classbridge.domain.UserAccount;
 import com.classbridge.domain.UserRole;
+import com.classbridge.domain.StudentProfile;
+import com.classbridge.domain.Classroom;
+import com.classbridge.domain.ParentProfile;
+import com.classbridge.domain.ParentSchoolRegistration;
+import com.classbridge.domain.TeachingAssignment;
+import com.classbridge.domain.Announcement;
+import com.classbridge.domain.MessageConversation;
 import com.classbridge.dto.AssignSchoolAdministratorRequest;
 import com.classbridge.dto.SchoolAdministratorSummaryResponse;
 import com.classbridge.exception.InvalidRoleException;
@@ -13,6 +20,12 @@ import com.classbridge.repository.SchoolMembershipRepository;
 import com.classbridge.repository.SchoolRepository;
 import com.classbridge.repository.StaffProfileRepository;
 import com.classbridge.repository.UserAccountRepository;
+import com.classbridge.repository.StudentProfileRepository;
+import com.classbridge.repository.ClassroomRepository;
+import com.classbridge.repository.TeachingAssignmentRepository;
+import com.classbridge.repository.ParentSchoolRegistrationRepository;
+import com.classbridge.repository.AnnouncementRepository;
+import com.classbridge.repository.MessageConversationRepository;
 import com.classbridge.security.InitialPasswordGenerator;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -33,6 +46,12 @@ class SchoolAdministratorServiceTests {
     private final UserAccountRepository userAccountRepository = mock(UserAccountRepository.class);
     private final StaffProfileRepository staffProfileRepository = mock(StaffProfileRepository.class);
     private final SchoolMembershipRepository schoolMembershipRepository = mock(SchoolMembershipRepository.class);
+    private final StudentProfileRepository studentProfileRepository = mock(StudentProfileRepository.class);
+    private final ClassroomRepository classroomRepository = mock(ClassroomRepository.class);
+    private final TeachingAssignmentRepository teachingAssignmentRepository = mock(TeachingAssignmentRepository.class);
+    private final ParentSchoolRegistrationRepository parentSchoolRegistrationRepository = mock(ParentSchoolRegistrationRepository.class);
+    private final AnnouncementRepository announcementRepository = mock(AnnouncementRepository.class);
+    private final MessageConversationRepository messageConversationRepository = mock(MessageConversationRepository.class);
     private final PasswordEncoder passwordEncoder = mock(PasswordEncoder.class);
     private final InitialPasswordGenerator initialPasswordGenerator = new InitialPasswordGenerator();
 
@@ -66,6 +85,28 @@ class SchoolAdministratorServiceTests {
         assertEquals(UserRole.SCHOOL_VICE_ADMIN, result.getRole());
         assertEquals(10L, result.getSchoolId());
         verify(schoolMembershipRepository).save(any(SchoolMembership.class));
+    }
+
+    @Test
+    void newlyCreatedAdministratorMustChangeGeneratedPassword() {
+        com.classbridge.dto.CreateSchoolAdministratorRequest request = new com.classbridge.dto.CreateSchoolAdministratorRequest();
+        request.setUsername("new.admin");
+        request.setFirstName("New");
+        request.setLastName("Administrator");
+        request.setRole(UserRole.SCHOOL_ADMIN);
+
+        when(userAccountRepository.existsByUsername("new.admin")).thenReturn(false);
+        when(passwordEncoder.encode(any())).thenReturn("hashed-password");
+        when(userAccountRepository.save(any(UserAccount.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(staffProfileRepository.save(any(StaffProfile.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        var created = service.createAdministrator(null, request);
+
+        assertEquals(true, created.isActive());
+        assertEquals(true, userAccountRepository.findByUsername("new.admin").isEmpty());
+        org.mockito.ArgumentCaptor<UserAccount> accountCaptor = org.mockito.ArgumentCaptor.forClass(UserAccount.class);
+        verify(userAccountRepository).save(accountCaptor.capture());
+        assertEquals(true, accountCaptor.getValue().isMustChangePassword());
     }
 
     @Test
@@ -148,11 +189,71 @@ class SchoolAdministratorServiceTests {
     @Test
     void archivesAndRestoresSchoolNonDestructively() {
         School school = school(10L, "Atatürk High School", SchoolLevel.HIGH_SCHOOL);
-        SchoolService schoolService = new SchoolService(schoolRepository, new com.classbridge.mapper.SchoolMapper());
+        SchoolService schoolService = new SchoolService(schoolRepository, new com.classbridge.mapper.SchoolMapper(),
+                schoolMembershipRepository, studentProfileRepository, classroomRepository, teachingAssignmentRepository,
+                parentSchoolRegistrationRepository, announcementRepository, messageConversationRepository, userAccountRepository);
+
+        UserAccount administratorAccount = account(70L, "school.admin", UserRole.SCHOOL_ADMIN, true);
+        SchoolMembership membership = new SchoolMembership();
+        membership.setSchool(school);
+        membership.setUserAccount(administratorAccount);
+        when(schoolMembershipRepository.findAllBySchoolId(10L)).thenReturn(java.util.List.of(membership));
+
+        UserAccount studentAccount = account(71L, "student.login", UserRole.STUDENT, true);
+        ParentProfile sharedParent = new ParentProfile();
+        sharedParent.setId(80L);
+        sharedParent.setUserAccount(account(72L, "family.parent", UserRole.PARENT, true));
+        StudentProfile student = new StudentProfile();
+        student.setSchool(school);
+        student.setActive(true);
+        student.setParentProfile(sharedParent);
+        student.setUserAccount(studentAccount);
+        StudentProfile alreadyArchivedStudent = new StudentProfile();
+        alreadyArchivedStudent.setSchool(school);
+        alreadyArchivedStudent.setActive(false);
+        when(studentProfileRepository.findAllBySchoolId(10L)).thenReturn(java.util.List.of(student, alreadyArchivedStudent));
+        // This shared parent still has an active child at a different school.
+        when(studentProfileRepository.existsByParentProfileIdAndIsActiveTrue(80L)).thenReturn(true);
+
+        Classroom classroom = new Classroom();
+        classroom.setSchool(school);
+        when(classroomRepository.findAllBySchoolId(10L)).thenReturn(java.util.List.of(classroom));
+        TeachingAssignment teachingAssignment = new TeachingAssignment();
+        teachingAssignment.setClassroom(classroom);
+        when(teachingAssignmentRepository.findAllByClassroomSchoolId(10L)).thenReturn(java.util.List.of(teachingAssignment));
+        ParentSchoolRegistration registration = new ParentSchoolRegistration();
+        registration.setSchool(school);
+        registration.setParentProfile(sharedParent);
+        ParentProfile schoolOnlyParent = new ParentProfile();
+        schoolOnlyParent.setId(81L);
+        schoolOnlyParent.setUserAccount(account(73L, "school.only.parent", UserRole.PARENT, true));
+        ParentSchoolRegistration schoolOnlyRegistration = new ParentSchoolRegistration();
+        schoolOnlyRegistration.setSchool(school);
+        schoolOnlyRegistration.setParentProfile(schoolOnlyParent);
+        when(parentSchoolRegistrationRepository.findAllBySchoolId(10L)).thenReturn(java.util.List.of(registration, schoolOnlyRegistration));
+        when(parentSchoolRegistrationRepository.findAllByParentProfileId(80L)).thenReturn(java.util.List.of(registration));
+        Announcement announcement = new Announcement();
+        announcement.setSchool(school);
+        when(announcementRepository.findAllBySchoolId(10L)).thenReturn(java.util.List.of(announcement));
+        MessageConversation conversation = new MessageConversation();
+        conversation.setSchool(school);
+        when(messageConversationRepository.findAllBySchoolId(10L)).thenReturn(java.util.List.of(conversation));
         when(schoolRepository.findById(10L)).thenReturn(Optional.of(school));
         when(schoolRepository.save(any(School.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(userAccountRepository.save(any(UserAccount.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         assertEquals(false, schoolService.archiveSchool(10L).orElseThrow().isActive());
+        assertEquals(false, administratorAccount.isActive());
+        assertEquals(false, student.isActive());
+        assertEquals(false, studentAccount.isActive());
+        assertEquals(true, sharedParent.getUserAccount().isActive());
+        assertEquals(false, schoolOnlyParent.getUserAccount().isActive());
+        assertEquals(false, alreadyArchivedStudent.isArchivedBySchool());
+        assertEquals(false, classroom.isActive());
+        assertEquals(false, teachingAssignment.isActive());
+        assertEquals(false, registration.isActive());
+        assertEquals(false, announcement.isActive());
+        assertEquals(false, conversation.isActive());
         assertThrows(IllegalStateException.class, () -> schoolService.updateSchool(10L, new com.classbridge.dto.SchoolRequest()));
 
         AssignSchoolAdministratorRequest assignWhileArchived = new AssignSchoolAdministratorRequest();
@@ -160,6 +261,17 @@ class SchoolAdministratorServiceTests {
         assertThrows(IllegalStateException.class, () -> service.assignAdministrator(10L, assignWhileArchived));
 
         assertEquals(true, schoolService.restoreSchool(10L).orElseThrow().isActive());
+        assertEquals(true, administratorAccount.isActive());
+        assertEquals(true, student.isActive());
+        assertEquals(true, studentAccount.isActive());
+        assertEquals(true, sharedParent.getUserAccount().isActive());
+        assertEquals(true, schoolOnlyParent.getUserAccount().isActive());
+        assertEquals(false, alreadyArchivedStudent.isActive());
+        assertEquals(true, classroom.isActive());
+        assertEquals(true, teachingAssignment.isActive());
+        assertEquals(true, registration.isActive());
+        assertEquals(true, announcement.isActive());
+        assertEquals(true, conversation.isActive());
     }
 
     @Test

@@ -10,6 +10,8 @@ import java.util.Optional;
 @Repository
 public interface TeachingAssignmentRepository extends JpaRepository<TeachingAssignment, Long> {
 
+    List<TeachingAssignment> findAllByClassroomSchoolId(Long schoolId);
+
     List<TeachingAssignment> findByClassroomIdOrderByCreatedAtAsc(Long classroomId);
 
     Optional<TeachingAssignment> findByClassroomIdAndTeacherId(Long classroomId, Long teacherAccountId);

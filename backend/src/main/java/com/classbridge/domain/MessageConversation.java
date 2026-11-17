@@ -44,6 +44,12 @@ public class MessageConversation {
     @Column(name = "last_message_at", nullable = false)
     private Instant lastMessageAt;
 
+    @Column(name = "is_active", nullable = false)
+    private boolean isActive = true;
+
+    @Column(name = "archived_by_school", nullable = false)
+    private boolean archivedBySchool;
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public School getSchool() { return school; }
@@ -58,6 +64,10 @@ public class MessageConversation {
     public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
     public Instant getLastMessageAt() { return lastMessageAt; }
     public void setLastMessageAt(Instant lastMessageAt) { this.lastMessageAt = lastMessageAt; }
+    public boolean isActive() { return isActive; }
+    public void setActive(boolean active) { this.isActive = active; }
+    public boolean isArchivedBySchool() { return archivedBySchool; }
+    public void setArchivedBySchool(boolean archivedBySchool) { this.archivedBySchool = archivedBySchool; }
 
     public boolean hasParticipant(Long accountId) {
         return participantOne.getId().equals(accountId) || participantTwo.getId().equals(accountId);

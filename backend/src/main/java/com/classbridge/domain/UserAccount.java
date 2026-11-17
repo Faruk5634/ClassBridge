@@ -49,6 +49,9 @@ public class UserAccount {
     @Column(name = "is_active", nullable = false)
     private boolean isActive = true;
 
+    @Column(name = "archived_by_school", nullable = false)
+    private boolean archivedBySchool;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
@@ -132,6 +135,9 @@ public class UserAccount {
     public void setActive(boolean active) {
         this.isActive = active;
     }
+
+    public boolean isArchivedBySchool() { return archivedBySchool; }
+    public void setArchivedBySchool(boolean archivedBySchool) { this.archivedBySchool = archivedBySchool; }
 
     public Instant getCreatedAt() {
         return createdAt;
