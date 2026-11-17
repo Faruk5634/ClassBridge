@@ -3,6 +3,7 @@ package com.classbridge.mapper;
 import com.classbridge.domain.ParentProfile;
 import com.classbridge.domain.StudentProfile;
 import com.classbridge.domain.UserAccount;
+import com.classbridge.domain.MemberIdentity;
 import com.classbridge.domain.UserRole;
 import com.classbridge.dto.ChildResponse;
 import com.classbridge.dto.CreateParentRequest;
@@ -18,6 +19,7 @@ public class ParentMapper {
         account.setUsername(request.getUsername().trim());
         account.setPasswordHash(passwordHash);
         account.setRole(UserRole.PARENT);
+        account.setMemberIdentity(MemberIdentity.forRole(UserRole.PARENT));
         account.setEmail(StringUtils.hasText(request.getEmail()) ? request.getEmail().trim() : null);
         account.setPhoneNumber(StringUtils.hasText(request.getPhoneNumber()) ? request.getPhoneNumber().trim() : null);
         account.setActive(true);

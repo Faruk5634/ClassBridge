@@ -50,6 +50,7 @@ public class MemberIdentity {
 
     public MemberIdentity(String identityType) {
         this.identityType = identityType;
+        generatePublicId();
     }
 
     public static MemberIdentity forRole(UserRole role) {

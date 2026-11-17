@@ -5,6 +5,7 @@ import com.classbridge.domain.SchoolLevel;
 import com.classbridge.domain.SchoolMembership;
 import com.classbridge.domain.StaffProfile;
 import com.classbridge.domain.UserAccount;
+import com.classbridge.domain.MemberIdentity;
 import com.classbridge.domain.UserRole;
 import com.classbridge.domain.StudentProfile;
 import com.classbridge.domain.Classroom;
@@ -364,6 +365,7 @@ class SchoolAdministratorServiceTests {
         account.setId(id);
         account.setUsername(username);
         account.setRole(role);
+        account.setMemberIdentity(MemberIdentity.forRole(role));
         account.setActive(active);
         return account;
     }

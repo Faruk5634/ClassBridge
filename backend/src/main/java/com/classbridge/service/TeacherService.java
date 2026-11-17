@@ -5,6 +5,7 @@ import com.classbridge.domain.SchoolMembership;
 import com.classbridge.domain.StaffProfile;
 import com.classbridge.domain.Classroom;
 import com.classbridge.domain.UserAccount;
+import com.classbridge.domain.MemberIdentity;
 import com.classbridge.domain.UserRole;
 import com.classbridge.dto.CreateTeacherRequest;
 import com.classbridge.dto.CreateTeacherResponse;
@@ -111,6 +112,7 @@ public class TeacherService {
             account.setUsername(username);
             account.setPasswordHash(passwordEncoder.encode(initialPassword));
             account.setRole(UserRole.TEACHER);
+            account.setMemberIdentity(MemberIdentity.forRole(UserRole.TEACHER));
             account.setEmail(StringUtils.hasText(request.getEmail()) ? request.getEmail().trim() : null);
             account.setPhoneNumber(StringUtils.hasText(request.getPhoneNumber()) ? request.getPhoneNumber().trim() : null);
             account.setMustChangePassword(true);

@@ -5,6 +5,7 @@ import com.classbridge.domain.SchoolLevel;
 import com.classbridge.domain.SchoolMembership;
 import com.classbridge.domain.StaffProfile;
 import com.classbridge.domain.UserAccount;
+import com.classbridge.domain.MemberIdentity;
 import com.classbridge.domain.UserRole;
 import com.classbridge.dto.AssignSchoolAdministratorRequest;
 import com.classbridge.dto.CreateSchoolAdministratorRequest;
@@ -93,6 +94,7 @@ public class SchoolAdministratorService {
         account.setUsername(request.getUsername());
         account.setPasswordHash(passwordHash);
         account.setRole(request.getRole());
+        account.setMemberIdentity(MemberIdentity.forRole(request.getRole()));
         account.setEmail(StringUtils.hasText(request.getEmail()) ? request.getEmail().trim() : null);
         account.setPhoneNumber(StringUtils.hasText(request.getPhoneNumber()) ? request.getPhoneNumber().trim() : null);
         account.setActive(true);
