@@ -7,7 +7,18 @@ import './ManagementWorkspace.css'
 type ManagementRole = 'SUPERADMIN' | 'SCHOOL_ADMIN' | 'SCHOOL_VICE_ADMIN'
 type Profile = { userAccountId: number; username: string; role: ManagementRole; firstName: string; lastName: string; email?: string | null; emailVerified?: boolean; phoneNumber?: string | null; schoolName?: string | null }
 type Props = { theme: ThemeMode; token: string; profile: Profile; onToggleTheme: () => void; onSignOut: () => void; onSessionExpired: () => void }
-type School = { id: number; name: string; educationLevel: 'PRIMARY' | 'MIDDLE' | 'HIGH_SCHOOL'; province: string; district: string }
+type SchoolLevelValue = 'PRIMARY' | 'MIDDLE' | 'HIGH_SCHOOL'
+type School = { id: number; name: string; educationLevel: SchoolLevelValue; province: string; district: string; active?: boolean; createdAt?: string }
+type SchoolDetail = School & { neighborhood: string | null; address: string | null; active?: boolean; createdAt: string; updatedAt: string }
+type SchoolInput = { name: string; educationLevel: SchoolLevelValue | ''; province: string; district: string; neighborhood: string; address: string }
+type AdministratorRole = 'SCHOOL_ADMIN' | 'SCHOOL_VICE_ADMIN'
+type CreatedAdministrator = { userAccountId: number; staffProfileId: number; schoolMembershipId: number | null; schoolId: number | null; username: string; firstName: string; lastName: string; role: AdministratorRole; email: string | null; phoneNumber: string | null; active: boolean; initialPassword: string; createdAt: string }
+type SessionAdministrator = Omit<CreatedAdministrator, 'initialPassword'>
+type SchoolAdministrator = { userAccountId: number; firstName: string; lastName: string; username: string; role: AdministratorRole; active: boolean; schoolId: number | null; schoolName: string | null; schoolEducationLevel: SchoolLevelValue | null }
+type SchoolAdministratorProfile = SchoolAdministrator & { staffProfileId?: number; schoolMembershipId?: number | null; email?: string | null; emailVerified?: boolean; phoneNumber?: string | null; mustChangePassword?: boolean; otherActiveAdministratorsInSchool?: number; createdAt?: string }
+type AdministratorPage = { content: SchoolAdministrator[]; page: number; size: number; totalElements: number; totalPages: number }
+type AdministratorFilters = { query: string; role: 'all' | AdministratorRole; level: 'all' | SchoolLevelValue; schoolId: string; page: number }
+type OneTimeCredentials = { kind: 'created' | 'reset'; userAccountId: number; username: string; password: string }
 type Classroom = { id: number; gradeLevel: number; sectionName: string; homeroomTeacherAccountId: number | null }
 type Student = { id: number; classroomId: number; schoolNumber: string; firstName: string; lastName: string; gradeLevel: number; sectionName: string; active: boolean; parentUsername: string | null; studentUsername: string | null }
 type StudentProfile = Student & { schoolId: number; createdAt: string; updatedAt: string; parentProfileId: number | null; parentFirstName: string | null; parentLastName: string | null; studentUserAccountId: number | null; studentEmail: string | null; studentEmailVerified: boolean; studentPhoneNumber: string | null; mustChangePassword: boolean }
@@ -18,7 +29,7 @@ type TeacherHomeroom = { classroomId: number; gradeLevel: number; sectionName: s
 type TeacherProfile = { userAccountId: number; staffProfileId: number; schoolMembershipId: number; schoolId: number; username: string; firstName: string; lastName: string; branch: string | null; email: string | null; emailVerified: boolean; phoneNumber: string | null; active: boolean; mustChangePassword: boolean; homeroomClassrooms: TeacherHomeroom[]; createdAt: string }
 type TeacherPage = { content: TeacherProfile[]; page: number; size: number; totalElements: number; totalPages: number }
 type Announcement = { id: number; title: string; body: string; type: string; authorDisplayName: string; targetClassrooms: { classroomId?: number; gradeLevel: number; sectionName: string }[]; attachments?: { id: number; displayFilename: string; contentType: string; size: number; createdAt: string }[]; createdAt: string }
-type View = 'overview' | 'students' | 'studentCreate' | 'studentDetail' | 'teachers' | 'teacherCreate' | 'teacherDetail' | 'parents' | 'parentCreate' | 'parentDetail' | 'classrooms' | 'classroomCreate' | 'classroomDetail' | 'announcements' | 'announcementCreate' | 'announcementDetail' | 'messages' | 'messageCompose' | 'schools' | 'profile'
+type View = 'overview' | 'students' | 'studentCreate' | 'studentDetail' | 'teachers' | 'teacherCreate' | 'teacherDetail' | 'parents' | 'parentCreate' | 'parentDetail' | 'classrooms' | 'classroomCreate' | 'classroomDetail' | 'announcements' | 'announcementCreate' | 'announcementDetail' | 'messages' | 'messageCompose' | 'schools' | 'schoolCreate' | 'schoolDetail' | 'administrators' | 'administratorCreate' | 'administratorDetail' | 'profile'
 type PreviewForm = 'teacher' | 'teacherEdit' | 'parent' | 'classroom' | 'classroomEdit' | 'announcement' | 'announcementDelete' | null
 type TeacherPreview = { id: number; firstName: string; lastName: string; username: string; email: string; homeroom: string; active: boolean }
 type ParentPreview = { id: number; firstName: string; lastName: string; username: string; email: string; phone: string; children: string[] }
@@ -156,11 +167,12 @@ const navByRole: Record<ManagementRole, { view: View; label: string; icon: Param
   SUPERADMIN: [
     { view: 'overview', label: 'Overview', icon: 'overview' },
     { view: 'schools', label: 'Schools', icon: 'schools' },
+    { view: 'administrators', label: 'Administrators', icon: 'teachers' },
     { view: 'messages', label: 'Messages', icon: 'messages' },
   ],
 }
 
-const viewTitle: Record<View, string> = { overview: 'Overview', students: 'Students', studentCreate: 'Add a student', studentDetail: 'Student details', teachers: 'Teachers', teacherCreate: 'Add a teacher', teacherDetail: 'Teacher details', parents: 'Parents', parentCreate: 'Add a parent', parentDetail: 'Parent details', classrooms: 'Classrooms', classroomCreate: 'Add a classroom', classroomDetail: 'Classroom details', announcements: 'Announcements', announcementCreate: 'New announcement', announcementDetail: 'Announcement details', messages: 'Messages', messageCompose: 'New message', schools: 'School directory', profile: 'My profile' }
+const viewTitle: Record<View, string> = { overview: 'Overview', students: 'Students', studentCreate: 'Add a student', studentDetail: 'Student details', teachers: 'Teachers', teacherCreate: 'Add a teacher', teacherDetail: 'Teacher details', parents: 'Parents', parentCreate: 'Add a parent', parentDetail: 'Parent details', classrooms: 'Classrooms', classroomCreate: 'Add a classroom', classroomDetail: 'Classroom details', announcements: 'Announcements', announcementCreate: 'New announcement', announcementDetail: 'Announcement details', messages: 'Messages', messageCompose: 'New message', schools: 'School directory', schoolCreate: 'Add a school', schoolDetail: 'School details', administrators: 'Administrators', administratorCreate: 'Add an administrator', administratorDetail: 'Administrator details', profile: 'My profile' }
 const schoolLevelLabel: Record<School['educationLevel'], string> = { PRIMARY: 'Primary school', MIDDLE: 'Middle school', HIGH_SCHOOL: 'High school' }
 const announcementLabel: Record<string, string> = { GENERAL: 'General notice', HOMEWORK: 'Homework', EXAM: 'Exam announcement', EXAM_RESULTS: 'Exam results', EVENT: 'School event' }
 const teacherBranchOptions = [
@@ -230,6 +242,10 @@ export default function ManagementWorkspace({ theme, token, profile, onToggleThe
   const [selectedParentId, setSelectedParentId] = useState<number | null>(null)
   const [selectedClassroomId, setSelectedClassroomId] = useState<number | null>(null)
   const [selectedAnnouncementId, setSelectedAnnouncementId] = useState<number | null>(null)
+  const [selectedSchoolId, setSelectedSchoolId] = useState<number | null>(null)
+  const [adminFilters, setAdminFilters] = useState<AdministratorFilters>({ query: '', role: 'all', level: 'all', schoolId: '', page: 0 })
+  const [adminCount, setAdminCount] = useState<number | null>(null)
+  const [selectedAdmin, setSelectedAdmin] = useState<SchoolAdministrator | null>(null)
   const [teacherCount, setTeacherCount] = useState(0)
   const [studentDetailLoading, setStudentDetailLoading] = useState(false)
   const [teacherDetailLoading, setTeacherDetailLoading] = useState(false)
@@ -317,6 +333,7 @@ export default function ManagementWorkspace({ theme, token, profile, onToggleThe
   const fullName = useMemo(() => [profile.firstName, profile.lastName].filter(Boolean).join(' ') || profile.username, [profile.firstName, profile.lastName, profile.username])
   const navItems = navByRole[profile.role]
   const selectedConversation = conversations.find((item) => item.id === selectedConversationId) ?? conversationDetail?.conversation ?? null
+  const savedAppearanceAnimal = profileAnimalOptions.find((animal) => animal.id === appearance.animal)
   const selectedAppearanceAnimal = profileAnimalOptions.find((animal) => animal.id === appearanceDraft.animal)
   const unreadMessageCount = conversations.reduce((total, item) => total + item.unreadCount, 0)
 
@@ -364,7 +381,20 @@ export default function ManagementWorkspace({ theme, token, profile, onToggleThe
     let active = true
     setLoading(true)
     const load = isSuperadmin
-      ? getJson<School[]>('/api/superadmin/schools', token).then((items) => { if (active) setSchools(items) })
+      ? Promise.all([
+          getJson<School[]>('/api/superadmin/schools', token).then((items) => {
+            if (active) setSchools(items)
+          }),
+          getJson<AdministratorPage>('/api/superadmin/administrators?page=0&size=1', token)
+            .then((administrators) => {
+              if (active) setAdminCount(administrators.totalElements)
+            })
+            .catch((reason: unknown) => {
+              if (!active) return
+              if (reason instanceof WorkspaceApiError && reason.status === 401) throw reason
+              setAdminCount(null)
+            }),
+        ]).then(() => undefined)
       : Promise.all([
           getJson<Classroom[]>('/api/school-admin/classrooms', token),
           getJson<StudentPage>('/api/school-admin/students?active=true&page=0&size=1', token),
@@ -680,6 +710,18 @@ export default function ManagementWorkspace({ theme, token, profile, onToggleThe
     if (container) container.scrollTop = container.scrollHeight
   }, [conversationDetail, view])
 
+  const openAdministrator = (admin: SchoolAdministrator) => {
+    setSelectedAdmin(admin)
+    selectView('administratorDetail')
+  }
+  const handleAdministratorCreated = () => setAdminCount((count) => count === null ? null : count + 1)
+  const handleAdministratorSaved = (admin: SchoolAdministrator) => setSelectedAdmin(admin)
+  const openSchool = (schoolId: number) => {
+    setSelectedSchoolId(schoolId)
+    selectView('schoolDetail')
+  }
+  const handleSchoolCreated = (school: SchoolDetail) => setSchools((current) => [...current.filter((item) => item.id !== school.id), school])
+  const handleSchoolSaved = (school: SchoolDetail) => setSchools((current) => current.map((item) => item.id === school.id ? school : item))
   const selectView = (next: View) => {
     setProfileOpen(false)
     setView(next)
@@ -1042,11 +1084,6 @@ export default function ManagementWorkspace({ theme, token, profile, onToggleThe
     setParentDetail((current) => current?.parentProfileId === updated.parentProfileId ? updated : current)
     setSchoolParents((current) => current.map((parent) => parent.parentProfileId === updated.parentProfileId ? updated : parent))
   }
-  const openPreviewForm = (form: Exclude<PreviewForm, null>, record: PreviewRecord = null) => {
-    setPreviewNotice('')
-    setPreviewForm(form)
-    setPreviewRecord(record)
-  }
   const closePreviewForm = () => {
     setPreviewForm(null)
     setPreviewRecord(null)
@@ -1072,9 +1109,16 @@ export default function ManagementWorkspace({ theme, token, profile, onToggleThe
     announcementDetail: 'Review this notice, its audience, and attached files.',
     messages: 'Keep in touch with colleagues and families in your school community.',
     messageCompose: 'Choose one person in your school and send a private note.',
-    schools: 'Schools across the ClassBridge platform.',
+    schools: 'Find schools across the ClassBridge platform and open a school record.',
+    schoolCreate: 'Register a school and choose its education level and location.',
+    schoolDetail: 'Update this school record and create its administrator accounts.',
+    administrators: 'Review every school administrator and vice administrator on the platform.',
+    administratorCreate: 'Choose a school and create an administrator account for it.',
+    administratorDetail: 'Review and update this administrator account, manage its status, or reset its password.',
     profile: 'Review the account details associated with your administrator profile.',
   }
+  const activeSchools = useMemo(() => schools.filter((school) => school.active !== false), [schools])
+  const recentSchools = useMemo(() => [...activeSchools].sort(newestSchoolsFirst).slice(0, 5), [activeSchools])
   const classroomSearchTerm = classroomQuery.trim().toLowerCase()
   const filteredClassrooms = classrooms
     .filter((room) => classroomGradeFilter === 'all' || String(room.gradeLevel) === classroomGradeFilter)
@@ -1101,7 +1145,7 @@ export default function ManagementWorkspace({ theme, token, profile, onToggleThe
       </button>
       <p className="management-nav-label">WORKSPACE</p>
       <nav className="management-nav" aria-label="Management workspace">
-        {navItems.map((item) => { const isCurrent = view === item.view || (view === 'messageCompose' && item.view === 'messages') || ((view === 'studentDetail' || view === 'studentCreate') && item.view === 'students') || ((view === 'teacherDetail' || view === 'teacherCreate') && item.view === 'teachers') || ((view === 'parentDetail' || view === 'parentCreate') && item.view === 'parents') || ((view === 'classroomDetail' || view === 'classroomCreate') && item.view === 'classrooms') || ((view === 'announcementDetail' || view === 'announcementCreate') && item.view === 'announcements'); return <button key={item.view} className={'management-nav-link' + (isCurrent ? ' is-active' : '')} type="button" onClick={() => selectView(item.view)} aria-current={isCurrent ? 'page' : undefined}><Icon name={item.icon} /><span>{item.label}</span><i aria-hidden="true">→</i></button> })}
+        {navItems.map((item) => { const isCurrent = view === item.view || (view === 'messageCompose' && item.view === 'messages') || ((view === 'studentDetail' || view === 'studentCreate') && item.view === 'students') || ((view === 'teacherDetail' || view === 'teacherCreate') && item.view === 'teachers') || ((view === 'parentDetail' || view === 'parentCreate') && item.view === 'parents') || ((view === 'classroomDetail' || view === 'classroomCreate') && item.view === 'classrooms') || ((view === 'announcementDetail' || view === 'announcementCreate') && item.view === 'announcements') || ((view === 'schoolDetail' || view === 'schoolCreate') && item.view === 'schools') || ((view === 'administratorDetail' || view === 'administratorCreate') && item.view === 'administrators'); return <button key={item.view} className={'management-nav-link' + (isCurrent ? ' is-active' : '')} type="button" onClick={() => selectView(item.view)} aria-current={isCurrent ? 'page' : undefined}><Icon name={item.icon} /><span>{item.label}</span><i aria-hidden="true">→</i></button> })}
       </nav>
       <button className="management-sidebar-footer" type="button" onClick={() => selectView('profile')} aria-label="Open administrator profile">
         <span className="management-avatar">{initials(fullName)}</span><span><strong>{fullName}</strong><small>{profile.role === 'SCHOOL_VICE_ADMIN' ? 'Vice administrator' : isSuperadmin ? 'Superadmin' : 'School administrator'}</small></span><i aria-hidden="true">↗</i>
@@ -1112,11 +1156,12 @@ export default function ManagementWorkspace({ theme, token, profile, onToggleThe
       <header className="management-topbar"><div className="management-breadcrumb"><span>CLASSBRIDGE</span><i>/</i><strong>{isSuperadmin ? 'PLATFORM' : 'SCHOOL OFFICE'}</strong></div><div className="management-top-actions"><button className="management-theme-button" type="button" onClick={onToggleTheme} aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}><Icon name={theme === 'dark' ? 'sun' : 'moon'} /><span>{theme === 'dark' ? 'Light' : 'Dark'}</span></button><div className="management-user-menu" ref={profileMenuRef}><button className="management-user-button" type="button" onClick={() => setProfileOpen((open) => !open)} aria-expanded={profileOpen} aria-haspopup="menu"><span className="management-avatar">{initials(fullName)}</span><span>{fullName}</span><i>⌄</i></button>{profileOpen && <div className="management-profile-dropdown" role="menu"><div className="management-profile-card"><span className="management-avatar">{initials(fullName)}</span><strong>{fullName}</strong><small>{savedEmail || profile.username}</small><small>{profile.schoolName || (isSuperadmin ? 'ClassBridge' : 'School administrator')}</small></div><button role="menuitem" type="button" onClick={() => selectView('profile')}>My profile <span>Account details</span></button><button role="menuitem" type="button" onClick={() => selectView('messages')}>Messages <span>{unreadMessageCount ? `${unreadMessageCount} unread` : 'Open inbox'}</span></button><button className="management-profile-signout" role="menuitem" type="button" onClick={onSignOut}>Sign out</button></div>}</div></div></header>
 
       <div className="management-content">
-        {(view !== 'overview' || isSuperadmin) && <div className="management-page-heading"><div><p className="management-eyebrow">{isSuperadmin ? 'PLATFORM MANAGEMENT' : 'YOUR SCHOOL COMMUNITY'}</p><h1>{view === 'overview' ? `Welcome, ${profile.firstName || 'there'}.` : viewTitle[view]}</h1><p>{viewDescription[view]}</p></div><span className="management-role-pill">{profile.role.replaceAll('_', ' ')}</span></div>}
+        {view !== 'overview' && view !== 'profile' && <div className={'management-page-heading' + (view === 'messages' ? ' management-message-page-heading' : '')}><div className="management-page-heading-copy"><div><p className="management-eyebrow">{isSuperadmin ? 'PLATFORM MANAGEMENT' : 'YOUR SCHOOL COMMUNITY'}</p><h1>{viewTitle[view]}</h1><p>{viewDescription[view]}</p></div>{view === 'messages' && <div className="management-message-mascot" tabIndex={0} role="img" aria-label="ClassBridge mascot holding letters; hover to lift the mail" title="Hover to see today's mail"><img className="management-message-pose-rest" src="/images/beaver-message-rest.png" alt="" /><img className="management-message-pose-hover" src="/images/beaver-message-raised.png" alt="" aria-hidden="true" /><span>Mail for you</span></div>}</div><span className="management-role-pill">{profile.role.replaceAll('_', ' ')}</span></div>}
 
         {view === 'overview' && (isSuperadmin ? <>
-          <div className="management-stat-grid"><article className="management-stat-card management-stat-featured"><span className="management-stat-icon"><Icon name="schools" /></span><small>REGISTERED SCHOOLS</small><strong>{loading ? '—' : schools.length}</strong><span>Across the ClassBridge network</span><i className="management-stat-spark" aria-hidden="true">⌁</i></article><article className="management-stat-card"><span className="management-stat-icon warm">⌂</span><small>SCHOOL LEVELS</small><strong>{loading ? '—' : new Set(schools.map((school) => school.educationLevel)).size}</strong><span>Primary, middle, and high school</span></article><article className="management-stat-card"><span className="management-stat-icon lilac">✦</span><small>SCHOOL LOCATIONS</small><strong>{loading ? '—' : new Set(schools.map((school) => `${school.district}, ${school.province}`)).size}</strong><span>Districts represented in the network</span></article></div>
-          <section className="management-section-card"><div className="management-section-heading"><div><p className="management-eyebrow">SCHOOL NETWORK</p><h2>Recently added schools</h2></div><button type="button" onClick={() => selectView('schools')}>Open directory <Icon name="arrow" /></button></div>{loading ? <div className="management-empty">Loading the school directory…</div> : <SchoolList schools={schools.slice(0, 5)} />}</section>
+          <section className="management-welcome-card"><SchoolSuppliesPattern className="management-welcome-supplies"/><div className="management-welcome-copy"><span className="management-welcome-spark">✦</span><p className="management-eyebrow">PLATFORM OVERSIGHT</p><h2>Hello, {profile.firstName?.trim() || fullName}.</h2><p>Welcome to <strong>ClassBridge.</strong> Your schools and their leadership teams are ready for you.</p></div><div className="management-welcome-art"><span className="management-art-orbit orbit-one"/><span className="management-art-orbit orbit-two"/><div className="management-mascot management-mascot-interactive" role="img" tabIndex={0} aria-label="ClassBridge beaver mascot. Here to help." title="Say hello to the ClassBridge beaver"><img className="management-pose-rest" src="/images/beaver-guide-cutout.png" alt="ClassBridge beaver mascot"/><img className="management-pose-hover" src="/images/beaver-guide-wave.png" alt="" aria-hidden="true"/><span className="management-art-bubble">Here to help</span></div></div></section>
+          <div className="management-stat-grid management-superadmin-stats"><button className="management-stat-card management-stat-featured" type="button" onClick={() => selectView('schools')} aria-label="Open school directory"><span className="management-stat-icon"><img src="/images/portal-campus.png" alt="" /></span><small>SCHOOLS</small><strong>{loading ? '—' : activeSchools.length.toLocaleString('en')}</strong><span>Registered on ClassBridge</span><i className="management-stat-spark" aria-hidden="true">⌁</i></button><button className="management-stat-card management-stat-featured" type="button" onClick={() => selectView('administrators')} aria-label="Open administrator directory"><span className="management-stat-icon"><span className="management-superadmin-stat-lion" style={profileAnimalArt(profileAnimalOptions[0])} aria-hidden="true" /></span><small>ADMINISTRATORS</small><strong>{loading || adminCount === null ? '—' : adminCount.toLocaleString('en')}</strong><span>School administrators and vice administrators</span><i className="management-stat-spark" aria-hidden="true">⌁</i></button></div>
+          <div className="management-overview-grid"><section className="management-section-card"><div className="management-section-heading"><div><p className="management-eyebrow">SCHOOL NETWORK</p><h2>Recently added schools</h2></div><button type="button" onClick={() => selectView('schools')}>Open directory <Icon name="arrow" /></button></div>{loading ? <div className="management-empty">Loading the school directory…</div> : activeSchools.length ? <SchoolList schools={recentSchools} onOpen={openSchool} /> : <div className="management-empty">No active schools are in the directory yet.</div>}</section>{!loading && <SchoolLevelBreakdown schools={activeSchools} />}</div>
         </> : <>
           <section className="management-welcome-card"><SchoolSuppliesPattern className="management-welcome-supplies"/><div className="management-welcome-copy"><span className="management-welcome-spark">✦</span><p className="management-eyebrow">YOUR SCHOOL OFFICE</p><h2>Hello, {profile.firstName || 'there'}.</h2><p>Welcome to <strong>{profile.schoolName || 'your school'}.</strong> Your school community is ready for you.</p></div><div className="management-welcome-art"><span className="management-art-orbit orbit-one"/><span className="management-art-orbit orbit-two"/><div className="management-mascot management-mascot-interactive" role="img" tabIndex={0} aria-label="ClassBridge beaver mascot. Here to help." title="Say hello to the ClassBridge beaver"><img className="management-pose-rest" src="/images/beaver-guide-cutout.png" alt="ClassBridge beaver mascot"/><img className="management-pose-hover" src="/images/beaver-guide-wave.png" alt="" aria-hidden="true"/><span className="management-art-bubble">Here to help</span></div></div></section>
           <div className="management-stat-grid"><button className="management-stat-card management-stat-featured" type="button" onClick={() => selectView('students')} aria-label="Open student directory"><span className="management-stat-icon"><img src="/images/role-student.png" alt="" /></span><small>ACTIVE STUDENTS</small><strong>{loading ? '—' : studentCount.toLocaleString('en')}</strong><span>Profiles in your school</span><i className="management-stat-spark" aria-hidden="true">⌁</i></button><button className="management-stat-card management-stat-featured" type="button" onClick={() => selectView('teachers')} aria-label="Open teacher directory"><span className="management-stat-icon warm"><img src="/images/role-teacher.png" alt="" /></span><small>TEACHERS</small><strong>{loading ? '—' : teacherCount.toLocaleString('en')}</strong><span>Teacher accounts in your school</span><i className="management-stat-spark" aria-hidden="true">⌁</i></button><button className="management-stat-card management-stat-featured" type="button" onClick={() => selectView('parents')} aria-label="Open parent directory"><span className="management-stat-icon lilac"><img src="/images/role-parent.png" alt="" /></span><small>PARENTS & GUARDIANS</small><strong>{loading ? '—' : schoolParents.filter((parent) => parent.active).length}</strong><span>Family accounts represented</span><i className="management-stat-spark" aria-hidden="true">⌁</i></button></div>
@@ -1139,7 +1184,7 @@ export default function ManagementWorkspace({ theme, token, profile, onToggleThe
         {view === 'announcementCreate' && <AnnouncementCreatePage classrooms={classrooms} token={token} onBack={returnToAnnouncements} onSessionExpired={onSessionExpired} onNotify={notify} onCreated={handleAnnouncementCreated} />}
         {view === 'announcementDetail' && <AnnouncementDetailsPage announcement={announcementDetail} loading={announcementDetailLoading} error={announcementError} token={token} onBack={returnToAnnouncements} onDelete={(item) => setAnnouncementDeleteTarget(item)} onSessionExpired={onSessionExpired} onNotify={notify} />}
         {view === 'messages' && <section className="management-message-page">
-          <div className="management-message-heading"><div><p className="management-eyebrow">SCHOOL CONVERSATIONS</p><h2>Your inbox</h2><p>Private conversations with people in your school community.</p></div><div className="management-message-heading-actions"><span className="management-count-chip">{unreadMessageCount} unread</span><button className="management-primary-button" type="button" onClick={openMessageCompose}><Icon name="plus" /> New message</button></div></div>
+          <div className="management-message-heading"><div><p className="management-eyebrow">SCHOOL CONVERSATIONS</p><h2>Your inbox</h2><p>Private conversations with people in your school community.</p></div><div className="management-message-heading-actions"><span className="management-count-chip">{unreadMessageCount} unread</span><button className="management-student-add-button management-message-new-button" type="button" onClick={openMessageCompose}><Icon name="plus" /> New message</button></div></div>
           <div className={'management-message-layout' + (selectedConversationId !== null ? ' has-selection' : '')}>
             <aside className="management-message-list-panel" aria-label="Your conversations"><div className="management-message-list-heading"><div><p className="management-eyebrow">YOUR CONVERSATIONS</p><strong>{conversations.length} conversation{conversations.length === 1 ? '' : 's'}</strong></div></div>
               {conversationsLoading ? <div className="management-empty">Loading your inbox…</div> : conversationsError ? <div className="management-message-error"><p>Your conversations could not be loaded.</p><button className="management-secondary-button" type="button" onClick={() => { conversationsLoaded.current = false; setReloadKey((key) => key + 1) }}>Try again</button></div> : conversations.length ? <nav className="management-message-list" aria-label="Conversations">{conversations.map((item) => <button className={'management-message-list-item' + (item.id === selectedConversationId ? ' is-selected' : '')} key={item.id} type="button" onClick={() => openConversation(item.id)} aria-current={item.id === selectedConversationId ? 'page' : undefined}><ManagementMessageAvatar appearance={item.otherParticipantAppearance} name={item.otherParticipantDisplayName} /><span className="management-message-list-copy"><strong>{item.otherParticipantDisplayName}</strong><small>{item.studentDisplayName ? `About ${item.studentDisplayName}` : item.otherParticipantRole.replaceAll('_', ' ')}</small><span>{item.latestMessage || 'Open conversation'}</span></span><span className="management-message-list-meta"><time>{formatDate(item.lastMessageAt)}</time>{item.unreadCount > 0 && <i>{item.unreadCount}</i>}</span></button>)}</nav> : <div className="management-empty">No conversations yet. Start a private message to someone in your school.</div>}
@@ -1150,30 +1195,54 @@ export default function ManagementWorkspace({ theme, token, profile, onToggleThe
                 {threadError && <div className="management-message-error" role="alert"><p>{threadError}</p><button className="management-secondary-button" type="button" onClick={() => { detailsCache.current.delete(selectedConversation.id); setReloadKey((key) => key + 1) }}>Try again</button></div>}
                 {threadLoading ? <div className="management-empty">Opening conversation…</div> : conversationDetail?.conversation.id === selectedConversation.id ? <>
                   <div className="management-message-thread" ref={messageThreadRef} aria-live="polite">{conversationDetail.messages.length ? conversationDetail.messages.map((message) => { const ownMessage = message.senderAccountId === profile.userAccountId; return <article className={'management-message-bubble' + (ownMessage ? ' is-own' : '')} key={message.id}><div className="management-message-bubble-meta"><strong>{ownMessage ? 'You' : message.senderDisplayName}</strong><time>{formatDate(message.createdAt)}</time></div><p>{message.message}</p>{message.attachments.length > 0 && <div className="management-message-attachments">{message.attachments.map((attachment) => <button type="button" key={attachment.id} onClick={() => void downloadMessageAttachment(conversationDetail.conversation.id, message.id, attachment)}><span aria-hidden="true">↧</span>{attachment.displayFilename}<small>{Math.max(1, Math.round(attachment.size / 1024))} KB</small></button>)}</div>}</article> }) : <div className="management-empty">There are no messages in this conversation yet.</div>}</div>
-                  {conversationDetail.conversation.readOnly ? <p className="management-message-readonly">This conversation is read-only.</p> : <form className="management-message-reply" onSubmit={(event) => void sendMessage(event)}><label className="sr-only" htmlFor="management-message-draft">Your message</label><textarea id="management-message-draft" maxLength={5000} rows={3} value={messageDraft} onChange={(event) => setMessageDraft(event.target.value)} placeholder="Write a reply…" /><div><small>{messageDraft.length}/5000</small><button className="management-primary-button" type="submit" disabled={sendingMessage || !messageDraft.trim()}>{sendingMessage ? 'Sending…' : 'Send message'} <Icon name="arrow" /></button></div></form>}
+                  {conversationDetail.conversation.readOnly ? <p className="management-message-readonly">This conversation is read-only.</p> : <form className="management-message-reply" onSubmit={(event) => void sendMessage(event)}><label className="sr-only" htmlFor="management-message-draft">Your message</label><textarea id="management-message-draft" maxLength={5000} rows={4} value={messageDraft} onChange={(event) => setMessageDraft(event.target.value)} placeholder="Write a reply…" /><div><small>{messageDraft.length}/5000</small><button className="management-student-save-button management-message-send-button" type="submit" disabled={sendingMessage || !messageDraft.trim()}>{sendingMessage ? 'Sending…' : 'Send message'} <Icon name="arrow" /></button></div></form>}
                 </> : <div className="management-empty">Choose a conversation to read and reply.</div>}
-              </> : <div className="management-message-no-selection"><span aria-hidden="true">✉</span><p className="management-eyebrow">A NOTE FROM YOUR SCHOOL</p><h3>Your conversations will appear here.</h3><p>Choose a name from your inbox or start a new private message.</p><button className="management-secondary-button" type="button" onClick={openMessageCompose}>Write a message</button></div>}
+              </> : <div className="management-message-no-selection"><span aria-hidden="true">✉</span><p className="management-eyebrow">A NOTE FROM YOUR SCHOOL</p><h3>Your conversations will appear here.</h3><p>Choose a name from your inbox or start a new private message.</p><button className="management-student-secondary-action management-message-empty-action" type="button" onClick={openMessageCompose}>Write a message</button></div>}
             </section>
           </div>
         </section>}
         {view === 'messageCompose' && <section className="management-message-compose-page"><button className="management-back-link" type="button" onClick={() => selectView('messages')}>← Back to inbox</button><div className="management-message-compose-layout"><aside className="management-message-compose-intro"><p className="management-eyebrow">SCHOOL COMMUNITY</p><h2>Write a private note.</h2><p>{isSuperadmin ? "Choose a school, find a recipient in its directory, and send a private message." : "Search for a person in your school, then send a message directly to them."}</p><div className="management-message-compose-note"><img src="/images/beaver-guide-cutout.png" alt="ClassBridge beaver mascot" /><span><strong>{isSuperadmin ? "One-to-one messaging across schools." : "One-to-one, school-safe messaging."}</strong><small>{isSuperadmin ? "Choose a school to search its permitted directory." : "Your school directory determines who can be contacted."}</small></span></div></aside><form className="management-section-card management-message-compose-form" onSubmit={(event) => void startConversation(event)}><div className="management-section-heading"><div><p className="management-eyebrow">RECIPIENT</p><h2>Choose one person</h2></div></div>
-            {!selectedRecipient ? <>{isSuperadmin && <label className="management-form-field management-message-school-field"><span>School</span><select value={recipientSchoolId} onChange={(event) => { setRecipientSchoolId(event.target.value); setRecipientQuery(''); setRecipients([]); setRecipientsError('') }}><option value="">Choose a school</option>{schools.map((school) => <option key={school.id} value={school.id}>{school.name}</option>)}</select></label>}<label className="management-search management-message-recipient-search"><Icon name="search" /><input type="search" autoComplete="off" disabled={isSuperadmin && !recipientSchoolId} value={recipientQuery} onChange={(event) => { setRecipientQuery(event.target.value); setRecipientsError('') }} placeholder="Search by name, username, or school number" aria-label={isSuperadmin ? "Search people in the selected school" : "Search people in your school"} /></label><p className="management-message-recipient-hint">{isSuperadmin && !recipientSchoolId ? "Choose a school before searching its directory." : "Enter at least two characters to search the directory."}</p>{recipientsLoading && <div className="management-empty">{isSuperadmin ? "Searching the selected school…" : "Searching your school…"}</div>}{recipientsError && <p className="management-inline-error" role="alert">{recipientsError}</p>}{!recipientsLoading && recipientQuery.trim().length >= 2 && !recipientsError && (!isSuperadmin || recipientSchoolId) && <div className="management-message-recipient-results">{recipients.length ? recipients.map((recipient) => <button type="button" key={`${recipient.accountId}-${recipient.studentProfileId ?? 'school'}`} onClick={() => setSelectedRecipient(recipient)}><span className="management-message-avatar">{initials(recipient.displayName)}</span><span><strong>{recipient.displayName}</strong><small>{recipient.role.replaceAll('_', ' ')}{recipient.schoolNumber ? ` · No. ${recipient.schoolNumber}` : ''}</small></span><i aria-hidden="true">＋</i></button>) : <div className="management-empty">No matching people were found in {isSuperadmin ? "this school" : "your school"}.</div>}</div>}</> : <div className="management-message-recipient-selected"><span className="management-message-avatar">{initials(selectedRecipient.displayName)}</span><span><strong>{selectedRecipient.displayName}</strong><small>{selectedRecipient.role.replaceAll('_', ' ')}{selectedRecipient.schoolNumber ? ` · No. ${selectedRecipient.schoolNumber}` : ''}</small></span><button className="management-text-button" type="button" onClick={() => { setSelectedRecipient(null); setNewMessageDraft('') }}>Change</button></div>}
-            <label className="management-form-field management-message-body-field"><span>Message</span><textarea maxLength={5000} rows={6} value={newMessageDraft} onChange={(event) => setNewMessageDraft(event.target.value)} placeholder={selectedRecipient ? `Write a private message to ${selectedRecipient.displayName}…` : 'Choose a recipient first'} disabled={!selectedRecipient} required /><small>{newMessageDraft.length}/5000</small></label><div className="management-message-compose-actions"><button className="management-secondary-button" type="button" onClick={() => selectView('messages')}>Cancel</button><button className="management-primary-button" type="submit" disabled={sendingNewMessage || !selectedRecipient || !newMessageDraft.trim()}>{sendingNewMessage ? 'Sending…' : 'Send message'} <Icon name="arrow" /></button></div>
+            {!selectedRecipient ? <>{isSuperadmin && <label className="management-form-field management-message-school-field"><span>School</span><select value={recipientSchoolId} onChange={(event) => { setRecipientSchoolId(event.target.value); setRecipientQuery(''); setRecipients([]); setRecipientsError('') }}><option value="">Choose a school</option>{activeSchools.map((school) => <option key={school.id} value={school.id}>{school.name}</option>)}</select></label>}<label className="management-search management-message-recipient-search"><Icon name="search" /><input type="search" autoComplete="off" disabled={isSuperadmin && !recipientSchoolId} value={recipientQuery} onChange={(event) => { setRecipientQuery(event.target.value); setRecipientsError('') }} placeholder="Search by name, username, or school number" aria-label={isSuperadmin ? "Search people in the selected school" : "Search people in your school"} /></label><p className="management-message-recipient-hint">{isSuperadmin && !recipientSchoolId ? "Choose a school before searching its directory." : "Enter at least two characters to search the directory."}</p>{recipientsLoading && <div className="management-empty">{isSuperadmin ? "Searching the selected school…" : "Searching your school…"}</div>}{recipientsError && <p className="management-inline-error" role="alert">{recipientsError}</p>}{!recipientsLoading && recipientQuery.trim().length >= 2 && !recipientsError && (!isSuperadmin || recipientSchoolId) && <div className="management-message-recipient-results">{recipients.length ? recipients.map((recipient) => <button type="button" key={`${recipient.accountId}-${recipient.studentProfileId ?? 'school'}`} onClick={() => setSelectedRecipient(recipient)}><span className="management-message-avatar">{initials(recipient.displayName)}</span><span><strong>{recipient.displayName}</strong><small>{recipient.role.replaceAll('_', ' ')}{recipient.schoolNumber ? ` · No. ${recipient.schoolNumber}` : ''}</small></span><i aria-hidden="true">＋</i></button>) : <div className="management-empty">No matching people were found in {isSuperadmin ? "this school" : "your school"}.</div>}</div>}</> : <div className="management-message-recipient-selected"><span className="management-message-avatar">{initials(selectedRecipient.displayName)}</span><span><strong>{selectedRecipient.displayName}</strong><small>{(selectedRecipient.role ?? '').replaceAll('_', ' ')}{selectedRecipient.schoolNumber ? ` · No. ${selectedRecipient.schoolNumber}` : ''}</small></span><button className="management-text-button" type="button" onClick={() => { setSelectedRecipient(null); setNewMessageDraft('') }}>Change</button></div>}
+            <label className="management-form-field management-message-body-field"><span>Message</span><textarea maxLength={5000} rows={6} value={newMessageDraft} onChange={(event) => setNewMessageDraft(event.target.value)} placeholder={selectedRecipient ? `Write a private message to ${selectedRecipient.displayName}…` : 'Choose a recipient first'} disabled={!selectedRecipient || sendingNewMessage} required /><small>{newMessageDraft.length}/5000</small></label><div className="management-message-compose-actions"><button className="management-secondary-button" type="button" disabled={sendingNewMessage} onClick={() => selectView('messages')}>Cancel</button><button className="management-student-save-button management-message-send-button" type="submit" disabled={sendingNewMessage || !selectedRecipient || !newMessageDraft.trim()} aria-busy={sendingNewMessage}>{sendingNewMessage ? 'Sending…' : 'Send message'} <Icon name="arrow" /></button></div>
           </form></div></section>}
-        {view === 'schools' && isSuperadmin && <section className="management-section-card management-directory-card"><div className="management-section-heading"><div><p className="management-eyebrow">PLATFORM MANAGEMENT</p><h2>School directory</h2></div><span className="management-count-chip">{schools.length} schools</span></div>{loading ? <div className="management-empty">Loading schools…</div> : schools.length ? <SchoolList schools={schools} detailed /> : <div className="management-empty">No schools have been created yet.</div>}</section>}
-        {view === 'profile' && <section className="management-profile-page"><div className="management-profile-layout"><div className="management-profile-main-column">
-          <section className="management-section-card management-profile-panel"><div className="management-section-heading"><div><p className="management-eyebrow">ACCOUNT DETAILS</p><h2>Your information</h2></div><span className="management-count-chip">{isSuperadmin ? "Platform managed" : "School managed"}</span></div><div className="management-profile-account-grid"><div><small>FULL NAME</small><strong>{fullName}</strong></div><div><small>USERNAME</small><strong>{profile.username}</strong></div><div><small>ROLE</small><strong>{profile.role.replaceAll('_', ' ')}</strong></div>{profile.schoolName && <div><small>SCHOOL</small><strong>{profile.schoolName}</strong></div>}</div><p className="management-profile-note">{isSuperadmin ? "Your name, username, and role are managed by ClassBridge" : "Your name, username, and role are managed by your school"} and can’t be changed here.</p></section>
-          <section className="management-section-card management-profile-panel"><div className="management-section-heading"><div><p className="management-eyebrow">CONTACT DETAILS</p><h2>Ways to reach you</h2></div></div>
-            <form className="management-profile-field-form" onSubmit={(event) => void saveEmail(event)}><label htmlFor="management-profile-email">Email address <span className={'management-email-status' + (emailVerified && emailDraft.trim() === savedEmail ? ' is-verified' : '')}>{emailVerified && emailDraft.trim() === savedEmail ? 'Verified' : 'Not verified'}</span></label><div className="management-profile-inline-field"><input id="management-profile-email" type="email" autoComplete="email" maxLength={254} value={emailDraft} onChange={(event) => setEmailDraft(event.target.value)} placeholder="you@example.com" required /><button className="management-primary-button" type="submit" disabled={profileSaving || !emailDraft.trim() || emailDraft.trim() === savedEmail}>{profileSaving ? 'Saving…' : 'Save email'}</button></div></form>
-            {emailDraft.trim() && (!emailVerified || emailDraft.trim() !== savedEmail) && <div className="management-profile-verification"><button className="management-text-button" type="button" disabled={profileSaving || emailDraft.trim() !== savedEmail} onClick={() => void requestEmailVerification()}>{verificationSent ? 'Send a new code' : 'Send verification code'} →</button>{verificationSent && <form className="management-profile-inline-field management-profile-code-form" onSubmit={(event) => void confirmEmailVerification(event)}><label className="sr-only" htmlFor="management-email-code">Six-digit verification code</label><input id="management-email-code" inputMode="numeric" autoComplete="one-time-code" maxLength={6} pattern="[0-9]{6}" required value={verificationCode} onChange={(event) => setVerificationCode(event.target.value.replace(/\D/g, '').slice(0, 6))} placeholder="6-digit code" /><button className="management-secondary-button" type="submit" disabled={profileSaving || verificationCode.length !== 6}>{profileSaving ? 'Checking…' : 'Verify email'}</button></form>}</div>}
-            <form className="management-profile-field-form" onSubmit={(event) => void savePhone(event)}><label htmlFor="management-profile-phone">Phone number</label><div className="management-profile-inline-field"><input id="management-profile-phone" type="tel" autoComplete="tel" maxLength={32} value={phoneDraft} onChange={(event) => setPhoneDraft(event.target.value)} placeholder="Add your phone number" /><button className="management-primary-button" type="submit" disabled={profileSaving || !phoneDraft.trim() || phoneDraft.trim() === savedPhone}>{profileSaving ? 'Saving…' : 'Save number'}</button></div></form>
+        {view === 'schools' && isSuperadmin && <SchoolDirectory schools={schools} loading={loading} onAdd={() => selectView('schoolCreate')} onOpen={openSchool} />}
+        {view === 'schoolCreate' && isSuperadmin && <SchoolCreatePage token={token} onBack={() => selectView('schools')} onSessionExpired={onSessionExpired} onNotify={notify} onCreated={handleSchoolCreated} onOpen={openSchool} />}
+        {view === 'schoolDetail' && isSuperadmin && selectedSchoolId !== null && <SchoolDetailsPage key={selectedSchoolId} schoolId={selectedSchoolId} token={token} onBack={() => selectView('schools')} onOpenAdministrators={() => selectView('administrators')} onOpenAdministrator={openAdministrator} onSessionExpired={onSessionExpired} onNotify={notify} onSaved={handleSchoolSaved} />}
+        {view === 'administrators' && isSuperadmin && <AdministratorDirectory schools={activeSchools} token={token} filters={adminFilters} onFiltersChange={setAdminFilters} onAdd={() => selectView('administratorCreate')} onOpen={openAdministrator} onSessionExpired={onSessionExpired} onNotify={notify} />}
+        {view === 'administratorCreate' && isSuperadmin && <AdministratorCreatePage schools={activeSchools} token={token} onBack={() => selectView('administrators')} onSessionExpired={onSessionExpired} onNotify={notify} onCreated={handleAdministratorCreated} />}
+        {view === 'administratorDetail' && isSuperadmin && selectedAdmin && <AdministratorDetails key={selectedAdmin.userAccountId} admin={selectedAdmin} token={token} onBack={() => selectView('administrators')} onOpenSchool={openSchool} onSessionExpired={onSessionExpired} onNotify={notify} onSaved={handleAdministratorSaved} />}
+        {view === 'profile' && <section className="management-profile-page">
+          <button className="management-profile-back-link" type="button" onClick={() => selectView('overview')}>← Back to overview</button>
+          <div className="management-profile-heading">
+            <div>
+              <span className="management-profile-hero-avatar">
+                {appearance.avatarType === 'PHOTO' && appearance.imageDataUrl
+                  ? <img src={appearance.imageDataUrl} alt="Your profile portrait" />
+                  : appearance.avatarType === 'ANIMAL' && savedAppearanceAnimal
+                    ? <span style={profileAnimalArt(savedAppearanceAnimal)} />
+                    : initials(fullName)}
+              </span>
+              <div>
+                <p className="management-eyebrow">YOUR CLASSBRIDGE ACCOUNT</p>
+                <h1>My profile</h1>
+                <p>Keep your account details and portrait up to date.</p>
+              </div>
+            </div>
+            <span className="management-role-pill management-profile-role-chip">{profile.role === 'SUPERADMIN' ? 'Superadmin' : profile.role === 'SCHOOL_VICE_ADMIN' ? 'Vice administrator' : 'School administrator'}</span>
+          </div>
+          <div className="management-profile-layout"><div className="management-profile-main-column">
+          <section className="management-section-card management-profile-panel management-account-panel"><div className="management-section-heading management-profile-panel-heading"><div><p className="management-eyebrow">ACCOUNT DETAILS</p><h2>Your information</h2></div><span className="management-profile-readonly-mark">{isSuperadmin ? 'Platform managed' : 'School managed'}</span></div><div className="management-profile-account-grid"><div><small>FULL NAME</small><strong>{fullName}</strong></div><div><small>USERNAME</small><strong>{profile.username}</strong></div><div><small>ROLE</small><strong>{profile.role === 'SUPERADMIN' ? 'Superadmin' : profile.role === 'SCHOOL_VICE_ADMIN' ? 'Vice administrator' : 'School administrator'}</strong></div>{profile.schoolName && <div><small>SCHOOL</small><strong>{profile.schoolName}</strong></div>}</div><p className="management-profile-note">{isSuperadmin ? 'Your name, username, and role are managed by ClassBridge and cannot be changed here.' : 'Your name, username, and role are managed by your school and cannot be changed here.'}</p></section>
+          <section className="management-section-card management-profile-panel management-contact-panel"><div className="management-section-heading management-profile-panel-heading"><div><p className="management-eyebrow">CONTACT DETAILS</p><h2>Ways to reach you</h2></div></div>
+            <form className="management-profile-field-form" onSubmit={(event) => void saveEmail(event)}><label htmlFor="management-profile-email">Email address <span className={'management-email-status' + (emailVerified && emailDraft.trim() === savedEmail ? ' is-verified' : '')}>{emailVerified && emailDraft.trim() === savedEmail ? 'Verified' : 'Not verified'}</span></label><div className="management-profile-inline-field"><input id="management-profile-email" type="email" autoComplete="email" maxLength={254} value={emailDraft} onChange={(event) => setEmailDraft(event.target.value)} placeholder="you@example.com" required /><button className={'management-profile-primary-action' + (profileSaving ? ' is-busy' : '')} type="submit" disabled={profileSaving || !emailDraft.trim() || emailDraft.trim() === savedEmail}>{profileSaving ? 'Saving…' : 'Save email'}</button></div></form>
+            {emailDraft.trim() && (!emailVerified || emailDraft.trim() !== savedEmail) && <div className="management-profile-verification"><button className="management-text-button" type="button" disabled={profileSaving || emailDraft.trim() !== savedEmail} onClick={() => void requestEmailVerification()}>{verificationSent ? 'Send a new code' : 'Send verification code'} →</button>{verificationSent && <form className="management-profile-inline-field management-profile-code-form" onSubmit={(event) => void confirmEmailVerification(event)}><label className="sr-only" htmlFor="management-email-code">Six-digit verification code</label><input id="management-email-code" inputMode="numeric" autoComplete="one-time-code" maxLength={6} pattern="[0-9]{6}" required value={verificationCode} onChange={(event) => setVerificationCode(event.target.value.replace(/\D/g, '').slice(0, 6))} placeholder="6-digit code" /><button className="management-profile-secondary-action" type="submit" disabled={profileSaving || verificationCode.length !== 6}>{profileSaving ? 'Checking…' : 'Verify email'}</button></form>}</div>}
+            <form className="management-profile-field-form" onSubmit={(event) => void savePhone(event)}><label htmlFor="management-profile-phone">Phone number</label><div className="management-profile-inline-field"><input id="management-profile-phone" type="tel" autoComplete="tel" maxLength={32} value={phoneDraft} onChange={(event) => setPhoneDraft(event.target.value)} placeholder="Add your phone number" /><button className={'management-profile-primary-action' + (profileSaving ? ' is-busy' : '')} type="submit" disabled={profileSaving || !phoneDraft.trim() || phoneDraft.trim() === savedPhone}>{profileSaving ? 'Saving…' : 'Save number'}</button></div></form>
           </section>
-          <section className="management-section-card management-profile-panel"><div className="management-section-heading"><div><p className="management-eyebrow">SECURITY</p><h2>Change your password</h2></div></div><form className="management-password-form" onSubmit={(event) => void changePassword(event)}><div className="management-password-grid"><label className="management-form-field">Current password<input type="password" autoComplete="current-password" required value={currentPassword} onChange={(event) => setCurrentPassword(event.target.value)} /></label><label className="management-form-field">New password<input type="password" autoComplete="new-password" minLength={8} maxLength={20} required value={newPassword} onChange={(event) => setNewPassword(event.target.value)} /></label><label className="management-form-field">Confirm new password<input type="password" autoComplete="new-password" minLength={8} maxLength={20} required value={passwordConfirmation} onChange={(event) => setPasswordConfirmation(event.target.value)} /></label></div><div className="management-password-actions"><small>Use 8 to 20 characters. Your current password is required.</small><button className="management-primary-button" type="submit" disabled={passwordSaving || !currentPassword || !newPassword || !passwordConfirmation || newPassword !== passwordConfirmation}>{passwordSaving ? 'Updating…' : 'Update password'}</button></div></form></section>
-        </div><aside className="management-profile-side-column"><section className="management-section-card management-profile-panel management-avatar-panel"><div className="management-section-heading"><div><p className="management-eyebrow">YOUR PORTRAIT</p><h2>Choose an avatar</h2></div></div><div className="management-avatar-preview"><span className="management-avatar-preview-image">{appearanceDraft.avatarType === 'PHOTO' && appearanceDraft.imageDataUrl ? <img src={appearanceDraft.imageDataUrl} alt="Your selected profile portrait" /> : appearanceDraft.avatarType === 'ANIMAL' && selectedAppearanceAnimal ? <span style={profileAnimalArt(selectedAppearanceAnimal)} /> : initials(fullName)}</span><span><strong>{appearanceDraft.avatarType === 'PHOTO' ? 'Your photo' : appearanceDraft.avatarType === 'ANIMAL' && selectedAppearanceAnimal ? `${selectedAppearanceAnimal.name} · ${selectedAppearanceAnimal.group === 'adult' ? 'Adult' : 'Student'}` : 'Your initials'}</strong><small>Choose any portrait, for adults or students.</small></span></div>
+          <section className="management-section-card management-profile-panel management-security-panel"><div className="management-section-heading management-profile-panel-heading"><div><p className="management-eyebrow">SECURITY</p><h2>Change your password</h2></div></div><form className="management-password-form" onSubmit={(event) => void changePassword(event)}><div className="management-password-grid"><label className="management-form-field">Current password<input type="password" autoComplete="current-password" required value={currentPassword} onChange={(event) => setCurrentPassword(event.target.value)} /></label><label className="management-form-field">New password<input type="password" autoComplete="new-password" minLength={8} maxLength={20} required value={newPassword} onChange={(event) => setNewPassword(event.target.value)} /></label><label className="management-form-field">Confirm new password<input type="password" autoComplete="new-password" minLength={8} maxLength={20} required value={passwordConfirmation} onChange={(event) => setPasswordConfirmation(event.target.value)} /></label></div><div className="management-password-actions"><small>Use 8 to 20 characters. Your current password is required.</small><button className={'management-profile-primary-action' + (passwordSaving ? ' is-busy' : '')} type="submit" disabled={passwordSaving || !currentPassword || !newPassword || !passwordConfirmation || newPassword !== passwordConfirmation}>{passwordSaving ? 'Updating…' : 'Update password'}</button></div></form></section>
+        </div><aside className="management-profile-side-column"><section className="management-section-card management-profile-panel management-avatar-panel"><div className="management-section-heading management-profile-panel-heading"><div><p className="management-eyebrow">YOUR PORTRAIT</p><h2>Choose an avatar</h2></div></div><div className="management-avatar-preview"><span className="management-avatar-preview-image">{appearanceDraft.avatarType === 'PHOTO' && appearanceDraft.imageDataUrl ? <img src={appearanceDraft.imageDataUrl} alt="Your selected profile portrait" /> : appearanceDraft.avatarType === 'ANIMAL' && selectedAppearanceAnimal ? <span style={profileAnimalArt(selectedAppearanceAnimal)} /> : initials(fullName)}</span><span><strong>{appearanceDraft.avatarType === 'PHOTO' ? 'Your photo' : appearanceDraft.avatarType === 'ANIMAL' && selectedAppearanceAnimal ? `${selectedAppearanceAnimal.name} · ${selectedAppearanceAnimal.group === 'adult' ? 'Adult' : 'Student'}` : 'Your initials'}</strong><small>Choose any portrait, for adults or students.</small></span></div>
             <div className="management-avatar-initial-choice"><button className={'management-avatar-choice' + (appearanceDraft.avatarType === 'INITIALS' ? ' is-selected' : '')} type="button" aria-pressed={appearanceDraft.avatarType === 'INITIALS'} onClick={() => setAppearanceDraft({ avatarType: 'INITIALS', animal: null, imageDataUrl: null })}><span className="management-avatar-option-initials">{initials(fullName)}</span><strong>Initials</strong></button></div>
             <div className="management-avatar-groups" aria-label="Animal portraits">{(['adult', 'student'] as const).map((group) => <section className="management-avatar-group" key={group}><h3>{group === 'adult' ? 'For adults' : 'For students'}</h3><div className="management-avatar-options" role="group" aria-label={group === 'adult' ? 'Adult animal portraits' : 'Student animal portraits'}>{profileAnimalOptions.filter((animal) => animal.group === group).map((animal) => <button className={'management-avatar-choice' + (appearanceDraft.avatarType === 'ANIMAL' && appearanceDraft.animal === animal.id ? ' is-selected' : '')} key={animal.id} type="button" aria-label={`${animal.name} · ${group === 'adult' ? 'Adult' : 'Student'}`} aria-pressed={appearanceDraft.avatarType === 'ANIMAL' && appearanceDraft.animal === animal.id} title={`${animal.name} · ${group === 'adult' ? 'Adult' : 'Student'}`} onClick={() => setAppearanceDraft({ avatarType: 'ANIMAL', animal: animal.id, imageDataUrl: null })}><span className="management-avatar-option-animal" style={profileAnimalArt(animal)} /><strong>{animal.name}</strong></button>)}</div></section>)}</div>
-            <label className="management-avatar-upload">＋ Upload a photo<input type="file" accept="image/jpeg,image/png,image/webp" onChange={selectProfilePhoto} /></label><small className="management-avatar-hint">JPG, PNG or WebP · up to 2 MB</small><button className="management-primary-button management-avatar-save" type="button" disabled={appearanceSaving || appearanceLoading || JSON.stringify(appearance) === JSON.stringify(appearanceDraft)} onClick={() => void saveAppearance()}>{appearanceSaving ? 'Saving…' : 'Save avatar'}</button>{appearanceLoading && <p className="management-avatar-loading">Loading your saved portrait…</p>}
-          </section><section className="management-section-card management-profile-panel management-profile-shortcuts"><p className="management-eyebrow">QUICK ACCESS</p><button type="button" onClick={() => selectView('messages')}><span>Messages</span><small>{unreadMessageCount ? `${unreadMessageCount} unread` : 'Open your inbox'}</small><b>↗</b></button>{!isSuperadmin && <button type="button" onClick={() => selectView('announcements')}><span>School updates</span><small>Read recent announcements</small><b>↗</b></button>}<button className="management-profile-signout-link" type="button" onClick={onSignOut}><span>Sign out</span><small>End your administrator session</small><b>→</b></button></section></aside></div></section>}
+            <label className="management-avatar-upload">＋ Upload a photo<input type="file" accept="image/jpeg,image/png,image/webp" onChange={selectProfilePhoto} /></label><small className="management-avatar-hint">JPG, PNG or WebP · up to 2 MB</small><button className={'management-profile-primary-action management-avatar-save' + (appearanceSaving ? ' is-busy' : '')} type="button" disabled={appearanceSaving || appearanceLoading || JSON.stringify(appearance) === JSON.stringify(appearanceDraft)} onClick={() => void saveAppearance()}>{appearanceLoading ? 'Loading…' : appearanceSaving ? 'Saving…' : 'Save avatar'}</button>
+          </section><section className="management-section-card management-profile-panel management-profile-shortcuts"><p className="management-eyebrow">QUICK ACCESS</p><button type="button" onClick={() => selectView('messages')}><span>Messages</span><small>{unreadMessageCount ? `${unreadMessageCount} unread` : 'Open your inbox'}</small><b>↗</b></button><button type="button" onClick={() => selectView(isSuperadmin ? 'schools' : 'announcements')}><span>{isSuperadmin ? 'Schools' : 'School updates'}</span><small>{isSuperadmin ? 'Open the school directory' : 'Read recent announcements'}</small><b>↗</b></button><button className="management-profile-signout-link" type="button" onClick={onSignOut}><span>Sign out</span><small>End your administrator session</small><b>→</b></button></section></aside></div></section>}
 
         <footer className="management-footer"><span>CLASSBRIDGE</span><i /> Clear communication, closer communities <span className="management-footer-role">{profile.role.replaceAll('_', ' ')}</span></footer>
       </div>
@@ -1941,7 +2010,7 @@ function ParentCreateDialog({ token, onClose, onSessionExpired, onNotify, onCrea
         <div className="management-parent-directory-note management-parent-directory-note-with-mascot"><div><strong>One account for this school</strong><span>Creating this account does not grant access to student records. Link the parent to a student in this school to provide access.</span></div><StaticGuideMascot /></div>
         <form className="management-form" onSubmit={(event) => void handleSubmit(event)}>
         <div className="management-form-grid"><label className="management-form-field"><span>First name</span><input name="firstName" autoComplete="given-name" maxLength={100} required /></label><label className="management-form-field"><span>Last name</span><input name="lastName" autoComplete="family-name" maxLength={100} required /></label><label className="management-form-field management-form-wide"><span>Username</span><input name="username" autoComplete="off" maxLength={255} required /></label><label className="management-form-field"><span>Email address · optional</span><input name="email" type="email" autoComplete="email" maxLength={254} /></label><label className="management-form-field"><span>Phone number · optional</span><input name="phoneNumber" type="tel" autoComplete="tel" maxLength={32} /></label></div>
-        <footer className="management-modal-actions"><button className="management-secondary-button" type="button" onClick={onClose} disabled={saving}>Cancel</button><button className="management-primary-button" type="submit" disabled={saving}>{saving ? (mode === 'new' ? 'Creating…' : 'Registering…') : (mode === 'new' ? 'Create parent account' : 'Add existing parent')}</button></footer>
+        <footer className="management-modal-actions"><button className="management-secondary-button" type="button" onClick={onClose} disabled={saving}>Cancel</button><button className="management-primary-button" type="submit" disabled={saving}>{saving ? 'Creating…' : 'Create parent account'}</button></footer>
         </form>
       </>}
     </section>
@@ -2122,6 +2191,815 @@ function AnnouncementList({ items, compact = false, onOpen, onDelete }: { items:
   return <div className={compact ? 'management-announcement-list is-compact' : 'management-announcement-list'}>{items.map((item, index) => <article className="management-announcement-row" key={item.id}><span className="management-announcement-index">{String(index + 1).padStart(2, '0')}</span><span className={'management-announcement-symbol type-' + item.type.toLowerCase()}><Icon name="announcements" /></span><div className="management-announcement-copy"><div className="management-announcement-meta"><span>{announcementLabel[item.type] || item.type.replaceAll('_', ' ')}</span><time>{formatDate(item.createdAt)}</time></div><button className="management-announcement-title-button" type="button" onClick={() => onOpen?.(item)}>{item.title}</button>{!compact && <p>{item.body}</p>}<small>Shared by <strong>{item.authorDisplayName}</strong><i /> {item.targetClassrooms.map((room) => `${room.gradeLevel}-${room.sectionName}`).join(', ') || 'School-wide'}</small></div><div className="management-announcement-row-actions">{onOpen && (compact ? <button className="management-announcement-compact-open" type="button" onClick={() => onOpen(item)} aria-label={`Open announcement ${item.title}`}><Icon name="arrow" /></button> : <button className="management-teacher-detail-button" type="button" onClick={() => onOpen(item)} aria-label={`View announcement ${item.title}`}><span>View details</span><Icon name="arrow" /></button>)}{onDelete && !compact && <button className="management-row-action management-row-danger" type="button" onClick={() => onDelete(item)} aria-label={`Delete announcement ${item.title}`}><Icon name="trash" /></button>}</div></article>)}</div>
 }
 
-function SchoolList({ schools, detailed = false }: { schools: School[]; detailed?: boolean }) {
-  return <div className={detailed ? 'management-school-list is-detailed' : 'management-school-list'}>{schools.map((school, index) => <article className="management-school-row" key={school.id}><span className={'management-school-tile tone-' + (index % 3)}><Icon name="schools" /></span><span className="management-school-copy"><strong>{school.name}</strong><small>{schoolLevelLabel[school.educationLevel]} · {school.district}, {school.province}</small></span><span className="management-school-level">{school.educationLevel.replaceAll('_', ' ')}</span><span className="management-announcement-arrow" aria-hidden="true">↗</span></article>)}</div>
+function SchoolList({ schools, detailed = false, onOpen }: { schools: School[]; detailed?: boolean; onOpen: (schoolId: number) => void }) {
+  return <div className={detailed ? 'management-school-list is-detailed' : 'management-school-list'}>{schools.map((school, index) => detailed ? <article className="management-school-row" key={school.id}><span className={'management-school-tile tone-' + (index % 3)}><Icon name="schools" /></span><span className="management-school-copy"><strong>{school.name}</strong><small>{schoolLevelLabel[school.educationLevel]} · {school.district}, {school.province}{school.active === false ? ' · Archived' : ''}</small></span><span className="management-school-level management-school-level-badge">{school.educationLevel.replaceAll('_', ' ')}</span><button className="management-teacher-detail-button" type="button" onClick={() => onOpen(school.id)} aria-label={`View ${school.name}`}>View record <Icon name="arrow" /></button></article> : <button className="management-school-row management-school-button" type="button" key={school.id} onClick={() => onOpen(school.id)} aria-label={`Open ${school.name}`}><span className={'management-school-tile tone-' + (index % 3)}><Icon name="schools" /></span><span className="management-school-copy"><strong>{school.name}</strong><small>{schoolLevelLabel[school.educationLevel]} · {school.district}, {school.province}{school.active === false ? ' · Archived' : ''}</small></span><span className="management-school-level">{school.educationLevel.replaceAll('_', ' ')}</span><span className="management-announcement-arrow" aria-hidden="true">↗</span></button>)}</div>
+}
+
+const schoolLevelOptions: { value: SchoolLevelValue; label: string }[] = [
+  { value: 'PRIMARY', label: 'Primary school' },
+  { value: 'MIDDLE', label: 'Middle school' },
+  { value: 'HIGH_SCHOOL', label: 'High school' },
+]
+const turkishProvinceOptions = [
+  'Adana', 'Adıyaman', 'Afyonkarahisar', 'Ağrı', 'Aksaray', 'Amasya', 'Ankara', 'Antalya', 'Ardahan', 'Artvin',
+  'Aydın', 'Balıkesir', 'Bartın', 'Batman', 'Bayburt', 'Bilecik', 'Bingöl', 'Bitlis', 'Bolu', ' Burdur'.trim(),
+  'Bursa', 'Çanakkale', 'Çankırı', 'Çorum', 'Denizli', 'Diyarbakır', 'Düzce', 'Edirne', 'Elazığ', 'Erzincan',
+  'Erzurum', 'Eskişehir', 'Gaziantep', 'Giresun', 'Gümüşhane', 'Hakkari', 'Hatay', 'Iğdır', 'Isparta', 'İstanbul',
+  'İzmir', 'Kahramanmaraş', 'Karabük', 'Karaman', 'Kars', 'Kastamonu', 'Kayseri', 'Kırıkkale', 'Kırklareli', 'Kırşehir',
+  'Kilis', 'Kocaeli', 'Konya', 'Kütahya', 'Malatya', 'Manisa', 'Mardin', 'Mersin', 'Muğla', 'Muş',
+  'Nevşehir', 'Niğde', 'Ordu', 'Osmaniye', 'Rize', 'Sakarya', 'Samsun', 'Siirt', 'Sinop', 'Sivas',
+  'Şanlıurfa', 'Şırnak', 'Tekirdağ', 'Tokat', 'Trabzon', 'Tunceli', 'Uşak', 'Van', 'Yalova', 'Yozgat', 'Zonguldak',
+]
+const administratorRoleLabel: Record<AdministratorRole, string> = { SCHOOL_ADMIN: 'School administrator', SCHOOL_VICE_ADMIN: 'Vice administrator' }
+
+function schoolInputFrom(school?: SchoolDetail): SchoolInput {
+  return {
+    name: school?.name ?? '', educationLevel: school?.educationLevel ?? '', province: school?.province ?? '',
+    district: school?.district ?? '', neighborhood: school?.neighborhood ?? '', address: school?.address ?? '',
+  }
+}
+function validateSchoolInput(input: SchoolInput): string | null {
+  const name = input.name.trim(), province = input.province.trim(), district = input.district.trim(), neighborhood = input.neighborhood.trim()
+  if (!name) return 'Enter the school name.'
+  if (name.length > 255) return 'The school name can be at most 255 characters.'
+  if (!input.educationLevel) return 'Choose an education level.'
+  if (!province) return 'Choose a province.'
+  if (province.length > 100) return 'The province can be at most 100 characters.'
+  if (!district) return 'Enter the district.'
+  if (district.length > 100) return 'The district can be at most 100 characters.'
+  if (neighborhood.length > 255) return 'The neighborhood can be at most 255 characters.'
+  return null
+}
+function schoolPayload(input: SchoolInput) {
+  return {
+    name: input.name.trim(), educationLevel: input.educationLevel, province: input.province.trim(), district: input.district.trim(),
+    neighborhood: input.neighborhood.trim() || null, address: input.address.trim() || null,
+  }
+}
+function newestSchoolsFirst(first: School, second: School) {
+  return (Date.parse(second.createdAt ?? '') || 0) - (Date.parse(first.createdAt ?? '') || 0) || second.id - first.id
+}
+
+function SchoolFormFields({ value, disabled, onChange }: { value: SchoolInput; disabled: boolean; onChange: (next: SchoolInput) => void }) {
+  const set = (key: keyof SchoolInput) => (event: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => onChange({ ...value, [key]: event.target.value })
+  const currentProvince = value.province.trim()
+  const hasCustomProvince = Boolean(currentProvince) && !turkishProvinceOptions.includes(currentProvince)
+  return <div className="management-form-grid management-superadmin-school-fields">
+    <label className="management-form-field management-superadmin-wide-field"><span>School name</span><input value={value.name} onChange={set('name')} maxLength={255} placeholder="Official school name" disabled={disabled} required /></label>
+    <label className="management-form-field"><span>Education level</span><select value={value.educationLevel} onChange={set('educationLevel')} disabled={disabled} required><option value="">Choose a level</option>{schoolLevelOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
+    <label className="management-form-field"><span>Province</span><select value={currentProvince} onChange={set('province')} disabled={disabled} required><option value="">Choose a province</option>{hasCustomProvince && <option value={currentProvince}>{currentProvince}</option>}{turkishProvinceOptions.map((province) => <option key={province} value={province}>{province}</option>)}</select></label>
+    <label className="management-form-field"><span>District</span><input value={value.district} onChange={set('district')} maxLength={100} placeholder="District" disabled={disabled} required /></label>
+    <label className="management-form-field"><span>Neighborhood · optional</span><input value={value.neighborhood} onChange={set('neighborhood')} maxLength={255} placeholder="Neighborhood" disabled={disabled} /></label>
+    <label className="management-form-field management-superadmin-wide-field"><span>Address · optional</span><textarea value={value.address} onChange={set('address')} rows={3} placeholder="Street address" disabled={disabled} /></label>
+  </div>
+}
+
+function SchoolDirectory({ schools, loading, onAdd, onOpen }: { schools: School[]; loading: boolean; onAdd: () => void; onOpen: (schoolId: number) => void }) {
+  const [query, setQuery] = useState('')
+  const [level, setLevel] = useState<'all' | SchoolLevelValue>('all')
+  const [province, setProvince] = useState('all')
+  const [showArchived, setShowArchived] = useState(false)
+  const term = query.trim().toLocaleLowerCase('tr')
+  const provinceOptions = useMemo(() => Array.from(new Set(schools.map((school) => school.province.trim()).filter(Boolean))).sort((first, second) => first.localeCompare(second, 'tr', { sensitivity: 'base' })), [schools])
+  const statusSchools = useMemo(() => schools.filter((school) => (school.active !== false) !== showArchived), [schools, showArchived])
+  const visible = useMemo(() => statusSchools
+    .filter((school) => level === 'all' || school.educationLevel === level)
+    .filter((school) => province === 'all' || school.province.trim().localeCompare(province, 'tr', { sensitivity: 'base' }) === 0)
+    .filter((school) => !term || `${school.name} ${school.province} ${school.district}`.toLocaleLowerCase('tr').includes(term))
+    .sort((first, second) => first.name.localeCompare(second.name, 'tr', { sensitivity: 'base' })), [level, province, statusSchools, term])
+  return <section className="management-section-card management-directory-card management-teacher-directory">
+    <div className="management-section-heading"><div><p className="management-eyebrow">PLATFORM MANAGEMENT</p><h2>{showArchived ? 'Archived schools' : 'School directory'}</h2></div>{!showArchived && <button className="management-teacher-add-button" type="button" onClick={onAdd}><Icon name="plus" /> Add school</button>}</div>
+    <div className="management-table-tools management-student-tools management-superadmin-school-tools">
+      <label className="management-search management-student-search"><Icon name="search" /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search by school, province, or district" aria-label="Search schools by name, province, or district" /></label>
+      <label className="management-student-filter"><span>PROVINCE</span><select aria-label="Filter schools by province" value={province} onChange={(event) => setProvince(event.target.value)}><option value="all">All provinces</option>{provinceOptions.map((option) => <option key={option} value={option}>{option}</option>)}</select></label>
+      <label className="management-student-filter"><span>EDUCATION LEVEL</span><select aria-label="Filter schools by education level" value={level} onChange={(event) => setLevel(event.target.value as 'all' | SchoolLevelValue)}><option value="all">All levels</option>{schoolLevelOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
+      <div className="management-student-tabs" role="group" aria-label="School status">
+        <button className={!showArchived ? 'is-selected' : ''} type="button" aria-pressed={!showArchived} onClick={() => setShowArchived(false)}>Active</button>
+        <button className={showArchived ? 'is-selected' : ''} type="button" aria-pressed={showArchived} onClick={() => setShowArchived(true)}>Archived</button>
+      </div>
+    </div>
+    {loading ? <div className="management-empty">Loading schools…</div> : !statusSchools.length ? <div className="management-empty">{showArchived ? 'No archived schools.' : 'No active schools have been created yet.'}</div> : visible.length ? <SchoolList schools={visible} detailed onOpen={onOpen} /> : <div className="management-empty">No schools match this search.</div>}
+    {!loading && statusSchools.length > 0 && <div className="management-pagination"><span>{visible.length === statusSchools.length ? `${statusSchools.length} ${showArchived ? 'archived ' : ''}${statusSchools.length === 1 ? 'school' : 'schools'}` : `${visible.length} of ${statusSchools.length} ${showArchived ? 'archived ' : ''}schools`}</span></div>}
+  </section>
+}
+
+function SchoolLevelBreakdown({ schools }: { schools: School[] }) {
+  return <section className="management-section-card management-superadmin-levels">
+    <div className="management-section-heading"><div><p className="management-eyebrow">DISTRIBUTION</p><h2>Schools by level</h2></div></div>
+    {schools.length ? <ul>{schoolLevelOptions.map((option) => { const count = schools.filter((school) => school.educationLevel === option.value).length; return <li key={option.value}><div><span>{option.label}</span><strong>{count}</strong></div><span className="management-superadmin-level-track" aria-hidden="true"><i style={{ width: `${(count / schools.length) * 100}%` }} /></span></li> })}</ul> : <div className="management-empty">Add a school to see the distribution.</div>}
+  </section>
+}
+
+function SchoolCreatePage({ token, onBack, onSessionExpired, onNotify, onCreated, onOpen }: { token: string; onBack: () => void; onSessionExpired: () => void; onNotify: (kind: WorkspaceToast['kind'], message: string) => void; onCreated: (school: SchoolDetail) => void; onOpen: (schoolId: number) => void }) {
+  const [form, setForm] = useState<SchoolInput>(() => schoolInputFrom())
+  const [saving, setSaving] = useState(false)
+  const [created, setCreated] = useState<SchoolDetail | null>(null)
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    if (saving) return
+    const problem = validateSchoolInput(form)
+    if (problem) { onNotify('error', problem); return }
+    setSaving(true)
+    try {
+      const school = await postJson<SchoolDetail>('/api/superadmin/schools', token, schoolPayload(form))
+      setCreated(school)
+      onCreated(school)
+      onNotify('success', 'School created successfully.')
+    } catch (reason) {
+      if (reason instanceof WorkspaceApiError && reason.status === 401) onSessionExpired()
+      else onNotify('error', errorText(reason))
+    } finally { setSaving(false) }
+  }
+  return <section className="management-teacher-create-page management-superadmin-school-page">
+    <button className="management-student-back-link" type="button" onClick={onBack}>← Back to schools</button>
+    {created ? <section className="management-section-card management-directory-card management-teacher-created-card">
+      <div className="management-section-heading"><div><p className="management-eyebrow">PLATFORM MANAGEMENT · COMPLETE</p><h2>School created</h2></div><span className="management-created-mark" aria-hidden="true">✓</span></div>
+      <div className="management-student-created-summary"><strong>{created.name}</strong><span>{schoolLevelLabel[created.educationLevel]} · {created.district}, {created.province}</span></div>
+      <div className="management-student-created-actions"><span>Next, assign an administrator account to this school.</span><button className="management-teacher-action-button" type="button" onClick={() => onOpen(created.id)}>Open school <Icon name="arrow" /></button></div>
+    </section> : <section className="management-section-card management-directory-card management-teacher-create-card">
+      <div className="management-section-heading"><div><p className="management-eyebrow">PLATFORM MANAGEMENT</p><h2>School information</h2></div></div>
+      <form className="management-form management-teacher-create-form" onSubmit={(event) => void handleSubmit(event)} noValidate>
+        <SchoolFormFields value={form} onChange={setForm} disabled={saving} />
+        <footer className="management-student-form-actions"><span>Each school keeps its own people and announcements.</span><button className="management-teacher-action-button" type="submit" disabled={saving}>{saving ? 'Creating…' : 'Create school'} <Icon name="arrow" /></button></footer>
+      </form>
+    </section>}
+  </section>
+}
+
+function SchoolDetailsPage({ schoolId, token, onBack, onOpenAdministrators, onOpenAdministrator, onSessionExpired, onNotify, onSaved }: { schoolId: number; token: string; onBack: () => void; onOpenAdministrators: () => void; onOpenAdministrator: (admin: SchoolAdministrator) => void; onSessionExpired: () => void; onNotify: (kind: WorkspaceToast['kind'], message: string) => void; onSaved: (school: SchoolDetail) => void }) {
+  const [school, setSchool] = useState<SchoolDetail | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+  const [attempt, setAttempt] = useState(0)
+  const [form, setForm] = useState<SchoolInput>(() => schoolInputFrom())
+  const [saving, setSaving] = useState(false)
+  const [statusAction, setStatusAction] = useState<'archive' | 'restore' | null>(null)
+  const [statusBusy, setStatusBusy] = useState(false)
+
+  useEffect(() => {
+    let active = true
+    setLoading(true)
+    setError('')
+    getJson<SchoolDetail>(`/api/superadmin/schools/${schoolId}`, token)
+      .then((result) => {
+        if (!active) return
+        const normalized = { ...result, active: result.active !== false }
+        setSchool(normalized)
+        setForm(schoolInputFrom(normalized))
+      })
+      .catch((reason: unknown) => {
+        if (!active) return
+        if (reason instanceof WorkspaceApiError && reason.status === 401) onSessionExpired()
+        else setError(reason instanceof WorkspaceApiError && reason.status === 404 ? 'This school could not be found.' : errorText(reason))
+      })
+      .finally(() => { if (active) setLoading(false) })
+    return () => { active = false }
+  }, [attempt, onSessionExpired, schoolId, token])
+
+  useEffect(() => {
+    if (!statusAction) return
+    const dismissOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && !statusBusy) setStatusAction(null)
+    }
+    document.addEventListener('keydown', dismissOnEscape)
+    return () => document.removeEventListener('keydown', dismissOnEscape)
+  }, [statusAction, statusBusy])
+
+  const schoolActive = school?.active !== false
+  const dirty = school !== null && JSON.stringify(schoolPayload(form)) !== JSON.stringify(schoolPayload(schoolInputFrom(school)))
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    if (saving || statusBusy || !school || !schoolActive || !dirty) return
+    const problem = validateSchoolInput(form)
+    if (problem) { onNotify('error', problem); return }
+    setSaving(true)
+    try {
+      const updated = await putJson<SchoolDetail>(`/api/superadmin/schools/${school.id}`, token, schoolPayload(form))
+      const normalized = { ...updated, active: updated.active !== false }
+      setSchool(normalized)
+      setForm(schoolInputFrom(normalized))
+      onSaved(normalized)
+      onNotify('success', 'School details saved.')
+    } catch (reason) {
+      if (reason instanceof WorkspaceApiError && reason.status === 401) onSessionExpired()
+      else onNotify('error', errorText(reason))
+    } finally { setSaving(false) }
+  }
+
+  const updateSchoolStatus = async () => {
+    if (!school || !statusAction || statusBusy || saving) return
+    const action = statusAction
+    setStatusBusy(true)
+    try {
+      const updated = await postJson<SchoolDetail>(`/api/superadmin/schools/${school.id}/${action}`, token, {})
+      const normalized = { ...updated, active: updated.active !== false }
+      setSchool(normalized)
+      setForm(schoolInputFrom(normalized))
+      setStatusAction(null)
+      onSaved(normalized)
+      onNotify('success', action === 'archive' ? 'School archived and moved to Archived schools.' : 'School restored to the active directory.')
+    } catch (reason) {
+      if (reason instanceof WorkspaceApiError && reason.status === 401) onSessionExpired()
+      else onNotify('error', errorText(reason))
+    } finally { setStatusBusy(false) }
+  }
+
+  return <section className="management-student-detail management-superadmin-school-page">
+    <button className="management-student-back-link" type="button" onClick={onBack}>← Back to schools</button>
+    {loading ? <div className="management-empty">Loading school details…</div> : error || !school ? <div className="management-empty"><p>{error || 'School details could not be loaded.'}</p><button className="management-secondary-button" type="button" onClick={() => setAttempt((value) => value + 1)}>Try again</button></div> : <>
+      <article className="management-student-record management-parent-record management-superadmin-school-record">
+        <aside className="management-student-record-rail">
+          <span>SCHOOL<br />RECORD</span>
+          <strong>{String(school.id).padStart(2, '0')}</strong>
+          <i />
+          <small>{school.educationLevel.replaceAll('_', ' ')}</small>
+        </aside>
+        <div className="management-student-record-main">
+          <header className="management-student-record-head">
+            <span className="management-classroom-record-icon"><Icon name="schools" /></span>
+            <div>
+              <p className="management-eyebrow">PLATFORM MANAGEMENT · SCHOOL PROFILE</p>
+              <h2>{school.name}</h2>
+              <p className="management-student-record-meta">
+                <span>{schoolLevelLabel[school.educationLevel]} · {school.district}, {school.province}</span>
+                <span className={'management-student-status' + (schoolActive ? ' is-active' : '')}><i />{schoolActive ? 'Active' : 'Archived'}</span>
+              </p>
+            </div>
+          </header>
+
+          <div className="management-student-record-section">
+            <p className="management-eyebrow">SCHOOL INFORMATION</p>
+            <span className="management-student-record-caption">Official school name, education level, and location details</span>
+          </div>
+
+          {!schoolActive && <div className="management-form-hint">This school is archived. Its classrooms, people, announcements, and messages are preserved, and the school record is read-only until restored.</div>}
+
+          <form className="management-form management-student-record-form" onSubmit={(event) => void handleSubmit(event)} noValidate>
+            <SchoolFormFields value={form} onChange={setForm} disabled={!schoolActive || saving || statusBusy} />
+            <div className="management-student-account-strip">
+              <div><small>EDUCATION LEVEL</small><strong>{schoolLevelLabel[school.educationLevel]}</strong></div>
+              <div><small>LOCATION</small><strong>{school.district}, {school.province}</strong></div>
+              <div><small>STATUS</small><strong>{schoolActive ? 'Active school' : 'Archived school'}</strong></div>
+              <div><small>LAST UPDATED</small><strong>{formatDate(school.updatedAt)}</strong></div>
+            </div>
+            <div className="management-teacher-form-actions">
+              <span>{schoolActive ? 'Changes apply to this school record across the platform.' : 'Archived school records are read-only until restored.'}</span>
+              <div className="management-student-action-buttons">
+                <button
+                  className={schoolActive ? 'management-student-archive-button' : 'management-student-secondary-action'}
+                  type="button"
+                  onClick={() => setStatusAction(schoolActive ? 'archive' : 'restore')}
+                  disabled={saving || statusBusy || (schoolActive && dirty)}
+                  aria-busy={statusBusy}
+                  title={schoolActive && dirty ? 'Save or discard unsaved school changes first.' : undefined}
+                >
+                  {schoolActive ? 'Archive school' : 'Restore school'}
+                </button>
+                <button className="management-student-save-button" type="submit" disabled={!schoolActive || !dirty || saving || statusBusy} aria-busy={saving}>
+                  {saving ? 'Saving…' : 'Save changes'}
+                </button>
+              </div>
+            </div>
+          </form>
+
+          <SchoolAdministratorsPanel school={school} schoolActive={schoolActive} token={token} onOpenAdministrators={onOpenAdministrators} onOpenAdministrator={onOpenAdministrator} onSessionExpired={onSessionExpired} onNotify={onNotify} />
+        </div>
+      </article>
+
+      {statusAction && <div className="management-modal-backdrop management-student-status-backdrop" role="presentation" onMouseDown={(event) => { if (event.currentTarget === event.target && !statusBusy) setStatusAction(null) }}>
+        <section className="management-student-status-dialog" role="dialog" aria-modal="true" aria-labelledby="management-school-status-title" aria-describedby="management-school-status-description">
+          <aside className="management-student-status-guide" aria-label="ClassBridge mascot">
+            <p className="management-eyebrow">CLASSBRIDGE GUIDE</p>
+            <div className="management-student-status-mascot">
+              <img className="management-pose-rest" src="/images/beaver-guide-cutout.png" alt="" />
+              <img className="management-pose-hover" src="/images/beaver-guide-wave.png" alt="" aria-hidden="true" />
+            </div>
+            <span className="management-student-status-bubble">One step at a time!</span>
+          </aside>
+          <div className="management-student-status-copy">
+            <button className="management-modal-close management-student-status-close" type="button" onClick={() => setStatusAction(null)} disabled={statusBusy} aria-label="Close confirmation">×</button>
+            <p className="management-eyebrow">SCHOOL RECORD</p>
+            <h2 id="management-school-status-title">{statusAction === 'archive' ? 'Archive this school?' : 'Restore this school?'}</h2>
+            <p id="management-school-status-description">
+              {statusAction === 'archive'
+                ? `${school.name} will move to Archived in the school directory. Its classrooms, students, teachers, parents, announcements, and messages are not deleted, and the school can be restored at any time.`
+                : `${school.name} will return to the active school directory and its school details and administrator assignments can be updated again.`}
+            </p>
+            <footer className="management-student-status-actions">
+              <button className="management-secondary-button" type="button" onClick={() => setStatusAction(null)} disabled={statusBusy} autoFocus>{statusAction === 'archive' ? 'Keep active' : 'Not now'}</button>
+              <button className={statusAction === 'archive' ? 'management-danger-button' : 'management-primary-button'} type="button" onClick={() => void updateSchoolStatus()} disabled={statusBusy}>{statusBusy ? 'Working…' : statusAction === 'archive' ? 'Archive school' : 'Restore school'}</button>
+            </footer>
+          </div>
+        </section>
+      </div>}
+    </>}
+  </section>
+}
+
+function compareSchoolAdministrators(first: SchoolAdministrator, second: SchoolAdministrator) {
+  if (first.role !== second.role) return first.role === 'SCHOOL_ADMIN' ? -1 : 1
+  return administratorFullName(first).localeCompare(administratorFullName(second), 'tr', { sensitivity: 'base' }) || first.userAccountId - second.userAccountId
+}
+
+function SchoolAdministratorsPanel({ school, schoolActive, token, onOpenAdministrators, onOpenAdministrator, onSessionExpired, onNotify }: { school: SchoolDetail; schoolActive: boolean; token: string; onOpenAdministrators: () => void; onOpenAdministrator: (admin: SchoolAdministrator) => void; onSessionExpired: () => void; onNotify: (kind: WorkspaceToast['kind'], message: string) => void }) {
+  const [assigned, setAssigned] = useState<SchoolAdministrator[]>([])
+  const [available, setAvailable] = useState<SchoolAdministrator[]>([])
+  const [loading, setLoading] = useState(true)
+  const [availableLoading, setAvailableLoading] = useState(false)
+  const [availableError, setAvailableError] = useState('')
+  const [error, setError] = useState('')
+  const [attempt, setAttempt] = useState(0)
+  const [assignOpen, setAssignOpen] = useState(false)
+  const [query, setQuery] = useState('')
+  const [roleFilter, setRoleFilter] = useState<'all' | AdministratorRole>('all')
+  const [assigningId, setAssigningId] = useState<number | null>(null)
+  const [confirmUnassignId, setConfirmUnassignId] = useState<number | null>(null)
+  const [unassigningId, setUnassigningId] = useState<number | null>(null)
+
+  const handleError = useCallback((reason: unknown) => {
+    if (reason instanceof WorkspaceApiError && reason.status === 401) onSessionExpired()
+    else onNotify('error', errorText(reason))
+  }, [onNotify, onSessionExpired])
+
+  const loadAvailable = useCallback(async () => {
+    setAvailableLoading(true)
+    setAvailableError('')
+    try {
+      const items = await getJson<SchoolAdministrator[]>(`/api/superadmin/schools/${school.id}/administrators/available`, token)
+      setAvailable(items)
+    } catch (reason) {
+      if (reason instanceof WorkspaceApiError && reason.status === 401) onSessionExpired()
+      else setAvailableError(errorText(reason))
+    } finally {
+      setAvailableLoading(false)
+    }
+  }, [onSessionExpired, school.id, token])
+
+  useEffect(() => {
+    let active = true
+    setLoading(true)
+    setError('')
+    getJson<SchoolAdministrator[]>(`/api/superadmin/schools/${school.id}/administrators`, token)
+      .catch(async (reason: unknown) => {
+        if (reason instanceof WorkspaceApiError && reason.status === 405) {
+          const fallback = await getJson<AdministratorPage>(`/api/superadmin/administrators?schoolId=${school.id}&page=0&size=100`, token)
+          return fallback.content
+        }
+        throw reason
+      })
+      .then((assignedItems) => {
+        if (!active) return
+        setAssigned([...assignedItems].sort(compareSchoolAdministrators))
+      })
+      .catch((reason: unknown) => {
+        if (!active) return
+        if (reason instanceof WorkspaceApiError && reason.status === 401) onSessionExpired()
+        else setError(errorText(reason))
+      })
+      .finally(() => { if (active) setLoading(false) })
+    return () => { active = false }
+  }, [attempt, onSessionExpired, school.id, token])
+
+  const assignedPrincipal = useMemo(() => assigned.find((item) => item.role === 'SCHOOL_ADMIN') ?? null, [assigned])
+  const assignedIds = useMemo(() => new Set(assigned.map((item) => item.userAccountId)), [assigned])
+  const searchTerm = query.trim().toLocaleLowerCase('tr')
+  const selectable = useMemo(() => available
+    .filter((candidate) => candidate.active && !assignedIds.has(candidate.userAccountId))
+    .filter((candidate) => !assignedPrincipal || candidate.role === 'SCHOOL_VICE_ADMIN')
+    .filter((candidate) => roleFilter === 'all' || candidate.role === roleFilter)
+    .filter((candidate) => !searchTerm || `${candidate.firstName} ${candidate.lastName} ${candidate.username}`.toLocaleLowerCase('tr').includes(searchTerm))
+    .sort(compareSchoolAdministrators), [assignedIds, assignedPrincipal, available, roleFilter, searchTerm])
+
+  const handleAssign = async (candidate: SchoolAdministrator) => {
+    if (assigningId !== null || unassigningId !== null || !schoolActive) return
+    setAssigningId(candidate.userAccountId)
+    try {
+      const assignedAdmin = await postJson<SchoolAdministrator>(`/api/superadmin/schools/${school.id}/administrators/assignments`, token, {
+        schoolId: school.id,
+        userAccountId: candidate.userAccountId,
+        role: candidate.role,
+      })
+      setAssigned((current) => [...current.filter((item) => item.userAccountId !== assignedAdmin.userAccountId), assignedAdmin].sort(compareSchoolAdministrators))
+      setAvailable((current) => current.filter((item) => item.userAccountId !== assignedAdmin.userAccountId))
+      onNotify('success', `${administratorFullName(assignedAdmin)} assigned to ${school.name}.`)
+    } catch (reason) {
+      handleError(reason)
+    } finally {
+      setAssigningId(null)
+    }
+  }
+
+  const handleUnassign = async (admin: SchoolAdministrator) => {
+    if (unassigningId !== null || assigningId !== null) return
+    setUnassigningId(admin.userAccountId)
+    try {
+      await deleteJson<void>(`/api/superadmin/schools/${school.id}/administrators/${admin.userAccountId}`, token)
+      setAssigned((current) => current.filter((item) => item.userAccountId !== admin.userAccountId))
+      setConfirmUnassignId(null)
+      if (assignOpen) void loadAvailable()
+      onNotify('success', `${administratorFullName(admin)} removed from ${school.name}.`)
+    } catch (reason) {
+      handleError(reason)
+    } finally {
+      setUnassigningId(null)
+    }
+  }
+
+  const toggleAssignPanel = () => {
+    if (!schoolActive) return
+    const next = !assignOpen
+    setAssignOpen(next)
+    if (next) void loadAvailable()
+  }
+
+  const roleTabs: { value: 'all' | AdministratorRole; label: string }[] = [
+    { value: 'all', label: 'All eligible roles' },
+    { value: 'SCHOOL_ADMIN', label: 'School administrator' },
+    { value: 'SCHOOL_VICE_ADMIN', label: 'Vice administrator' },
+  ]
+
+  return <section className="management-parent-children management-superadmin-admins">
+    <div className="management-student-record-section management-superadmin-admins-head">
+      <div>
+        <p className="management-eyebrow">SCHOOL LEADERSHIP</p>
+        <h3>Administrator accounts</h3>
+        <span className="management-student-record-caption">Assign one school administrator and one or more vice administrators to {school.name}</span>
+      </div>
+      {schoolActive && <button className="management-teacher-action-button management-teacher-add-button" type="button" onClick={toggleAssignPanel} aria-expanded={assignOpen}>
+        <Icon name="plus" /> Add administrator to school
+      </button>}
+    </div>
+
+    {assignOpen && schoolActive && <section className="management-superadmin-assign-panel" aria-label="Assign administrator to school">
+      <div className="management-superadmin-assign-head">
+        <div>
+          <p className="management-eyebrow">ASSIGN TO {school.name.toUpperCase()}</p>
+          <h4>Choose an administrator account</h4>
+          <p>{assignedPrincipal ? `${administratorFullName(assignedPrincipal)} is assigned as school administrator. You can assign one or more vice administrators.` : 'Select an unassigned administrator account below. Each account keeps the role it was created with.'}</p>
+        </div>
+        <button className="management-parent-inline-button is-danger management-superadmin-assign-close" type="button" onClick={() => setAssignOpen(false)}>Close</button>
+      </div>
+
+      <div className="management-table-tools management-student-tools management-superadmin-assign-tools">
+        <label className="management-search management-student-search">
+          <Icon name="search" />
+          <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search eligible administrators by name or username" aria-label="Search eligible administrators by name or username" />
+        </label>
+        <div className="management-student-tabs" role="group" aria-label="Filter eligible administrators by role">
+          {roleTabs.map((tab) => <button key={tab.value} className={roleFilter === tab.value ? 'is-selected' : ''} type="button" aria-pressed={roleFilter === tab.value} onClick={() => setRoleFilter(tab.value)}>{tab.label}</button>)}
+        </div>
+      </div>
+
+      {availableLoading ? <div className="management-empty">Loading eligible administrators…</div> : availableError ? <div className="management-empty"><p>{availableError}</p><button className="management-secondary-button" type="button" onClick={() => void loadAvailable()}>Try again</button></div> : selectable.length ? <div className="management-table-wrap management-teacher-table-wrap"><table className="management-table"><thead><tr><th>ADMINISTRATOR</th><th>ACCOUNT ROLE</th><th>STATUS</th><th /></tr></thead><tbody>{selectable.map((candidate) => <tr key={candidate.userAccountId}>
+        <td><span className="management-person-cell"><span className="management-table-avatar">{initials(administratorFullName(candidate))}</span><span><strong>{administratorFullName(candidate)}</strong><small>{candidate.username}</small></span></span></td>
+        <td>{administratorRoleLabel[candidate.role]}</td>
+        <td><span className="management-student-status is-active"><i />Active</span></td>
+        <td><button className="management-teacher-detail-button" type="button" disabled={assigningId !== null} onClick={() => void handleAssign(candidate)}>{assigningId === candidate.userAccountId ? 'Assigning…' : 'Assign to school'} <Icon name="arrow" /></button></td>
+      </tr>)}</tbody></table></div> : <div className="management-empty">{assignedPrincipal && roleFilter === 'SCHOOL_ADMIN' ? 'This school already has a school administrator assigned. Choose Vice administrator to add vice administrators.' : query.trim() || roleFilter !== 'all' ? 'No eligible administrators match this filter.' : 'No unassigned administrator accounts are currently available.'}</div>}
+
+      <div className="management-parent-directory-note management-parent-directory-note-with-mascot management-superadmin-mascot-note">
+        <div>
+          <strong>Can’t find the administrator you want to assign?</strong>
+          <span>Administrator accounts are created and managed in the <b>Administrators</b> tab with their designated role. Create the account there first, then return here to assign it to {school.name}.</span>
+          <button className="management-teacher-detail-button management-superadmin-note-button" type="button" onClick={onOpenAdministrators}>Open Administrators <Icon name="arrow" /></button>
+        </div>
+        <StaticGuideMascot />
+      </div>
+    </section>}
+
+    {loading ? <div className="management-empty">Loading assigned administrators…</div> : error ? <div className="management-empty"><p>{error}</p><button className="management-secondary-button" type="button" onClick={() => setAttempt((value) => value + 1)}>Try again</button></div> : assigned.length ? <>
+      <ul className="management-superadmin-assigned-list">
+        {assigned.map((admin) => <li key={admin.userAccountId}>
+          <span className="management-person-cell">
+            <span className="management-table-avatar">{initials(administratorFullName(admin))}</span>
+            <span>
+              <strong>{administratorFullName(admin)}</strong>
+              <small>{administratorRoleLabel[admin.role]} · {admin.username}</small>
+            </span>
+          </span>
+          <div className="management-superadmin-row-actions">
+            <span className={'management-student-status' + (admin.active ? ' is-active' : '')}><i />{admin.active ? 'Active' : 'Inactive'}</span>
+            <button className="management-teacher-detail-button" type="button" onClick={() => onOpenAdministrator(admin)} aria-label={`View ${administratorFullName(admin)}`}>View record <Icon name="arrow" /></button>
+            {schoolActive && confirmUnassignId !== admin.userAccountId && <button className="management-parent-inline-button is-danger" type="button" disabled={unassigningId !== null} onClick={() => setConfirmUnassignId(admin.userAccountId)}>Remove from school</button>}
+          </div>
+          {schoolActive && confirmUnassignId === admin.userAccountId && <span className="management-parent-link-confirm">
+            <span>{assigned.length === 1 ? `Remove ${administratorFullName(admin)} from ${school.name}? This is the only administrator assigned to this school; the account will remain active and unassigned until another administrator is added.` : `Remove ${administratorFullName(admin)} from ${school.name}? Their administrator account and profile will remain active and can be assigned again.`}</span>
+            <button className="management-parent-inline-button is-danger" type="button" disabled={unassigningId !== null} onClick={() => void handleUnassign(admin)}>{unassigningId === admin.userAccountId ? 'Removing…' : 'Confirm remove'}</button>
+            <button className="management-parent-inline-button is-quiet" type="button" disabled={unassigningId !== null} onClick={() => setConfirmUnassignId(null)}>Cancel</button>
+          </span>}
+        </li>)}
+      </ul>
+      <div className="management-pagination">
+        <span>{assigned.length} {assigned.length === 1 ? 'administrator assigned' : 'administrators assigned'} · {assignedPrincipal ? '1 school administrator' : 'No school administrator yet'}, {assigned.filter((item) => item.role === 'SCHOOL_VICE_ADMIN').length} {assigned.filter((item) => item.role === 'SCHOOL_VICE_ADMIN').length === 1 ? 'vice administrator' : 'vice administrators'}</span>
+      </div>
+    </> : <>
+      <div className="management-empty">No administrators have been assigned to this school yet.</div>
+      {!assignOpen && <div className="management-parent-directory-note management-parent-directory-note-with-mascot management-superadmin-mascot-note">
+        <div>
+          <strong>Assigning school leadership</strong>
+          <span>Use <b>Add administrator to school</b> to select an eligible administrator, or open the <b>Administrators</b> tab first if you need to create a new school administrator or vice-administrator account.</span>
+          <button className="management-teacher-detail-button management-superadmin-note-button" type="button" onClick={onOpenAdministrators}>Open Administrators <Icon name="arrow" /></button>
+        </div>
+        <StaticGuideMascot />
+      </div>}
+    </>}
+  </section>
+}
+
+const administratorLevelFilterLabel = 'Education level'
+
+function administratorFullName(admin: { firstName: string; lastName: string }) { return `${admin.firstName} ${admin.lastName}`.trim() }
+function sameAdministratorFilters(first: AdministratorFilters, second: AdministratorFilters) {
+  return first.query === second.query && first.role === second.role && first.level === second.level && first.schoolId === second.schoolId && first.page === second.page
+}
+
+function AdministratorDirectory({ schools, token, filters, onFiltersChange, onAdd, onOpen, onSessionExpired, onNotify }: { schools: School[]; token: string; filters: AdministratorFilters; onFiltersChange: (next: AdministratorFilters) => void; onAdd: () => void; onOpen: (admin: SchoolAdministrator) => void; onSessionExpired: () => void; onNotify: (kind: WorkspaceToast['kind'], message: string) => void }) {
+  const [queryDraft, setQueryDraft] = useState(filters.query)
+  const [result, setResult] = useState<AdministratorPage | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+  const [attempt, setAttempt] = useState(0)
+  const filtersRef = useRef(filters)
+  filtersRef.current = filters
+
+  // Search is applied by the backend after a short pause so typing does not fire a request per keystroke.
+  useEffect(() => {
+    const trimmed = queryDraft.trim()
+    if (trimmed === filtersRef.current.query) return
+    const timer = window.setTimeout(() => onFiltersChange({ ...filtersRef.current, query: trimmed, page: 0 }), 300)
+    return () => window.clearTimeout(timer)
+  }, [onFiltersChange, queryDraft])
+
+  useEffect(() => {
+    let active = true
+    const params = new URLSearchParams({ page: String(filters.page), size: '10' })
+    if (filters.query) params.set('query', filters.query)
+    if (filters.role !== 'all') params.set('role', filters.role)
+    if (filters.level !== 'all') params.set('educationLevel', filters.level)
+    if (filters.schoolId) params.set('schoolId', filters.schoolId)
+    setLoading(true)
+    setError('')
+    getJson<AdministratorPage>(`/api/superadmin/administrators?${params.toString()}`, token)
+      .then((page) => { if (active) setResult(page) })
+      .catch((reason: unknown) => {
+        if (!active) return
+        if (reason instanceof WorkspaceApiError && reason.status === 401) onSessionExpired()
+        else { setError(errorText(reason)); onNotify('error', errorText(reason)) }
+      })
+      .finally(() => { if (active) setLoading(false) })
+    return () => { active = false }
+  }, [attempt, filters, onNotify, onSessionExpired, token])
+
+  const schoolChoices = useMemo(() => schools.filter((school) => filters.level === 'all' || school.educationLevel === filters.level).sort((first, second) => first.name.localeCompare(second.name, 'tr', { sensitivity: 'base' })), [filters.level, schools])
+  const update = (patch: Partial<AdministratorFilters>) => { const next = { ...filters, page: 0, ...patch }; if (!sameAdministratorFilters(filters, next)) onFiltersChange(next) }
+  const hasFilters = Boolean(filters.query || filters.role !== 'all' || filters.level !== 'all' || filters.schoolId)
+  const admins = result?.content ?? []
+  const roleTabs: { value: AdministratorFilters['role']; label: string }[] = [{ value: 'all', label: 'All roles' }, { value: 'SCHOOL_ADMIN', label: 'Administrators' }, { value: 'SCHOOL_VICE_ADMIN', label: 'Vice administrators' }]
+
+  return <section className="management-section-card management-directory-card management-teacher-directory management-superadmin-admin-directory">
+    <div className="management-section-heading"><div><p className="management-eyebrow">SCHOOL LEADERSHIP</p><h2>School administrators</h2></div><button className="management-teacher-add-button" type="button" onClick={onAdd}><Icon name="plus" /> Add administrator</button></div>
+    <div className="management-table-tools management-student-tools">
+      <label className="management-search management-student-search"><Icon name="search" /><input value={queryDraft} onChange={(event) => setQueryDraft(event.target.value)} placeholder="Search by name or username" aria-label="Search administrators by name or username" /></label>
+      <label className="management-student-filter"><span>{administratorLevelFilterLabel.toUpperCase()}</span><select aria-label="Filter administrators by education level" value={filters.level} onChange={(event) => { const level = event.target.value as AdministratorFilters['level']; const keepSchool = level === 'all' || schools.some((school) => String(school.id) === filters.schoolId && school.educationLevel === level); update({ level, schoolId: keepSchool ? filters.schoolId : '' }) }}><option value="all">All levels</option>{schoolLevelOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
+      <label className="management-student-filter"><span>SCHOOL</span><select aria-label="Filter administrators by school" value={filters.schoolId} onChange={(event) => update({ schoolId: event.target.value })}><option value="">All schools</option>{schoolChoices.map((school) => <option key={school.id} value={school.id}>{school.name}</option>)}</select></label>
+      <div className="management-student-tabs" role="group" aria-label="Filter by role">{roleTabs.map((tab) => <button key={tab.value} className={filters.role === tab.value ? 'is-selected' : ''} type="button" aria-pressed={filters.role === tab.value} onClick={() => update({ role: tab.value })}>{tab.label}</button>)}</div>
+    </div>
+    {loading && !result ? <div className="management-empty">Loading administrator accounts…</div> : error && !result ? <div className="management-empty"><p>Administrator accounts could not be loaded.</p><button className="management-secondary-button" type="button" onClick={() => setAttempt((value) => value + 1)}>Try again</button></div> : admins.length ? <div className={'management-table-wrap management-teacher-table-wrap' + (loading ? ' is-refreshing' : '')}><table className="management-table"><thead><tr><th>ADMINISTRATOR</th><th>ROLE</th><th>SCHOOL</th><th>STATUS</th><th /></tr></thead><tbody>{admins.map((admin) => <tr key={admin.userAccountId}>
+      <td><span className="management-person-cell"><span className="management-table-avatar">{initials(administratorFullName(admin))}</span><span><strong>{administratorFullName(admin)}</strong><small>{admin.username}</small></span></span></td>
+      <td>{administratorRoleLabel[admin.role]}</td>
+      <td>{admin.schoolId !== null && admin.schoolName ? <span className="management-superadmin-school-cell"><strong>{admin.schoolName}</strong><small>{admin.schoolEducationLevel ? schoolLevelLabel[admin.schoolEducationLevel] : ''}</small></span> : <span className="management-table-muted">Not assigned to a school</span>}</td>
+      <td><span className={'management-student-status' + (admin.active ? ' is-active' : '')}><i />{admin.active ? 'Active' : 'Archived'}</span></td>
+      <td><button className="management-teacher-detail-button" type="button" onClick={() => onOpen(admin)} aria-label={`View ${administratorFullName(admin)}`}>View record <Icon name="arrow" /></button></td>
+    </tr>)}</tbody></table></div> : <div className="management-empty">{hasFilters ? 'No administrators match these filters.' : 'No school administrators have been created yet.'}</div>}
+    {result && <div className="management-pagination management-teacher-pagination"><span>{result.totalElements.toLocaleString('en')} {result.totalElements === 1 ? 'administrator' : 'administrators'}</span><div><button type="button" disabled={loading || filters.page <= 0} onClick={() => update({ page: filters.page - 1 })}>← Previous</button><span>Page {result.totalPages ? filters.page + 1 : 0} of {result.totalPages}</span><button type="button" disabled={loading || filters.page + 1 >= result.totalPages} onClick={() => update({ page: filters.page + 1 })}>Next →</button></div></div>}
+  </section>
+}
+
+function OneTimeCredentialsPanel({ credentials, onHide }: { credentials: OneTimeCredentials; onHide: () => void }) {
+  return <section className="management-student-credentials management-superadmin-credentials" aria-live="polite" role="status">
+    <p className="management-eyebrow">{credentials.kind === 'created' ? 'FIRST SIGN-IN · SHOWN ONCE' : 'TEMPORARY PASSWORD · SHOWN ONCE'}</p>
+    <div><small>USERNAME</small><strong>{credentials.username}</strong></div>
+    <div><small>{credentials.kind === 'created' ? 'INITIAL PASSWORD' : 'TEMPORARY PASSWORD'}</small><strong>{credentials.password}</strong></div>
+    <p>Share this securely. It will not be shown again, and the administrator must choose a new password at first sign-in.</p>
+    <button className="management-student-secondary-action management-superadmin-credentials-hide" type="button" onClick={onHide}>I have saved it — hide</button>
+  </section>
+}
+
+function AdministratorCreatePage({ schools, token, onBack, onSessionExpired, onNotify, onCreated }: { schools: School[]; token: string; onBack: () => void; onSessionExpired: () => void; onNotify: (kind: WorkspaceToast['kind'], message: string) => void; onCreated: () => void }) {
+  const [schoolId, setSchoolId] = useState('')
+  const [role, setRole] = useState<AdministratorRole>('SCHOOL_ADMIN')
+  const [saving, setSaving] = useState(false)
+  // One-time passwords stay in component state only; leaving this screen discards them.
+  const [created, setCreated] = useState<{ account: SessionAdministrator; credentials: OneTimeCredentials } | null>(null)
+  const school = schools.find((item) => String(item.id) === schoolId)
+  const sortedSchools = useMemo(() => [...schools].sort((first, second) => first.name.localeCompare(second.name, 'tr', { sensitivity: 'base' })), [schools])
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    if (saving) return
+    const data = new FormData(event.currentTarget)
+    const text = (key: string) => String(data.get(key) ?? '').trim()
+    if (!text('firstName') || !text('lastName') || !text('username')) { onNotify('error', 'Enter the first name, last name, and username.'); return }
+    setSaving(true)
+    try {
+      const endpoint = school ? `/api/superadmin/schools/${school.id}/administrators` : '/api/superadmin/administrators'
+      const result = await postJson<CreatedAdministrator>(endpoint, token, {
+        username: text('username'), firstName: text('firstName'), lastName: text('lastName'), role,
+        schoolId: school ? school.id : null,
+        email: text('email') || null, phoneNumber: text('phoneNumber') || null,
+      })
+      const { initialPassword, ...account } = result
+      setCreated({ account, credentials: { kind: 'created', userAccountId: account.userAccountId, username: account.username, password: initialPassword } })
+      onCreated()
+      onNotify('success', `${administratorRoleLabel[account.role]} account created.`)
+    } catch (reason) {
+      if (reason instanceof WorkspaceApiError && reason.status === 401) onSessionExpired()
+      else onNotify('error', errorText(reason))
+    } finally { setSaving(false) }
+  }
+  return <section className="management-teacher-create-page management-superadmin-school-page">
+    <button className="management-student-back-link" type="button" onClick={onBack}>← Back to administrators</button>
+    {created ? <section className="management-section-card management-directory-card management-teacher-created-card">
+      <div className="management-section-heading"><div><p className="management-eyebrow">SCHOOL LEADERSHIP · COMPLETE</p><h2>Administrator account created</h2></div><span className="management-created-mark" aria-hidden="true">✓</span></div>
+      <div className="management-student-created-summary"><strong>{administratorFullName(created.account)}</strong><span>{administratorRoleLabel[created.account.role]} · {school ? school.name : 'Not assigned to a school yet'}</span></div>
+      {created.credentials.password && <OneTimeCredentialsPanel credentials={created.credentials} onHide={() => setCreated({ ...created, credentials: { ...created.credentials, password: '' } })} />}
+      <div className="management-student-created-actions"><span>{school ? 'The account is now assigned and listed in the directory.' : 'You can assign this account to a school from the school details page.'}</span><button className="management-teacher-action-button" type="button" onClick={onBack}>Return to administrators <Icon name="arrow" /></button></div>
+    </section> : <section className="management-section-card management-directory-card management-teacher-create-card">
+      <div className="management-section-heading"><div><p className="management-eyebrow">SCHOOL LEADERSHIP</p><h2>Administrator information</h2></div></div>
+      <form className="management-form management-teacher-create-form" onSubmit={(event) => void handleSubmit(event)}>
+        <div className="management-form-grid">
+          <label className="management-form-field management-superadmin-wide-field"><span>School · optional</span><select value={schoolId} onChange={(event) => setSchoolId(event.target.value)} disabled={saving}><option value="">Leave unassigned — assign from school details</option>{sortedSchools.map((item) => <option key={item.id} value={item.id}>{item.name} · {schoolLevelLabel[item.educationLevel]} · {item.district}</option>)}</select></label>
+          <label className="management-form-field"><span>Role</span><select value={role} onChange={(event) => setRole(event.target.value as AdministratorRole)} disabled={saving}><option value="SCHOOL_ADMIN">School administrator</option><option value="SCHOOL_VICE_ADMIN">Vice administrator</option></select></label>
+          <label className="management-form-field"><span>Username</span><input name="username" autoComplete="off" maxLength={255} placeholder="Choose a unique username" disabled={saving} required /></label>
+          <label className="management-form-field"><span>First name</span><input name="firstName" autoComplete="off" maxLength={100} placeholder="First name" disabled={saving} required /></label>
+          <label className="management-form-field"><span>Last name</span><input name="lastName" autoComplete="off" maxLength={100} placeholder="Last name" disabled={saving} required /></label>
+          <label className="management-form-field"><span>Email address · optional</span><input name="email" type="email" autoComplete="off" maxLength={254} placeholder="name@school.edu" disabled={saving} /></label>
+          <label className="management-form-field"><span>Phone number · optional</span><input name="phoneNumber" type="tel" autoComplete="off" maxLength={32} placeholder="Phone number" disabled={saving} /></label>
+        </div>
+        <footer className="management-student-form-actions"><span>A temporary password is generated and shown once.</span><button className="management-teacher-action-button" type="submit" disabled={saving}>{saving ? 'Creating…' : 'Create administrator'} <Icon name="arrow" /></button></footer>
+      </form>
+    </section>}
+  </section>
+}
+
+function AdministratorDetails({ admin, token, onBack, onOpenSchool, onSessionExpired, onNotify, onSaved }: { admin: SchoolAdministrator; token: string; onBack: () => void; onOpenSchool: (schoolId: number) => void; onSessionExpired: () => void; onNotify: (kind: WorkspaceToast['kind'], message: string) => void; onSaved: (admin: SchoolAdministrator) => void }) {
+  const [detail, setDetail] = useState<SchoolAdministratorProfile>(admin)
+  const [firstName, setFirstName] = useState(admin.firstName)
+  const [lastName, setLastName] = useState(admin.lastName)
+  const [role, setRole] = useState<AdministratorRole>(admin.role)
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [busy, setBusy] = useState(false)
+  const [statusAction, setStatusAction] = useState<'archive' | 'restore' | null>(null)
+  const [credentials, setCredentials] = useState<OneTimeCredentials | null>(null)
+
+  useEffect(() => {
+    let active = true
+    getJson<SchoolAdministratorProfile>(`/api/superadmin/administrators/${admin.userAccountId}`, token)
+      .then((loaded) => {
+        if (!active) return
+        setDetail(loaded)
+        setFirstName(loaded.firstName)
+        setLastName(loaded.lastName)
+        setRole(loaded.role)
+      })
+      .catch((reason: unknown) => {
+        if (!active) return
+        if (reason instanceof WorkspaceApiError && reason.status === 401) onSessionExpired()
+        else onNotify('error', errorText(reason))
+      })
+      .finally(() => { if (active) setLoading(false) })
+    return () => { active = false }
+  }, [admin.userAccountId, onNotify, onSessionExpired, token])
+
+  useEffect(() => {
+    if (!statusAction) return
+    const dismissOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && !busy) setStatusAction(null)
+    }
+    document.addEventListener('keydown', dismissOnEscape)
+    return () => document.removeEventListener('keydown', dismissOnEscape)
+  }, [busy, statusAction])
+
+  const trimmedFirstName = firstName.trim()
+  const trimmedLastName = lastName.trim()
+  const changed = trimmedFirstName !== detail.firstName || trimmedLastName !== detail.lastName || role !== detail.role
+  const canArchive = detail.schoolId === null || detail.otherActiveAdministratorsInSchool === undefined || detail.otherActiveAdministratorsInSchool > 0
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    if (!detail.active || !changed || saving || busy) return
+    if (!trimmedFirstName || !trimmedLastName) {
+      onNotify('error', 'Enter both first name and last name.')
+      return
+    }
+    setSaving(true)
+    try {
+      const updated = await putJson<SchoolAdministratorProfile>(`/api/superadmin/administrators/${detail.userAccountId}`, token, {
+        firstName: trimmedFirstName,
+        lastName: trimmedLastName,
+        role,
+      })
+      setDetail(updated)
+      setFirstName(updated.firstName)
+      setLastName(updated.lastName)
+      setRole(updated.role)
+      onSaved(updated)
+      onNotify('success', 'Administrator details saved.')
+    } catch (reason) {
+      if (reason instanceof WorkspaceApiError && reason.status === 401) onSessionExpired()
+      else onNotify('error', errorText(reason))
+    } finally { setSaving(false) }
+  }
+
+  const updateStatus = async () => {
+    if (!statusAction || busy || saving) return
+    const action = statusAction
+    setBusy(true)
+    try {
+      const updated = await postJson<SchoolAdministratorProfile>(`/api/superadmin/administrators/${detail.userAccountId}/${action}`, token, {})
+      setDetail(updated)
+      setFirstName(updated.firstName)
+      setLastName(updated.lastName)
+      setRole(updated.role)
+      setStatusAction(null)
+      if (action === 'archive') setCredentials(null)
+      onSaved(updated)
+      onNotify('success', action === 'archive' ? 'Administrator archived. Their account access has been disabled.' : 'Administrator restored. Their account access is active again.')
+    } catch (reason) {
+      if (reason instanceof WorkspaceApiError && reason.status === 401) onSessionExpired()
+      else onNotify('error', errorText(reason))
+    } finally { setBusy(false) }
+  }
+
+  const handleReset = async () => {
+    if (!detail.active || busy || saving || changed) return
+    setBusy(true)
+    setCredentials(null)
+    try {
+      const result = await postJson<AdminPasswordReset>(`/api/superadmin/accounts/${detail.userAccountId}/password-reset`, token, {})
+      setCredentials({ kind: 'reset', userAccountId: result.userAccountId, username: result.username, password: result.temporaryPassword })
+      setDetail((current) => ({ ...current, mustChangePassword: true }))
+      onNotify('success', 'A temporary password was generated. Share it securely with the administrator.')
+    } catch (reason) {
+      if (reason instanceof WorkspaceApiError && reason.status === 401) onSessionExpired()
+      else onNotify('error', errorText(reason))
+    } finally { setBusy(false) }
+  }
+
+  return <section className="management-student-detail management-teacher-detail management-superadmin-school-page">
+    <button className="management-student-back-link" type="button" onClick={onBack}>← Back to administrators</button>
+    <article className="management-student-record management-teacher-record management-superadmin-school-record">
+      <aside className="management-student-record-rail"><span>ADMIN<br />RECORD</span><strong>{String(detail.userAccountId).padStart(2, '0')}</strong><i /><small>{detail.role === 'SCHOOL_VICE_ADMIN' ? 'VICE ADMIN' : 'SCHOOL ADMIN'}</small></aside>
+      <div className="management-student-record-main">
+        <header className="management-student-record-head">
+          <span className="management-table-avatar">{initials(administratorFullName(detail))}</span>
+          <div>
+            <p className="management-eyebrow">SCHOOL LEADERSHIP · PROFILE</p>
+            <h2>{administratorFullName(detail)}</h2>
+            <p className="management-student-record-meta"><span>{detail.username}</span><span className={'management-student-status' + (detail.active ? ' is-active' : '')}><i />{detail.active ? 'Active' : 'Archived'}</span></p>
+          </div>
+        </header>
+        <div className="management-student-record-section"><p className="management-eyebrow">ACCOUNT DETAILS</p><span className="management-student-record-caption">{loading ? 'Refreshing administrator profile…' : 'Profile and sign-in information for this school administrator'}</span></div>
+        {!detail.active && <div className="management-form-hint">This administrator account is archived, so profile details are read-only until restored.</div>}
+        {credentials && <OneTimeCredentialsPanel credentials={credentials} onHide={() => setCredentials(null)} />}
+        <form className="management-form management-student-record-form" onSubmit={(event) => void handleSubmit(event)}>
+          <div className="management-form-grid">
+            <label className="management-form-field"><span>First name</span><input required maxLength={100} autoComplete="given-name" value={firstName} onChange={(event) => setFirstName(event.target.value)} disabled={!detail.active || saving || busy} /></label>
+            <label className="management-form-field"><span>Last name</span><input required maxLength={100} autoComplete="family-name" value={lastName} onChange={(event) => setLastName(event.target.value)} disabled={!detail.active || saving || busy} /></label>
+            <div className="management-teacher-contact-readonly"><span>Username</span><strong>{detail.username}</strong></div>
+            <label className="management-form-field"><span>Role</span><select value={role} onChange={(event) => setRole(event.target.value as AdministratorRole)} disabled={!detail.active || saving || busy}><option value="SCHOOL_ADMIN">School administrator</option><option value="SCHOOL_VICE_ADMIN">Vice administrator</option></select></label>
+            <div className="management-teacher-contact-readonly"><span>Email address</span><strong>{detail.email || 'Not provided'}</strong></div>
+            <div className="management-teacher-contact-readonly"><span>Phone number</span><strong>{detail.phoneNumber || 'Not provided'}</strong></div>
+          </div>
+          <div className="management-student-account-strip">
+            <div><small>ADMINISTRATOR USERNAME</small><strong>{detail.username}</strong></div>
+            <div><small>EMAIL STATUS</small><strong>{detail.email || 'Not provided'}{detail.email && <em className={detail.emailVerified ? 'is-verified' : 'is-unverified'}>{detail.emailVerified ? 'Verified' : 'Not verified'}</em>}</strong></div>
+            <div><small>ASSIGNED SCHOOL</small><strong>{detail.schoolName ? `${detail.schoolName}${detail.schoolEducationLevel ? ` · ${schoolLevelLabel[detail.schoolEducationLevel]}` : ''}` : 'Not assigned to a school'}</strong></div>
+            <div><small>ACCOUNT CREATED</small><strong>{detail.createdAt ? formatDate(detail.createdAt) : '—'}</strong></div>
+          </div>
+          {detail.mustChangePassword && detail.active && <div className="management-form-hint">A temporary password is active. The administrator must choose a new password before continuing.</div>}
+          <div className="management-teacher-form-actions">
+            <span>{detail.active ? 'Profile and role updates apply to this administrator account. Username and self-service contact details are read-only here.' : 'Archived accounts are read-only until restored.'}</span>
+            <div className="management-student-action-buttons">
+              {detail.active && <button className="management-student-secondary-action" type="button" onClick={() => void handleReset()} disabled={busy || saving || changed} aria-busy={busy && !statusAction} title={changed ? 'Save or discard unsaved changes first.' : undefined}>{busy && !statusAction ? 'Working…' : 'Reset password'}</button>}
+              <button className={detail.active ? 'management-student-archive-button' : 'management-student-secondary-action'} type="button" onClick={() => setStatusAction(detail.active ? 'archive' : 'restore')} disabled={busy || saving || (detail.active && (!canArchive || changed))} aria-busy={busy && statusAction !== null} title={detail.active && !canArchive ? 'Assign another active administrator to this school before archiving.' : detail.active && changed ? 'Save or discard unsaved changes first.' : undefined}>{detail.active ? 'Archive administrator' : 'Restore administrator'}</button>
+              <button className="management-student-save-button" type="submit" disabled={!detail.active || !changed || saving || busy} aria-busy={saving}>{saving ? 'Saving…' : 'Save changes'}</button>
+            </div>
+          </div>
+          {detail.active && !canArchive && <p className="management-teacher-archive-note">This administrator is the only active administrator assigned to {detail.schoolName || 'their school'}. Assign another active administrator or remove the school assignment before archiving this account.</p>}
+        </form>
+        <section className="management-teacher-homerooms">
+          <div className="management-student-record-section"><p className="management-eyebrow">SCHOOL ASSIGNMENT</p><span className="management-student-record-caption">School membership and leadership scope</span></div>
+          {detail.schoolId !== null && detail.schoolName ? <div className="management-superadmin-admin-school-row">
+            <div>
+              <strong>{detail.schoolName}</strong>
+              <small>{detail.schoolEducationLevel ? schoolLevelLabel[detail.schoolEducationLevel] : 'School'} · {administratorRoleLabel[detail.role]}</small>
+            </div>
+            <button className="management-teacher-detail-button" type="button" onClick={() => onOpenSchool(detail.schoolId!)}>Open school <Icon name="arrow" /></button>
+          </div> : <p className="management-table-muted">Not assigned to a school. You can assign this administrator from a school details page.</p>}
+        </section>
+      </div>
+    </article>
+    {statusAction && <div className="management-modal-backdrop management-student-status-backdrop" role="presentation" onMouseDown={(event) => { if (event.currentTarget === event.target && !busy) setStatusAction(null) }}><section className="management-student-status-dialog" role="dialog" aria-modal="true" aria-labelledby="management-admin-status-title" aria-describedby="management-admin-status-description"><aside className="management-student-status-guide" aria-label="ClassBridge mascot"><p className="management-eyebrow">CLASSBRIDGE GUIDE</p><div className="management-student-status-mascot"><img className="management-pose-rest" src="/images/beaver-guide-cutout.png" alt="" /><img className="management-pose-hover" src="/images/beaver-guide-wave.png" alt="" aria-hidden="true" /></div><span className="management-student-status-bubble">One step at a time!</span></aside><div className="management-student-status-copy"><button className="management-modal-close management-student-status-close" type="button" onClick={() => setStatusAction(null)} disabled={busy} aria-label="Close confirmation">×</button><p className="management-eyebrow">ADMINISTRATOR RECORD</p><h2 id="management-admin-status-title">{statusAction === 'archive' ? 'Archive this administrator?' : 'Restore this administrator?'}</h2><p id="management-admin-status-description">{statusAction === 'archive' ? `${administratorFullName(detail)} will move to Archived and their sign-in access will be disabled. The administrator account and school assignment are not permanently deleted and can be restored later.` : `${administratorFullName(detail)} will return to Active and be able to sign in again.`}</p><footer className="management-student-status-actions"><button className="management-secondary-button" type="button" onClick={() => setStatusAction(null)} disabled={busy} autoFocus>{statusAction === 'archive' ? 'Keep active' : 'Not now'}</button><button className={statusAction === 'archive' ? 'management-danger-button' : 'management-primary-button'} type="button" onClick={() => void updateStatus()} disabled={busy}>{busy ? 'Working…' : statusAction === 'archive' ? 'Archive administrator' : 'Restore administrator'}</button></footer></div></section></div>}
+  </section>
 }

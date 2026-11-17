@@ -43,8 +43,8 @@ html[data-theme="dark"] .management-workspace {
   --mw-shadow: 0 18px 45px rgb(0 0 0 / 16%);
   background: radial-gradient(ellipse at 75% 0%, rgb(108 91 150 / 14%), transparent 28%), linear-gradient(135deg, #1d2730, #22323a 70%, #24383a);
 }
-.management-workspace button, .management-workspace input, .management-workspace select { font: inherit; }
-.management-workspace button { color: inherit; }
+:where(.management-workspace) button, :where(.management-workspace) input, :where(.management-workspace) select { font: inherit; }
+:where(.management-workspace) button { color: inherit; }
 .management-workspace button:focus-visible { outline: 3px solid color-mix(in srgb,var(--mw-accent),transparent 38%); outline-offset: 3px; }
 .management-workspace button:disabled { cursor: default; }
 .management-sidebar { position: sticky; top: 0; display: flex; height: 100vh; min-height: 620px; flex-direction: column; border-right: 1px solid color-mix(in srgb,var(--mw-line),transparent 18%); padding: 20px 16px 15px; background: color-mix(in srgb,var(--mw-surface),transparent 24%); backdrop-filter: blur(18px); }
@@ -90,7 +90,7 @@ html[data-theme="dark"] .management-workspace {
 .management-welcome-copy h2 { max-width: 510px; margin: 8px 0 6px; color: var(--mw-ink); font-family: Georgia,"Times New Roman",serif; font-size: clamp(23px,2.5vw,30px); font-weight: 500; letter-spacing: -.04em; }
 .management-welcome-copy > p:not(.management-eyebrow) { max-width: 490px; margin: 0; color: var(--mw-muted); font-size: 10px; line-height: 1.55; }
 .management-section-heading > button { display: inline-flex; align-items: center; gap: 8px; border: 0; padding: 0; color: var(--mw-accent-dark); background: transparent; cursor: pointer; font-size: 9px; font-weight: 800; }
-.management-section-heading > button:hover { color: var(--mw-warm); }
+.management-section-heading > button:hover { color: var(--mw-accent); }
 .management-section-heading > button svg { width: 13px; height: 13px; }
 .management-welcome-art { position: relative; display: grid; align-items: end; justify-items: center; min-height: 194px; }
 .management-mascot { position: relative; z-index: 2; display: grid; width: 155px; height: 156px; align-items: end; justify-items: center; cursor: pointer; }
@@ -161,7 +161,7 @@ html[data-theme="dark"] .management-workspace {
 .management-muted { color: var(--mw-faint); font-style: italic; }
 .management-pagination { display: flex; align-items: center; justify-content: space-between; gap: 12px; border-top: 1px solid var(--mw-line); padding-top: 15px; color: var(--mw-muted); font-size: 9px; }
 .management-pagination > div { display: flex; align-items: center; gap: 12px; }.management-pagination button { min-height: 30px; border: 1px solid var(--mw-line); border-radius: 7px; padding: 0 9px; color: var(--mw-ink); background: var(--mw-surface); cursor: pointer; font-size: 8px !important; font-weight: 700; }.management-pagination button:not(:disabled):hover { border-color: var(--mw-accent); color: var(--mw-accent-dark) !important; }.management-pagination button:disabled { color: var(--mw-faint) !important; opacity: .55; }
-.management-school-row { grid-template-columns: 39px minmax(0,1fr) minmax(110px,auto) 14px; padding: 12px 3px; }.management-school-row:first-child { border-top: 1px solid var(--mw-line); }.management-school-tile { width: 36px; height: 36px; }.management-school-level { color: var(--mw-faint); font-size: 8px; font-weight: 750; letter-spacing: .05em; text-align: right; }.management-school-list.is-detailed .management-school-row { padding: 16px 4px; }.management-school-list.is-detailed .management-school-copy strong { font-size: 11px; }.management-school-list.is-detailed .management-school-copy small { font-size: 9px; }
+.management-school-row { grid-template-columns: 39px minmax(0,1fr) minmax(110px,auto) 14px; padding: 12px 3px; }.management-school-row:first-child { border-top: 1px solid var(--mw-line); }.management-school-tile { width: 36px; height: 36px; }.management-school-level { color: var(--mw-faint); font-size: 8px; font-weight: 750; letter-spacing: .05em; text-align: right; }.management-school-level-badge { display: inline-flex; min-height: 27px; align-items: center; justify-content: center; border: 1px solid color-mix(in srgb,var(--mw-accent),transparent 76%); border-radius: 99px; padding: 0 11px; color: var(--mw-accent-dark); background: var(--mw-accent-soft); font-size: 8px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; white-space: nowrap; }.management-school-list.is-detailed .management-school-row { grid-template-columns: 40px minmax(0,1fr) auto auto; gap: 12px; padding: 15px 4px; }.management-school-list.is-detailed .management-school-copy strong { font-size: 11px; }.management-school-list.is-detailed .management-school-copy small { font-size: 9px; }
 .management-footer { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 26px 0 0; color: var(--mw-faint); font-size: 8px; }.management-footer > span:first-child { color: var(--mw-accent); font-weight: 850; letter-spacing: .1em; }.management-footer > i { width: 3px; height: 3px; border-radius: 50%; background: var(--mw-warm); }.management-footer-role { margin-left: 10px; color: var(--mw-muted); text-transform: capitalize; }
 @media (max-width: 1100px) { .management-workspace { grid-template-columns: 220px minmax(0,1fr); }.management-sidebar { padding-inline: 12px; }.management-topbar,.management-content { width: calc(100% - 42px); }.management-overview-grid { grid-template-columns: minmax(0,1fr); }.management-class-section { max-width: none; } }
 @media (max-width: 760px) { .management-workspace { display: block; }.management-sidebar { position: relative; height: auto; min-height: 0; border-right: 0; border-bottom: 1px solid var(--mw-line); padding: 8px 14px 0; }.management-brand { height: 51px; padding-left: 0; }.management-brand img { width: 89px; height: 50px; }.management-brand span { margin-bottom: 10px; font-size: 6px; }.management-school-chip,.management-sidebar-footer,.management-nav-label { display: none; }.management-nav { display: flex; overflow-x: auto; gap: 5px; scrollbar-width: thin; }.management-nav-link { display: inline-flex; min-width: max-content; min-height: 41px; gap: 7px; padding: 0 11px; }.management-nav-link svg { width: 14px; height: 14px; }.management-nav-link > i { display: none; }.management-topbar { width: calc(100% - 28px); min-height: 57px; }.management-breadcrumb { font-size: 7px; }.management-top-actions { gap: 8px; }.management-theme-button span,.management-user-button > span:nth-child(2) { display: none; }.management-user-button { padding: 0; }.management-content { width: calc(100% - 28px); min-height: calc(100vh - 160px); padding-top: 24px; }.management-page-heading { align-items: start; margin-bottom: 18px; }.management-page-heading h1 { font-size: 29px; }.management-page-heading > div > p:last-child { font-size: 10px; }.management-role-pill { margin-top: 3px; font-size: 7px; }.management-welcome-card { min-height: 170px; grid-template-columns: minmax(0,1fr) 125px; }.management-welcome-copy { padding: 19px 17px; }.management-welcome-copy h2 { font-size: 22px; }.management-welcome-copy > p:not(.management-eyebrow) { font-size: 9px; }.management-welcome-art { min-height: 170px; }.management-welcome-art img { width: 120px; height: 128px; }.orbit-one { width: 92px; height: 92px; top: 35px; }.orbit-two { width: 126px; height: 126px; top: 18px; }.management-stat-grid { gap: 8px; }.management-stat-card { min-height: 108px; grid-template-columns: 30px minmax(0,1fr); column-gap: 8px; padding: 11px 9px; }.management-stat-icon { width: 29px; height: 29px; border-radius: 9px 9px 9px 4px; }.management-stat-icon svg { width: 14px; height: 14px; }.management-stat-card > small { font-size: 6px; letter-spacing: .07em; }.management-stat-card > strong { font-size: 20px; }.management-stat-card > span:last-of-type { font-size: 7px; }.management-status-value { font-size: 14px !important; }.management-section-card { padding: 15px 13px; }.management-section-heading h2 { font-size: 17px; }.management-announcement-row { grid-template-columns: 18px 27px minmax(0,1fr) 10px; gap: 7px; }.management-announcement-symbol { width: 27px; height: 27px; }.management-announcement-copy h3 { font-size: 12px; }.management-announcement-copy > small { font-size: 7px; }.management-directory-card { padding: 16px 11px; }.management-table th,.management-table td { padding-right: 8px; padding-left: 8px; }.management-pagination { align-items: start; flex-direction: column; }.management-pagination > div { width: 100%; justify-content: space-between; }.management-school-row { grid-template-columns: 34px minmax(0,1fr) 13px; gap: 7px; }.management-school-level { display: none; }.management-footer { flex-wrap: wrap; padding-bottom: 12px; } }
@@ -188,7 +188,7 @@ html[data-theme="dark"] .management-workspace {
 .management-stat-card[type="button"] .management-stat-icon { transition: transform 180ms ease,box-shadow 180ms ease; }
 .management-stat-card[type="button"]:hover .management-stat-icon { transform: scale(1.08); box-shadow: 0 0 0 4px color-mix(in srgb,var(--mw-accent),transparent 89%); }
 .management-stat-card[type="button"]:focus-visible { outline: 3px solid color-mix(in srgb,var(--mw-accent),transparent 38%); outline-offset: 3px; }
-.management-profile-page { max-width: 800px; }
+.management-profile-page { max-width: 1030px; margin: 0 auto; }
 .management-profile-details { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 20px; border-top: 1px solid var(--mw-line); padding-top: 19px; }
 .management-profile-details > div { display: grid; gap: 6px; min-width: 0; }
 .management-profile-details small { color: var(--mw-faint); font-size: 8px; font-weight: 850; letter-spacing: .12em; }
@@ -201,16 +201,75 @@ html[data-theme="dark"] .management-workspace {
 
 /* Administrator inbox and account pages. */
 .management-message-page, .management-message-compose-page, .management-profile-page { min-width: 0; }
+.management-page-heading-copy { display: flex; min-width: 0; align-items: center; gap: 18px; }
+.management-message-mascot { position: relative; display: grid; width: 88px; height: 84px; flex: 0 0 auto; place-items: center; cursor: pointer; }
+.management-message-mascot > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 5px 7px rgb(30 35 40 / 12%)); transition: opacity .22s ease, transform .28s cubic-bezier(.2,.75,.2,1); }
+.management-message-mascot > .management-message-pose-rest { opacity: 1; transform: translateY(0) scale(1); }
+.management-message-mascot > .management-message-pose-hover { opacity: 0; transform: translateY(4px) scale(.97); }
+.management-message-mascot:hover > .management-message-pose-rest,
+.management-message-mascot:focus-visible > .management-message-pose-rest { opacity: 0; transform: translateY(-2px) scale(.98); }
+.management-message-mascot:hover > .management-message-pose-hover,
+.management-message-mascot:focus-visible > .management-message-pose-hover { opacity: 1; transform: translateY(0) scale(1); }
+.management-message-mascot:focus-visible { outline: 2px solid var(--mw-accent); outline-offset: 3px; border-radius: 12px; }
+.management-message-mascot > span { position: absolute; z-index: 2; right: -26px; bottom: calc(100% - 10px); width: max-content; max-width: 145px; border: 1px solid var(--mw-line); border-radius: 9px 9px 2px 9px; padding: 5px 8px; color: var(--mw-accent-dark); background: var(--mw-surface); box-shadow: var(--mw-shadow); font-family: Georgia,"Times New Roman",serif; font-size: 8px; font-weight: 700; opacity: 0; pointer-events: none; transform: translateY(4px); transition: opacity .18s ease, transform .18s ease; white-space: nowrap; }
+.management-message-mascot:hover > span,
+.management-message-mascot:focus-visible > span { opacity: 1; transform: translateY(0); }
 .management-message-heading { display: flex; align-items: end; justify-content: space-between; gap: 18px; margin-bottom: 16px; }
 .management-message-heading h2, .management-message-compose-intro h2 { margin: 6px 0 5px; color: var(--mw-ink); font: 500 clamp(23px,2.5vw,30px)/1.1 Georgia,"Times New Roman",serif; letter-spacing: -.04em; }
 .management-message-heading > div:first-child > p:last-child, .management-message-compose-intro > p:not(.management-eyebrow) { margin: 0; color: var(--mw-muted); font-size: 10px; line-height: 1.55; }
-.management-message-heading-actions { display: flex; align-items: center; gap: 10px; }
-.management-message-layout { display: grid; min-height: 560px; grid-template-columns: minmax(260px, .76fr) minmax(0, 1.65fr); overflow: hidden; border: 1px solid var(--mw-line); border-radius: 12px 12px 12px 4px; background: var(--mw-surface); box-shadow: var(--mw-shadow); }
-.management-message-list-panel { min-width: 0; border-right: 1px solid var(--mw-line); padding: 16px; }
+.management-message-heading-actions { display: flex; align-items: center; gap: 12px; }
+.management-message-new-button,
+.management-message-send-button,
+.management-message-empty-action {
+  display: inline-flex;
+  min-height: 43px;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  border: 1px solid var(--mw-accent-dark);
+  border-radius: 5px 12px 5px 12px;
+  padding: 0 16px;
+  color: var(--mw-surface) !important;
+  background: var(--mw-accent-dark);
+  box-shadow: 0 4px 0 color-mix(in srgb,var(--mw-accent-dark),#322742 25%);
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px !important;
+  font-weight: 750 !important;
+  line-height: 1.2;
+  text-decoration: none;
+  transition: transform .15s ease,box-shadow .15s ease,background-color .15s ease,border-color .15s ease;
+}
+.management-message-new-button svg,
+.management-message-send-button svg { width: 14px; height: 14px; }
+.management-message-new-button:hover:not(:disabled),
+.management-message-send-button:hover:not(:disabled),
+.management-message-empty-action:hover:not(:disabled) {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 color-mix(in srgb,var(--mw-accent-dark),#322742 25%);
+}
+.management-message-new-button:disabled,
+.management-message-send-button:disabled,
+.management-message-empty-action:disabled {
+  transform: none;
+  border-color: var(--mw-line);
+  color: var(--mw-faint) !important;
+  background: var(--mw-panel);
+  box-shadow: none;
+  cursor: not-allowed;
+}
+.management-message-new-button:focus-visible,
+.management-message-send-button:focus-visible,
+.management-message-empty-action:focus-visible {
+  outline: 2px solid color-mix(in srgb,var(--mw-accent),transparent 25%);
+  outline-offset: 4px;
+}
+.management-message-layout { display: grid; height: clamp(630px, 72vh, 760px); min-height: 630px; grid-template-columns: minmax(265px, .76fr) minmax(0, 1.65fr); overflow: hidden; border: 1px solid var(--mw-line); border-radius: 12px 12px 12px 4px; background: var(--mw-surface); box-shadow: var(--mw-shadow); }
+.management-message-list-panel { display: flex; min-width: 0; min-height: 0; flex-direction: column; border-right: 1px solid var(--mw-line); padding: 18px 16px; }
 .management-message-list-heading { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; border-bottom: 1px solid var(--mw-line); padding-bottom: 11px; }
 .management-message-list-heading > div { display: grid; gap: 5px; }
 .management-message-list-heading strong { color: var(--mw-ink); font-size: 10px; }
-.management-message-list { display: grid; }
+.management-message-list { display: grid; min-height: 0; flex: 1; align-content: start; overflow-y: auto; }
 .management-message-list-item { display: grid; width: 100%; min-width: 0; grid-template-columns: 35px minmax(0,1fr) auto; align-items: center; gap: 9px; border: 0; border-bottom: 1px solid var(--mw-line); padding: 11px 5px; color: var(--mw-ink); background: transparent; cursor: pointer; text-align: left; transition: background-color 150ms ease; }
 .management-message-list-item:hover, .management-message-list-item.is-selected { background: color-mix(in srgb,var(--mw-accent-soft),transparent 30%); }
 .management-message-list-item.is-selected { box-shadow: inset 3px 0 var(--mw-accent); }
@@ -225,28 +284,28 @@ html[data-theme="dark"] .management-workspace {
 .management-message-list-meta { display: grid; justify-items: end; gap: 6px; }
 .management-message-list-meta time { color: var(--mw-faint); font-size: 7px; white-space: nowrap; }
 .management-message-list-meta i { display: grid; min-width: 17px; height: 17px; place-items: center; border-radius: 50%; padding: 0 4px; color: var(--mw-surface); background: var(--mw-accent-dark); font-size: 8px; font-style: normal; font-weight: 800; }
-.management-message-thread-panel { display: flex; min-width: 0; min-height: 560px; flex-direction: column; padding: 17px 20px 15px; }
-.management-message-thread-heading { display: flex; align-items: center; gap: 11px; border-bottom: 1px solid var(--mw-line); padding-bottom: 13px; }
+.management-message-thread-panel { display: flex; height: 100%; min-width: 0; min-height: 0; flex-direction: column; padding: 20px 24px 18px; }
+.management-message-thread-heading { display: flex; align-items: center; gap: 11px; border-bottom: 1px solid var(--mw-line); padding-bottom: 14px; }
 .management-message-thread-heading .management-message-avatar { width: 39px; height: 39px; }
 .management-message-thread-heading > div { display: grid; gap: 3px; }
 .management-message-thread-heading h3 { margin: 0; color: var(--mw-ink); font: 500 18px/1.2 Georgia,"Times New Roman",serif; }
 .management-message-thread-heading > div > span { color: var(--mw-muted); font-size: 9px; }
-.management-message-thread { display: flex; min-height: 0; flex: 1; flex-direction: column; gap: 11px; overflow-y: auto; padding: 18px 4px; scroll-behavior: smooth; }
-.management-message-bubble { width: fit-content; max-width: min(78%, 530px); border: 1px solid var(--mw-line); border-radius: 11px 11px 11px 3px; padding: 10px 12px; color: var(--mw-ink); background: var(--mw-panel); }
+.management-message-thread { display: flex; min-height: 0; flex: 1; flex-direction: column; gap: 13px; overflow-y: auto; padding: 22px 6px; scroll-behavior: smooth; }
+.management-message-bubble { width: fit-content; max-width: min(78%, 540px); border: 1px solid var(--mw-line); border-radius: 11px 11px 11px 3px; padding: 11px 14px; color: var(--mw-ink); background: var(--mw-panel); }
 .management-message-bubble.is-own { align-self: flex-end; border-color: color-mix(in srgb,var(--mw-accent),transparent 75%); border-radius: 11px 11px 3px 11px; background: var(--mw-accent-soft); }
 .management-message-bubble-meta { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
 .management-message-bubble-meta strong { color: var(--mw-accent-dark); font-size: 8px; font-weight: 800; }
 .management-message-bubble-meta time { color: var(--mw-faint); font-size: 7px; white-space: nowrap; }
-.management-message-bubble > p { margin: 7px 0 0; color: var(--mw-ink); font-size: 10px; line-height: 1.6; overflow-wrap: anywhere; white-space: pre-wrap; }
+.management-message-bubble > p { margin: 7px 0 0; color: var(--mw-ink); font-size: 11px; line-height: 1.65; overflow-wrap: anywhere; white-space: pre-wrap; }
 .management-message-attachments { display: grid; gap: 5px; margin-top: 9px; }
 .management-message-attachments button { display: inline-flex; max-width: 100%; align-items: center; gap: 7px; border: 1px solid var(--mw-line); border-radius: 7px; padding: 7px 9px; color: var(--mw-accent-dark); background: var(--mw-surface); cursor: pointer; font-size: 8px; font-weight: 700; text-align: left; }
 .management-message-attachments button > span { font-size: 13px; }
 .management-message-attachments button small { color: var(--mw-muted); font-size: 7px; font-weight: 500; white-space: nowrap; }
-.management-message-reply { display: grid; gap: 8px; border-top: 1px solid var(--mw-line); padding-top: 12px; }
-.management-message-reply textarea, .management-message-body-field textarea { width: 100%; min-height: 74px; resize: vertical; border: 1px solid var(--mw-line); border-radius: 8px; padding: 10px 12px; color: var(--mw-ink); background: var(--mw-panel); font: inherit; font-size: 10px; line-height: 1.5; }
-.management-message-reply textarea:focus, .management-message-body-field textarea:focus { outline: 2px solid color-mix(in srgb,var(--mw-accent),transparent 55%); outline-offset: 1px; }
-.management-message-reply > div { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-.management-message-reply > div > small, .management-message-body-field > small { color: var(--mw-faint); font-size: 8px; }
+.management-message-reply { display: grid; gap: 10px; border-top: 1px solid var(--mw-line); padding-top: 14px; }
+.management-message-reply textarea, .management-message-body-field textarea { width: 100%; min-height: 114px; max-height: 220px; overflow-y: auto; resize: vertical; border: 1px solid var(--mw-line); border-radius: 6px 12px 6px 12px; padding: 12px 14px; color: var(--mw-ink); background: var(--mw-panel); font: inherit; font-size: 11px; line-height: 1.6; }
+.management-message-reply textarea:focus, .management-message-body-field textarea:focus { border-color: var(--mw-accent); outline: 0; box-shadow: 0 0 0 3px color-mix(in srgb,var(--mw-accent),transparent 84%); }
+.management-message-reply > div { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.management-message-reply > div > small, .management-message-body-field > small { color: var(--mw-faint); font-size: 9px; }
 .management-message-readonly { border-top: 1px solid var(--mw-line); padding-top: 12px; color: var(--mw-muted); font-size: 9px; }
 .management-message-no-selection { display: grid; min-height: 100%; align-content: center; justify-items: center; gap: 8px; padding: 35px; text-align: center; }
 .management-message-no-selection > span { display: grid; width: 47px; height: 47px; place-items: center; margin-bottom: 5px; border: 1px solid color-mix(in srgb,var(--mw-accent),transparent 75%); border-radius: 14px 14px 14px 4px; color: var(--mw-accent); background: var(--mw-accent-soft); font-size: 21px; }
@@ -255,8 +314,8 @@ html[data-theme="dark"] .management-workspace {
 .management-message-error { display: grid; justify-items: start; gap: 8px; padding: 12px 2px; }
 .management-message-error p, .management-inline-error { margin: 0; color: #a54f47; font-size: 9px; line-height: 1.5; }
 .management-message-compose-page { max-width: 1030px; margin: 0 auto; }
-.management-back-link { border: 0; padding: 0; color: var(--mw-accent-dark); background: transparent; cursor: pointer; font-size: 10px; font-weight: 750; }
-.management-back-link:hover { color: var(--mw-warm); }
+.management-back-link { border: 0; padding: 0; color: var(--mw-accent-dark); background: transparent; cursor: pointer; font-size: 10px; font-weight: 750; transition: color 150ms ease; }
+.management-back-link:hover, .management-back-link:focus-visible { color: var(--mw-accent); text-decoration: underline; text-underline-offset: 3px; }
 .management-message-compose-layout { display: grid; grid-template-columns: minmax(220px,.75fr) minmax(0,1.5fr); align-items: start; gap: 22px; margin-top: 18px; }
 .management-message-compose-intro { padding: 18px 0; }
 .management-message-compose-intro h2 { max-width: 290px; font-size: clamp(26px,3vw,36px); }
@@ -281,70 +340,94 @@ html[data-theme="dark"] .management-workspace {
 .management-text-button { justify-self: start; border: 0; padding: 3px; color: var(--mw-accent-dark); background: transparent; cursor: pointer; font-size: 8px; font-weight: 800; }
 .management-text-button:hover { text-decoration: underline; }
 .management-message-body-field { gap: 7px; }
-.management-message-body-field textarea { min-height: 138px; }
+.management-message-body-field textarea { min-height: 155px; max-height: 300px; }
 .management-message-body-field textarea:disabled { opacity: .65; }
 .management-message-compose-actions { display: flex; justify-content: flex-end; gap: 9px; border-top: 1px solid var(--mw-line); padding-top: 12px; }
-.management-profile-layout { display: grid; grid-template-columns: minmax(0,1.45fr) minmax(300px,.9fr); align-items: start; gap: 17px; }
-.management-profile-main-column, .management-profile-side-column { display: grid; min-width: 0; gap: 14px; }
-.management-profile-panel { padding: 18px; }
-.management-profile-panel .management-section-heading { margin-bottom: 13px; }
-.management-profile-account-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 15px 20px; border-bottom: 1px solid var(--mw-line); padding: 2px 0 15px; }
-.management-profile-account-grid > div { display: grid; min-width: 0; gap: 5px; }
-.management-profile-account-grid small { color: var(--mw-faint); font-size: 7px; font-weight: 850; letter-spacing: .11em; }
-.management-profile-account-grid strong { overflow-wrap: anywhere; color: var(--mw-ink); font-size: 10px; font-weight: 750; }
-.management-profile-note { margin: 10px 0 0; color: var(--mw-muted); font-size: 8px; line-height: 1.5; }
-.management-profile-field-form { display: grid; gap: 7px; margin: 0 0 14px; }
-.management-profile-field-form > label { display: flex; align-items: center; gap: 8px; color: var(--mw-ink); font-size: 9px; font-weight: 750; }
-.management-email-status { border-radius: 99px; padding: 4px 7px; color: var(--mw-muted); background: var(--mw-panel); font-size: 7px; font-weight: 800; }
+.management-message-compose-actions > .management-secondary-button { min-height: 43px; border: 1px solid #a54f47; border-radius: 5px 12px 5px 12px; padding: 0 16px; color: #fff !important; background: #a54f47; box-shadow: 0 4px 0 color-mix(in srgb,#a54f47,#322742 25%); font: inherit; font-size: 12px !important; font-weight: 750 !important; transition: transform .15s ease,box-shadow .15s ease,background-color .15s ease,border-color .15s ease; }
+.management-message-compose-actions > .management-secondary-button:hover:not(:disabled) { transform: translateY(2px); border-color: #8f4039; background: #8f4039; box-shadow: 0 2px 0 color-mix(in srgb,#8f4039,#322742 25%); }
+.management-profile-back-link { margin: 0 0 14px; border: 0; padding: 7px 0; color: var(--mw-accent-dark); background: transparent; cursor: pointer; font: 750 15px/normal Inter,ui-sans-serif,system-ui,sans-serif; transition: color 150ms ease; }
+.management-profile-back-link:hover, .management-profile-back-link:focus-visible { color: var(--mw-accent); text-decoration: underline; text-underline-offset: 3px; }
+.management-profile-heading { display: flex; align-items: center; justify-content: space-between; gap: 20px; margin: 0 0 25px; border-bottom: 1px solid var(--mw-line); padding: 0 0 20px; }
+.management-profile-heading > div { display: flex; min-width: 0; align-items: center; gap: 17px; }
+.management-profile-heading h1 { margin: 5px 0 4px; color: var(--mw-ink); font: 500 clamp(28px,3.5vw,36px)/1.1 Georgia,"Times New Roman",serif; letter-spacing: -.04em; }
+.management-profile-heading p:not(.management-eyebrow) { margin: 0; color: var(--mw-muted); font-size: 11px; }
+.management-profile-hero-avatar { display: grid; width: 66px; height: 66px; flex: 0 0 auto; overflow: hidden; place-items: center; border: 1px solid color-mix(in srgb,var(--mw-accent),transparent 65%); border-radius: 22px 22px 22px 7px; color: var(--mw-accent-dark); background: var(--mw-accent-soft); box-shadow: 0 4px 14px rgb(40 30 55 / 10%); font: 800 16px Georgia,serif; }
+.management-profile-hero-avatar img, .management-profile-hero-avatar > span { display: block; width: 100%; height: 100%; border-radius: inherit; object-fit: cover; background-repeat: no-repeat; }
+.management-profile-role-chip { border-color: color-mix(in srgb,var(--mw-accent),transparent 55%); padding: 7px 12px; color: var(--mw-accent-dark); background: color-mix(in srgb,var(--mw-accent),transparent 90%); font-size: 10px; font-weight: 750; text-transform: none; }
+.management-profile-layout { display: grid; grid-template-columns: minmax(0,1.35fr) minmax(300px,.85fr); align-items: start; gap: 21px; }
+.management-profile-main-column, .management-profile-side-column { display: grid; min-width: 0; align-content: start; gap: 17px; }
+.management-profile-panel { border-radius: 11px 11px 11px 4px; padding: 20px; background: color-mix(in srgb,var(--mw-surface),transparent 2%); }
+.management-profile-panel .management-profile-panel-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 0 18px; }
+.management-profile-panel .management-profile-panel-heading h2 { margin: 4px 0 0; color: var(--mw-ink); font: 500 19px Georgia,"Times New Roman",serif; letter-spacing: -.025em; }
+.management-profile-readonly-mark { border-radius: 99px; padding: 6px 9px; color: var(--mw-muted); background: var(--mw-panel); font-size: 8px; font-weight: 700; white-space: nowrap; }
+.management-profile-account-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 18px 22px; border-bottom: 1px solid var(--mw-line); padding: 2px 0 19px; }
+.management-profile-account-grid > div { display: grid; min-width: 0; gap: 6px; }
+.management-profile-account-grid small { color: var(--mw-faint); font-size: 8px; font-weight: 800; letter-spacing: .08em; }
+.management-profile-account-grid strong { overflow-wrap: anywhere; color: var(--mw-ink); font-size: 11px; font-weight: 650; }
+.management-profile-note { margin: 19px 0 0; color: var(--mw-faint); font-size: 9px; line-height: 1.5; }
+.management-contact-panel { display: grid; gap: 18px; }
+.management-contact-panel .management-profile-panel-heading { margin-bottom: 0; }
+.management-profile-field-form { display: grid; gap: 8px; margin: 0; }
+.management-profile-field-form > label { display: flex; align-items: center; gap: 8px; color: var(--mw-ink); font-size: 10px; font-weight: 750; }
+.management-email-status { border-radius: 99px; padding: 3px 7px; color: var(--mw-warm); background: var(--mw-warm-soft); font-size: 8px; font-weight: 750; }
 .management-email-status.is-verified { color: var(--mw-green); background: var(--mw-green-soft); }
-.management-profile-inline-field { display: flex; align-items: center; gap: 8px; }
-.management-profile-inline-field > input { width: 100%; min-width: 0; min-height: 37px; border: 1px solid var(--mw-line); border-radius: 7px; padding: 0 10px; color: var(--mw-ink); background: var(--mw-panel); font-size: 9px; }
+.management-profile-inline-field { display: flex; min-width: 0; align-items: center; gap: 8px; }
+.management-profile-inline-field > input { width: 100%; min-width: 0; min-height: 40px; flex: 1; border: 1px solid var(--mw-line); border-radius: 6px; padding: 10px 11px; color: var(--mw-ink); background: var(--mw-page); font-size: 11px; }
 .management-profile-inline-field > input:focus { outline: 2px solid color-mix(in srgb,var(--mw-accent),transparent 55%); outline-offset: 1px; }
 .management-profile-inline-field > button { flex: 0 0 auto; }
-.management-profile-verification { display: grid; justify-items: start; gap: 9px; margin: -8px 0 14px; }
-.management-profile-code-form { width: min(100%,390px); }
+.management-profile-primary-action { display: inline-flex; min-height: 43px; align-items: center; justify-content: center; gap: 8px; border: 1px solid var(--mw-accent-dark); border-radius: 5px 12px 5px 12px; padding: 0 16px; color: var(--mw-surface) !important; background: var(--mw-accent-dark); box-shadow: 0 4px 0 color-mix(in srgb,var(--mw-accent-dark),#322742 25%); cursor: pointer; font: inherit; font-size: 12px !important; font-weight: 750 !important; line-height: 1.2; transition: transform .15s ease,box-shadow .15s ease,background-color .15s ease,opacity .15s ease; }
+.management-profile-primary-action:hover:not(:disabled) { transform: translateY(2px); box-shadow: 0 2px 0 color-mix(in srgb,var(--mw-accent-dark),#322742 25%); }
+.management-profile-primary-action:disabled { cursor: default; opacity: .65; }
+.management-profile-primary-action.is-busy:disabled { cursor: wait; }
+.management-profile-secondary-action { flex: 0 0 auto; min-height: 38px; border: 1px solid color-mix(in srgb,var(--mw-accent),transparent 30%); border-radius: 5px 10px 5px 10px; padding: 0 12px; color: var(--mw-accent-dark) !important; background: var(--mw-accent-soft); cursor: pointer; font: inherit; font-size: 10px !important; font-weight: 750 !important; }
+.management-profile-secondary-action:disabled { cursor: default; opacity: .65; }
+.management-profile-verification { display: grid; justify-items: start; gap: 8px; margin-top: -8px; }
+.management-profile-verification .management-text-button { padding: 0; font-size: 9px; font-weight: 750; }
+.management-profile-code-form { width: 100%; max-width: 390px; }
 .management-profile-code-form > input { flex: 1; }
+.management-security-panel .management-profile-panel-heading { margin-bottom: 18px; }
 .management-password-form { display: grid; gap: 13px; }
-.management-password-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; }
-.management-password-grid > .management-form-field > input { width: 100%; min-height: 37px; border: 1px solid var(--mw-line); border-radius: 7px; padding: 0 10px; color: var(--mw-ink); background: var(--mw-panel); font-size: 9px; }
+.management-password-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 13px; }
+.management-password-grid > .management-form-field { gap: 7px; color: var(--mw-ink); font-size: 10px; font-weight: 750; }
+.management-password-grid > .management-form-field:first-child { grid-column: 1 / -1; }
+.management-password-grid > .management-form-field > input { width: 100%; min-height: 40px; border: 1px solid var(--mw-line); border-radius: 6px; padding: 10px 11px; color: var(--mw-ink); background: var(--mw-page); font-size: 11px; }
 .management-password-grid > .management-form-field > input:focus { outline: 2px solid color-mix(in srgb,var(--mw-accent),transparent 55%); outline-offset: 1px; }
-.management-password-actions { display: flex; align-items: center; justify-content: space-between; gap: 10px; border-top: 1px solid var(--mw-line); padding-top: 11px; }
-.management-password-actions > small { color: var(--mw-muted); font-size: 8px; line-height: 1.45; }
-.management-avatar-preview { display: flex; align-items: center; gap: 10px; margin: 0 0 13px; border: 1px solid var(--mw-line); border-radius: 9px; padding: 9px; background: var(--mw-panel); }
-.management-avatar-preview-image { display: grid; width: 49px; height: 49px; flex: 0 0 auto; overflow: hidden; place-items: center; border: 1px solid var(--mw-line); border-radius: 11px 11px 11px 4px; color: var(--mw-accent-dark); background: var(--mw-accent-soft); font: 700 12px Georgia,serif; }
-.management-avatar-preview-image img, .management-avatar-preview-image > span { width: 100%; height: 100%; object-fit: cover; }
+.management-password-actions { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 2px; }
+.management-password-actions > small { color: var(--mw-muted); font-size: 9px; line-height: 1.45; }
+.management-avatar-panel .management-profile-panel-heading { margin-bottom: 18px; }
+.management-avatar-preview { display: flex; align-items: center; gap: 11px; margin: 0 0 14px; border: 1px solid var(--mw-line); border-radius: 8px; padding: 11px; background: var(--mw-panel); }
+.management-avatar-preview-image { display: grid; width: 57px; height: 57px; flex: 0 0 auto; overflow: hidden; place-items: center; border: 1px solid color-mix(in srgb,var(--mw-accent),transparent 70%); border-radius: 18px 18px 18px 6px; color: var(--mw-accent-dark); background: var(--mw-accent-soft); font: 800 14px Georgia,serif; }
+.management-avatar-preview-image img, .management-avatar-preview-image > span { display: block; width: 100%; height: 100%; border-radius: inherit; object-fit: cover; background-repeat: no-repeat; }
 .management-avatar-preview > span:last-child { display: grid; gap: 4px; }
-.management-avatar-preview strong { color: var(--mw-ink); font-size: 9px; }
-.management-avatar-preview small { color: var(--mw-muted); font-size: 8px; line-height: 1.4; }
-.management-avatar-initial-choice { margin-bottom: 10px; }
-.management-avatar-choice { display: grid; min-width: 57px; min-height: 61px; justify-items: center; align-content: center; gap: 4px; border: 1px solid transparent; border-radius: 8px; padding: 5px; color: var(--mw-muted); background: transparent; cursor: pointer; }
-.management-avatar-choice:hover, .management-avatar-choice.is-selected { border-color: color-mix(in srgb,var(--mw-accent),transparent 35%); color: var(--mw-accent-dark); background: var(--mw-accent-soft); }
-.management-avatar-choice > strong { font-size: 7px; font-weight: 750; }
-.management-avatar-option-initials { display: grid; width: 35px; height: 35px; place-items: center; border: 1px solid var(--mw-line); border-radius: 10px 10px 10px 3px; color: var(--mw-accent-dark); background: var(--mw-panel); font-family: Georgia,serif; font-size: 9px; font-weight: 800; }
-.management-avatar-groups { max-height: 390px; overflow-y: auto; scrollbar-color: var(--mw-faint) transparent; }
-.management-avatar-group { border-top: 1px solid var(--mw-line); padding: 10px 0; }
-.management-avatar-group h3 { margin: 0 0 7px; color: var(--mw-accent); font-size: 8px; font-weight: 850; letter-spacing: .08em; text-transform: uppercase; }
+.management-avatar-preview strong { color: var(--mw-ink); font-size: 11px; }
+.management-avatar-preview small { color: var(--mw-muted); font-size: 9px; line-height: 1.4; }
+.management-avatar-initial-choice { display: flex; margin: 0 0 12px; }
+.management-avatar-initial-choice .management-avatar-choice { width: 62px; }
+.management-avatar-choice { display: grid; min-width: 0; justify-items: center; align-content: center; gap: 6px; border: 1px solid transparent; border-radius: 8px; padding: 8px 3px 7px; color: var(--mw-muted); background: transparent; cursor: pointer; transition: border-color .15s ease,background-color .15s ease; }
+.management-avatar-choice:hover, .management-avatar-choice.is-selected { border-color: color-mix(in srgb,var(--mw-accent),transparent 35%); color: var(--mw-accent-dark); background: color-mix(in srgb,var(--mw-accent),transparent 91%); }
+.management-avatar-choice > strong { max-width: 100%; overflow: hidden; color: inherit; font-size: 8px; font-weight: 650; text-overflow: ellipsis; white-space: nowrap; }
+.management-avatar-option-initials, .management-avatar-option-animal { display: grid; width: 43px; height: 43px; place-items: center; border: 1px solid color-mix(in srgb,var(--mw-accent),transparent 70%); border-radius: 14px 14px 14px 5px; color: var(--mw-accent-dark); background-color: var(--mw-panel); background-repeat: no-repeat; font-family: Georgia,serif; font-size: 11px; font-weight: 800; transition: transform .18s ease; }
+.management-avatar-choice:hover .management-avatar-option-animal { transform: translateY(-2px) rotate(-2deg); }
+.management-avatar-groups { display: grid; max-height: 370px; gap: 12px; overflow-y: auto; padding: 2px 5px 2px 2px; scrollbar-color: color-mix(in srgb,var(--mw-accent),transparent 60%) transparent; scrollbar-width: thin; }
+.management-avatar-group { border-top: 1px solid var(--mw-line); padding-top: 10px; }
+.management-avatar-group h3 { margin: 0 0 5px; color: var(--mw-accent); font-size: 9px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
 .management-avatar-options { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 5px; }
-.management-avatar-option-animal { display: block; width: 38px; height: 38px; border-radius: 8px; background-repeat: no-repeat; }
-.management-avatar-upload { display: grid; min-height: 37px; place-items: center; border: 1px dashed color-mix(in srgb,var(--mw-accent),transparent 45%); border-radius: 7px; color: var(--mw-accent-dark); background: var(--mw-panel); cursor: pointer; font-size: 8px; font-weight: 800; }
-.management-avatar-upload:hover { background: var(--mw-accent-soft); }
-.management-avatar-upload input { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; clip-path: inset(50%); }
+.management-avatar-upload { position: relative; display: flex; min-height: 36px; align-items: center; justify-content: center; margin-top: 12px; border: 1px solid var(--mw-line); border-radius: 6px; color: var(--mw-accent-dark); background: var(--mw-panel); cursor: pointer; font-size: 9px; font-weight: 750; transition: border-color .15s ease,background-color .15s ease; }
+.management-avatar-upload:hover { border-color: color-mix(in srgb,var(--mw-accent),transparent 45%); background: var(--mw-accent-soft); }
+.management-avatar-upload input { position: absolute; width: 1px; height: 1px; overflow: hidden; opacity: 0; }
 .management-avatar-upload:focus-within { outline: 2px solid var(--mw-accent); outline-offset: 2px; }
-.management-avatar-hint { display: block; margin: 6px 0 11px; color: var(--mw-muted); font-size: 7px; }
-.management-avatar-save { width: 100%; }
-.management-avatar-loading { margin: 9px 0 0; color: var(--mw-muted); font-size: 8px; }
-.management-profile-shortcuts > .management-eyebrow { border-bottom: 1px solid var(--mw-line); padding-bottom: 9px; }
-.management-profile-shortcuts > button { display: grid; width: 100%; grid-template-columns: minmax(0,1fr) 20px; gap: 4px 10px; border: 0; border-bottom: 1px solid var(--mw-line); padding: 10px 1px; color: var(--mw-ink); background: transparent; cursor: pointer; text-align: left; }
-.management-profile-shortcuts > button:last-child { border-bottom: 0; }
-.management-profile-shortcuts > button > span { color: var(--mw-accent-dark); font-size: 9px; font-weight: 800; }
+.management-avatar-hint { display: block; margin-top: 6px; color: var(--mw-muted); font-size: 8px; }
+.management-avatar-save { width: 100%; margin-top: 12px; }
+.management-profile-shortcuts { display: grid; gap: 0; padding-top: 16px; padding-bottom: 7px; }
+.management-profile-shortcuts > .management-eyebrow { margin-bottom: 7px; }
+.management-profile-shortcuts > button { display: grid; width: 100%; grid-template-columns: minmax(0,1fr) auto; gap: 4px 10px; border: 0; border-top: 1px solid var(--mw-line); padding: 11px 1px; color: var(--mw-ink); background: transparent; cursor: pointer; text-align: left; }
+.management-profile-shortcuts > button > span { color: var(--mw-ink); font-size: 10px; font-weight: 750; transition: color .15s ease; }
 .management-profile-shortcuts > button > small { color: var(--mw-muted); font-size: 8px; }
-.management-profile-shortcuts > button > b { grid-column: 2; grid-row: 1 / span 2; align-self: center; color: var(--mw-accent); font-size: 11px; text-align: right; }
-.management-profile-shortcuts > button:hover > span { text-decoration: underline; }
-.management-profile-shortcuts > .management-profile-signout-link > span { color: #a9513e; }
-.management-profile-shortcuts > .management-profile-signout-link > b { color: #a9513e; }
-@media (max-width: 900px) { .management-profile-layout { grid-template-columns: minmax(0,1fr); }.management-profile-side-column { grid-template-columns: repeat(2,minmax(0,1fr)); align-items: start; }.management-avatar-panel { grid-row: span 2; } }
-@media (max-width: 760px) { .management-message-layout { min-height: 0; grid-template-columns: minmax(0,1fr); }.management-message-list-panel { border-right: 0; border-bottom: 1px solid var(--mw-line); }.management-message-thread-panel { min-height: 430px; }.management-message-layout.has-selection .management-message-list-panel { max-height: 220px; overflow-y: auto; }.management-message-compose-layout { grid-template-columns: minmax(0,1fr); gap: 8px; }.management-message-compose-intro { padding: 8px 0; }.management-message-compose-note { display: none; }.management-profile-side-column { grid-template-columns: minmax(0,1fr); }.management-avatar-panel { grid-row: auto; } }
-@media (max-width: 540px) { .management-message-heading { align-items: flex-start; flex-direction: column; }.management-message-heading-actions { width: 100%; justify-content: space-between; }.management-message-thread-panel { padding: 13px 12px; }.management-message-bubble { max-width: 92%; }.management-profile-account-grid, .management-password-grid { grid-template-columns: minmax(0,1fr); }.management-profile-panel { padding: 14px; }.management-profile-inline-field { align-items: stretch; flex-direction: column; }.management-profile-inline-field > button { align-self: flex-start; }.management-password-actions { align-items: flex-start; flex-direction: column; }.management-profile-code-form { align-items: stretch; }.management-profile-code-form > input { width: 100%; }.management-message-compose-form { padding: 14px; } }
+.management-profile-shortcuts > button > b { grid-column: 2; grid-row: 1 / span 2; align-self: center; color: var(--mw-accent); font-size: 13px; text-align: right; transition: color .15s ease; }
+.management-profile-shortcuts > button:hover > span, .management-profile-shortcuts > button:hover > b { color: var(--mw-accent); }
+.management-profile-shortcuts > .management-profile-signout-link > span, .management-profile-shortcuts > .management-profile-signout-link > b { color: #a9513e; }
+@media (max-width: 760px) { .management-page-heading-copy { gap: 10px; }.management-message-mascot { width: 68px; height: 64px; }.management-message-mascot > span { right: -10px; bottom: calc(100% - 6px); font-size: 7px; }.management-message-layout { height: auto; min-height: 0; grid-template-columns: minmax(0,1fr); }.management-message-list-panel { border-right: 0; border-bottom: 1px solid var(--mw-line); }.management-message-thread-panel { height: auto; min-height: 480px; }.management-message-layout.has-selection .management-message-list-panel { max-height: 220px; overflow-y: auto; }.management-message-compose-layout { grid-template-columns: minmax(0,1fr); gap: 8px; }.management-message-compose-intro { padding: 8px 0; }.management-message-compose-note { display: none; }.management-profile-layout { grid-template-columns: 1fr; }.management-profile-heading { align-items: start; }.management-profile-heading > div { gap: 12px; }.management-profile-hero-avatar { width: 54px; height: 54px; }.management-profile-heading h1 { font-size: 28px; } }
+@media (max-width: 540px) { .management-page-heading-copy { width: 100%; justify-content: space-between; }.management-message-mascot { width: 60px; height: 56px; }.management-message-mascot > span { right: 0; }.management-message-heading { align-items: flex-start; flex-direction: column; }.management-message-heading-actions { width: 100%; justify-content: space-between; }.management-message-thread-panel { padding: 14px 12px; }.management-message-reply textarea { min-height: 98px; }.management-message-bubble { max-width: 92%; }.management-profile-account-grid, .management-password-grid { grid-template-columns: minmax(0,1fr); }.management-password-grid > .management-form-field:first-child { grid-column: auto; }.management-profile-panel { padding: 16px; }.management-profile-inline-field { flex-wrap: wrap; }.management-profile-inline-field > input { flex-basis: 100%; }.management-password-actions { align-items: flex-start; flex-direction: column; }.management-profile-code-form { align-items: stretch; }.management-profile-code-form > input { width: 100%; }.management-message-compose-form { padding: 14px; } }
 
 .management-table-tools { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 0 13px; }
 .management-search { display: flex; width: min(100%, 370px); min-height: 39px; align-items: center; gap: 9px; border: 1px solid var(--mw-line); border-radius: 8px; padding: 0 11px; color: var(--mw-faint); background: var(--mw-panel); }
@@ -418,7 +501,7 @@ html[data-theme="dark"] .management-workspace {
 .management-student-detail { display: grid; gap: 16px; }
 
 /* School roster details use the same quiet, handmade language as member pages. */
-.management-students-page .management-section-heading > .management-student-add-button, .management-student-record .management-student-save-button, .management-student-table-wrap .management-detail-button, .management-student-create-form .management-student-create-submit, .management-student-created-actions .management-student-create-submit { display: inline-flex; min-height: 43px; align-items: center; justify-content: center; gap: 9px; border: 1px solid var(--mw-accent-dark); border-radius: 5px 12px 5px 12px; padding: 0 16px; color: var(--mw-surface); background: var(--mw-accent-dark); box-shadow: 0 4px 0 color-mix(in srgb,var(--mw-accent-dark),#322742 25%); cursor: pointer; font: inherit; font-size: 12px !important; font-weight: 700; text-decoration: none; transition: transform .15s ease,box-shadow .15s ease; }
+.management-students-page .management-section-heading > .management-student-add-button, .management-student-record .management-student-save-button, .management-student-table-wrap .management-detail-button, .management-student-create-form .management-student-create-submit, .management-student-created-actions .management-student-create-submit { display: inline-flex; min-height: 43px; align-items: center; justify-content: center; gap: 9px; border: 1px solid var(--mw-accent-dark); border-radius: 5px 12px 5px 12px; padding: 0 16px; color: var(--mw-surface); background: var(--mw-accent-dark); box-shadow: 0 4px 0 color-mix(in srgb,var(--mw-accent-dark),#322742 25%); cursor: pointer; font: inherit; font-size: 12px !important; font-weight: 750 !important; text-decoration: none; transition: transform .15s ease,box-shadow .15s ease; }
 .management-student-table-wrap .management-detail-button { min-height: 36px; gap: 7px; padding: 0 12px; font-size: 10px !important; }
 .management-student-add-button svg { width: 14px; height: 14px; }
 .management-students-page .management-section-heading > .management-student-add-button:hover, .management-student-record .management-student-save-button:hover:not(:disabled), .management-student-table-wrap .management-detail-button:hover, .management-student-create-form .management-student-create-submit:hover:not(:disabled), .management-student-created-actions .management-student-create-submit:hover { transform: translateY(2px); box-shadow: 0 2px 0 color-mix(in srgb,var(--mw-accent-dark),#322742 25%); }
@@ -452,11 +535,11 @@ html[data-theme="dark"] .management-workspace {
 .management-student-table-wrap .management-detail-button svg { width: 13px; height: 13px; }
 .management-student-pagination { border-top: 1px solid var(--mw-line); padding-top: 13px; }
 .management-student-pagination button { min-height: 28px; border: 0; border-radius: 0; padding: 2px; color: var(--mw-accent-dark); background: transparent; font-size: 9px !important; font-weight: 650; }
-.management-student-pagination button:not(:disabled):hover { border: 0; color: var(--mw-warm) !important; text-decoration: underline; text-underline-offset: 3px; }
+.management-student-pagination button:not(:disabled):hover { border: 0; color: var(--mw-accent) !important; text-decoration: underline; text-underline-offset: 3px; }
 .management-student-pagination button:disabled { color: var(--mw-faint) !important; opacity: .55; }
 .management-student-pagination > div > span { color: var(--mw-faint); }
 .management-student-back-link { justify-self: start; margin: 0 0 1px; border: 0; padding: 6px 0; color: var(--mw-accent-dark); background: transparent; cursor: pointer; font: 700 12px/1.3 Inter,ui-sans-serif,system-ui,sans-serif; transition: color 150ms ease; }
-.management-student-back-link:hover { color: var(--mw-warm); }
+.management-student-back-link:hover, .management-student-back-link:focus-visible { color: var(--mw-accent); text-decoration: underline; text-underline-offset: 3px; }
 .management-student-record { display: grid; grid-template-columns: 88px minmax(0,1fr); overflow: hidden; border: 1px solid var(--mw-line); border-radius: 8px 14px 14px 8px; background: var(--mw-surface); box-shadow: var(--mw-shadow); }
 .management-student-record-rail { display: flex; min-height: 100%; flex-direction: column; align-items: flex-start; gap: 17px; border-right: 1px solid var(--mw-line); padding: 23px 14px; color: var(--mw-accent-dark); background: linear-gradient(180deg,var(--mw-accent-soft),color-mix(in srgb,var(--mw-surface),var(--mw-accent-soft) 38%)); }
 .management-student-record-rail > span, .management-student-record-rail > small { color: var(--mw-accent); font-size: 7px; font-weight: 850; letter-spacing: .1em; line-height: 1.5; }
@@ -532,12 +615,17 @@ html[data-theme="dark"] .management-workspace {
 .management-parent-options > button > span { color: var(--mw-muted); font-size: 8px; }
 .management-parent-options > p { margin: 0; padding: 11px 9px; color: var(--mw-muted); font-size: 9px; }
 .management-parent-options > .management-parent-add-inline { display: flex; min-height: 35px; align-items: center; gap: 7px; border: 0; border-top: 1px solid var(--mw-line); margin-top: 3px; padding: 7px 9px; color: var(--mw-accent-dark); background: transparent; cursor: pointer; font: inherit; font-size: 9px; font-weight: 750; text-align: left; }
-.management-parent-options > .management-parent-add-inline:hover { color: var(--mw-warm); }
+.management-parent-options > .management-parent-add-inline:hover { color: var(--mw-accent); }
 .management-parent-add-inline svg { width: 12px; height: 12px; }
 .management-parent-directory-note { display: grid; gap: 4px; border-left: 3px solid var(--mw-accent); border-radius: 0 7px 7px 0; padding: 10px 12px; color: var(--mw-muted); background: var(--mw-accent-soft); font-size: 9px; line-height: 1.5; }
 .management-parent-directory-note strong { color: var(--mw-accent-dark); font-size: 10px; }
 .management-parent-created-credentials { margin-bottom: 15px; }
 .management-parent-create-modal .management-modal-actions { display: flex; justify-content: flex-end; gap: 9px; border-top: 1px solid var(--mw-line); margin-top: 16px; padding-top: 14px; }
+.management-parent-create-modal .management-modal-actions > button { min-height: 40px; border-radius: 5px 12px 5px 12px; padding: 0 15px; font: inherit; font-size: 11px !important; font-weight: 750 !important; }
+.management-parent-create-modal .management-modal-actions > .management-primary-button { border-color: var(--mw-accent-dark); color: var(--mw-surface) !important; background: var(--mw-accent-dark); box-shadow: 0 4px 0 color-mix(in srgb,var(--mw-accent-dark),#322742 25%); }
+.management-parent-create-modal .management-modal-actions > .management-primary-button:hover:not(:disabled) { transform: translateY(2px); box-shadow: 0 2px 0 color-mix(in srgb,var(--mw-accent-dark),#322742 25%); }
+.management-parent-create-modal .management-modal-actions > .management-secondary-button { border-color: #a54f47; color: #fff !important; background: #a54f47; box-shadow: 0 4px 0 color-mix(in srgb,#a54f47,#322742 25%); }
+.management-parent-create-modal .management-modal-actions > .management-secondary-button:hover:not(:disabled) { transform: translateY(2px); border-color: #8f4039; background: #8f4039; box-shadow: 0 2px 0 color-mix(in srgb,#8f4039,#322742 25%); }
 .management-parent-create-modal .management-modal-actions button:disabled { cursor: wait; opacity: .7; }
 .management-student-roster-mascots { width: 150px; height: 112px; flex: 0 0 150px; }
 .management-student-roster-mascots > img { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: contain; transition: transform .28s cubic-bezier(.2,.75,.2,1); }
@@ -610,7 +698,7 @@ html[data-theme="dark"] .management-workspace {
   cursor: pointer;
   font-family: inherit;
   font-size: 12px !important;
-  font-weight: 700;
+  font-weight: 750 !important;
   line-height: 1.2;
   transition: transform .15s ease,box-shadow .15s ease,background-color .15s ease;
 }
@@ -713,12 +801,12 @@ html[data-theme="dark"] .management-toast-success > div > strong { color: #9ed8b
   cursor: pointer;
   font: inherit;
   font-size: 12px !important;
-  font-weight: 700;
+  font-weight: 750 !important;
   text-decoration: none;
   transition: transform .15s ease,box-shadow .15s ease;
 }
 .management-teacher-add-button svg,.management-teacher-action-button svg,.management-teacher-detail-button svg { width: 14px; height: 14px; }
-.management-workspace .management-teacher-detail-button { min-height: 36px; gap: 7px; padding: 0 12px; font-size: 10px !important; font-weight: 750; }
+.management-workspace .management-teacher-detail-button { min-height: 36px; gap: 7px; padding: 0 12px; font-size: 10px !important; font-weight: 750 !important; }
 .management-teacher-add-button:hover:not(:disabled),
 .management-teacher-action-button:hover:not(:disabled),
 .management-teacher-detail-button:hover:not(:disabled) { transform: translateY(2px); box-shadow: 0 2px 0 color-mix(in srgb,var(--mw-accent-dark),#322742 25%); }
@@ -737,12 +825,12 @@ html[data-theme="dark"] .management-toast-success > div > strong { color: #9ed8b
 .management-teacher-table-wrap .management-child-chips { display: flex; flex-wrap: wrap; gap: 5px; }
 .management-teacher-pagination { border-top: 1px solid var(--mw-line); padding-top: 13px; }
 .management-teacher-pagination button { min-height: 28px; border: 0; border-radius: 0; padding: 2px; color: var(--mw-accent-dark); background: transparent; font-size: 9px !important; font-weight: 650; }
-.management-teacher-pagination button:not(:disabled):hover { border: 0; color: var(--mw-warm) !important; text-decoration: underline; text-underline-offset: 3px; }
+.management-teacher-pagination button:not(:disabled):hover { border: 0; color: var(--mw-accent) !important; text-decoration: underline; text-underline-offset: 3px; }
 .management-teacher-pagination button:disabled { color: var(--mw-faint) !important; opacity: .55; }
 .management-teacher-pagination > div > span { color: var(--mw-faint); }
 .management-teacher-detail { max-width: 1120px; }
 .management-teacher-record .management-student-account-strip { grid-template-columns: repeat(4,minmax(0,1fr)); }
-.management-teacher-record .management-student-save-button { display: inline-flex; min-height: 43px; align-items: center; justify-content: center; border: 1px solid var(--mw-accent-dark); border-radius: 5px 12px 5px 12px; padding: 0 16px; color: var(--mw-surface); background: var(--mw-accent-dark); box-shadow: 0 4px 0 color-mix(in srgb,var(--mw-accent-dark),#322742 25%); cursor: pointer; font: inherit; font-size: 12px !important; font-weight: 700; transition: transform .15s ease,box-shadow .15s ease; }
+.management-teacher-record .management-student-save-button { display: inline-flex; min-height: 43px; align-items: center; justify-content: center; border: 1px solid var(--mw-accent-dark); border-radius: 5px 12px 5px 12px; padding: 0 16px; color: var(--mw-surface); background: var(--mw-accent-dark); box-shadow: 0 4px 0 color-mix(in srgb,var(--mw-accent-dark),#322742 25%); cursor: pointer; font: inherit; font-size: 12px !important; font-weight: 750 !important; transition: transform .15s ease,box-shadow .15s ease; }
 .management-teacher-record .management-student-save-button:not(:disabled):hover { transform: translateY(2px); box-shadow: 0 2px 0 color-mix(in srgb,var(--mw-accent-dark),#322742 25%); }
 .management-teacher-record .management-student-action-buttons > button:disabled:not([aria-busy="true"]) { cursor: default; }
 .management-teacher-record .management-student-action-buttons > button[aria-busy="true"]:disabled,.management-teacher-record .management-teacher-action-button[aria-busy="true"]:disabled { cursor: wait; }
@@ -808,11 +896,11 @@ html[data-theme="dark"] .management-toast-success > div > strong { color: #9ed8b
   cursor: pointer;
   font: inherit;
   font-size: 12px !important;
-  font-weight: 700;
+  font-weight: 750 !important;
   text-decoration: none;
   transition: transform .15s ease,box-shadow .15s ease;
 }
-.management-workspace .management-parent-detail-button { min-height: 36px; gap: 7px; padding: 0 12px; font-size: 10px !important; font-weight: 750; }
+.management-workspace .management-parent-detail-button { min-height: 36px; gap: 7px; padding: 0 12px; font-size: 10px !important; font-weight: 750 !important; }
 .management-parent-add-button svg,.management-parent-detail-button svg { width: 14px; height: 14px; }
 .management-parent-add-button:hover:not(:disabled),.management-parent-detail-button:hover:not(:disabled) { transform: translateY(2px); box-shadow: 0 2px 0 color-mix(in srgb,var(--mw-accent-dark),#322742 25%); }
 .management-parent-add-button:disabled,.management-parent-detail-button:disabled { border-color: var(--mw-line); color: var(--mw-faint) !important; background: var(--mw-panel); box-shadow: none; cursor: default; }
@@ -831,7 +919,7 @@ html[data-theme="dark"] .management-toast-success > div > strong { color: #9ed8b
 .management-parent-create-form { gap: 17px; }
 .management-parent-create-form .management-global-info { border-radius: 5px 11px 5px 11px; }
 .management-parent-create-page .management-student-form-actions { border-top: 1px solid var(--mw-line); padding-top: 14px; }
-.management-parent-create-page .management-student-form-actions .management-student-create-submit { display: inline-flex; min-height: 43px; align-items: center; justify-content: center; gap: 9px; border: 1px solid var(--mw-accent-dark); border-radius: 5px 12px 5px 12px; padding: 0 16px; color: var(--mw-surface); background: var(--mw-accent-dark); box-shadow: 0 4px 0 color-mix(in srgb,var(--mw-accent-dark),#322742 25%); cursor: pointer; font: inherit; font-size: 12px !important; font-weight: 700; transition: transform .15s ease,box-shadow .15s ease; }
+.management-parent-create-page .management-student-form-actions .management-student-create-submit { display: inline-flex; min-height: 43px; align-items: center; justify-content: center; gap: 9px; border: 1px solid var(--mw-accent-dark); border-radius: 5px 12px 5px 12px; padding: 0 16px; color: var(--mw-surface); background: var(--mw-accent-dark); box-shadow: 0 4px 0 color-mix(in srgb,var(--mw-accent-dark),#322742 25%); cursor: pointer; font: inherit; font-size: 12px !important; font-weight: 750 !important; transition: transform .15s ease,box-shadow .15s ease; }
 .management-parent-create-page .management-student-form-actions .management-student-create-submit:not(:disabled):hover { transform: translateY(2px); box-shadow: 0 2px 0 color-mix(in srgb,var(--mw-accent-dark),#322742 25%); }
 .management-parent-create-page .management-student-form-actions .management-student-create-submit:disabled { border-color: var(--mw-line); color: var(--mw-faint); background: var(--mw-panel); box-shadow: none; cursor: default; }
 .management-parent-record { width: min(100%,1120px); }
@@ -881,7 +969,7 @@ html[data-theme="dark"] .management-toast-success > div > strong { color: #9ed8b
   cursor: pointer;
   font: inherit;
   font-size: 12px !important;
-  font-weight: 700;
+  font-weight: 750 !important;
   text-decoration: none;
   transition: transform .15s ease,box-shadow .15s ease;
 }
@@ -917,10 +1005,10 @@ html[data-theme="dark"] .management-toast-success > div > strong { color: #9ed8b
 .management-parent-reassign select:focus-visible { outline: 2px solid color-mix(in srgb,var(--mw-accent),transparent 25%); outline-offset: 2px; }
 .management-parent-link-student { display: flex; align-items: end; gap: 9px; margin-top: 12px; }
 .management-parent-link-student .management-form-field { flex: 1; }
-.management-parent-inline-button { display: inline-flex; min-height: 34px; align-items: center; justify-content: center; border: 1px solid var(--mw-accent-dark); border-radius: 5px 10px 5px 10px; padding: 0 11px; color: var(--mw-surface); background: var(--mw-accent-dark); box-shadow: 0 3px 0 color-mix(in srgb,var(--mw-accent-dark),#322742 25%); cursor: pointer; font: inherit; font-size: 9px; font-weight: 700; transition: transform .15s ease,box-shadow .15s ease; white-space: nowrap; }
+.management-parent-inline-button { display: inline-flex; min-height: 34px; align-items: center; justify-content: center; border: 1px solid var(--mw-accent-dark); border-radius: 5px 10px 5px 10px; padding: 0 11px; color: var(--mw-surface); background: var(--mw-accent-dark); box-shadow: 0 3px 0 color-mix(in srgb,var(--mw-accent-dark),#322742 25%); cursor: pointer; font: inherit; font-size: 9px; font-weight: 750 !important; transition: transform .15s ease,box-shadow .15s ease; white-space: nowrap; }
 .management-parent-inline-button:not(:disabled):hover { transform: translateY(2px); box-shadow: 0 1px 0 color-mix(in srgb,var(--mw-accent-dark),#322742 25%); }
-.management-parent-inline-button.is-quiet { border-color: var(--mw-line); color: var(--mw-ink); background: transparent; box-shadow: none; }
-.management-parent-inline-button.is-quiet:not(:disabled):hover { border-color: var(--mw-accent); box-shadow: none; }
+.management-parent-inline-button.is-quiet { border-color: #a54f47; color: #fff !important; background: #a54f47; box-shadow: 0 3px 0 color-mix(in srgb,#a54f47,#322742 25%); }
+.management-parent-inline-button.is-quiet:not(:disabled):hover { transform: translateY(2px); border-color: #8f4039; background: #8f4039; box-shadow: 0 1px 0 color-mix(in srgb,#8f4039,#322742 25%); }
 .management-parent-inline-button:disabled { border-color: var(--mw-line); color: var(--mw-faint); background: var(--mw-panel); box-shadow: none; cursor: default; }
 .management-parent-link-confirm { display: grid; flex: 1 0 100%; min-width: 0; grid-template-columns: minmax(0,1fr) auto auto; align-items: center; gap: 8px; border-top: 1px solid var(--mw-line); margin-top: 5px; padding-top: 9px; }
 .management-parent-link-confirm > span:first-child { grid-column: 1 / -1; color: var(--mw-muted); font-size: 9px; font-weight: 600; line-height: 1.45; }
@@ -930,14 +1018,14 @@ html[data-theme="dark"] .management-toast-success > div > strong { color: #9ed8b
 .management-parent-move-confirm > div { display: grid; min-width: 0; gap: 4px; color: var(--mw-muted); font-size: 9px; line-height: 1.5; }
 .management-parent-move-confirm strong { color: var(--mw-ink); font-size: 10px; }
 .management-parent-link-confirm .management-parent-inline-button,
-.management-parent-move-confirm .management-parent-inline-button { min-height: 38px; border-radius: 5px 12px 5px 12px; padding: 0 14px; font-size: 11px; font-weight: 750; }
+.management-parent-move-confirm .management-parent-inline-button { min-height: 38px; border-radius: 5px 12px 5px 12px; padding: 0 14px; font-size: 11px; font-weight: 750 !important; }
 .management-parent-move-confirm .management-parent-inline-button:not(.is-quiet) { border-color: var(--mw-accent-dark); color: var(--mw-surface); background: var(--mw-accent-dark); box-shadow: 0 4px 0 color-mix(in srgb,var(--mw-accent-dark),#322742 25%); }
 .management-parent-move-confirm .management-parent-inline-button:not(.is-quiet):not(:disabled):hover { transform: translateY(2px); box-shadow: 0 2px 0 color-mix(in srgb,var(--mw-accent-dark),#322742 25%); }
 .management-parent-move-confirm .management-parent-inline-button:not(.is-quiet):disabled { border-color: var(--mw-line); color: var(--mw-faint); background: var(--mw-panel); box-shadow: none; cursor: default; }
 .management-parent-link-confirm .management-parent-inline-button.is-quiet,
-.management-parent-move-confirm .management-parent-inline-button.is-quiet { border-color: var(--mw-line); color: var(--mw-ink); background: var(--mw-panel); box-shadow: 0 4px 0 color-mix(in srgb,var(--mw-line),transparent 20%); }
+.management-parent-move-confirm .management-parent-inline-button.is-quiet { border-color: #a54f47; color: #fff !important; background: #a54f47; box-shadow: 0 4px 0 color-mix(in srgb,#a54f47,#322742 25%); }
 .management-parent-link-confirm .management-parent-inline-button.is-quiet:not(:disabled):hover,
-.management-parent-move-confirm .management-parent-inline-button.is-quiet:not(:disabled):hover { transform: translateY(2px); border-color: var(--mw-accent); background: var(--mw-accent-soft); box-shadow: 0 2px 0 color-mix(in srgb,var(--mw-line),transparent 20%); }
+.management-parent-move-confirm .management-parent-inline-button.is-quiet:not(:disabled):hover { transform: translateY(2px); border-color: #8f4039; background: #8f4039; box-shadow: 0 2px 0 color-mix(in srgb,#8f4039,#322742 25%); }
 @media (max-width: 600px) {
   .management-parent-record .management-parent-shared-note { grid-template-columns: minmax(0,1fr) 52px; }
   .management-parent-directory .management-section-heading > .management-parent-add-button { min-height: 38px; gap: 6px; padding: 0 10px; font-size: 10px !important; }
@@ -963,7 +1051,7 @@ html[data-theme="dark"] .management-toast-success > div > strong { color: #9ed8b
   padding: 0 14px;
   font-family: inherit;
   font-size: 11px;
-  font-weight: 750;
+  font-weight: 750 !important;
   line-height: 1.2;
   transition: transform .15s ease,box-shadow .15s ease,background-color .15s ease;
 }
@@ -1015,7 +1103,7 @@ html[data-theme="dark"] .management-toast-success > div > strong { color: #9ed8b
   cursor: pointer;
   font: inherit;
   font-size: 12px !important;
-  font-weight: 700;
+  font-weight: 750 !important;
   text-decoration: none;
   transition: transform .15s ease,box-shadow .15s ease;
 }
@@ -1030,7 +1118,8 @@ html[data-theme="dark"] .management-toast-success > div > strong { color: #9ed8b
 .management-classroom-directory .management-section-heading { align-items: center; }
 .management-class-list.is-detailed .management-class-row { grid-template-columns: 40px minmax(0,1fr) 34px auto; gap: 12px; }
 .management-classroom-form-buttons { display: flex; align-items: center; gap: 10px; }
-.management-classroom-form-buttons .management-secondary-button { min-height: 43px; border-radius: 5px 12px 5px 12px; padding: 0 16px; font: inherit; font-size: 12px; font-weight: 700; }
+.management-classroom-form-buttons .management-secondary-button { min-height: 43px; border: 1px solid #a54f47; border-radius: 5px 12px 5px 12px; padding: 0 16px; color: #fff !important; background: #a54f47; box-shadow: 0 4px 0 color-mix(in srgb,#a54f47,#322742 25%); font: inherit; font-size: 12px !important; font-weight: 750 !important; transition: transform .15s ease,box-shadow .15s ease,background-color .15s ease,border-color .15s ease; }
+.management-classroom-form-buttons .management-secondary-button:hover:not(:disabled) { transform: translateY(2px); border-color: #8f4039; background: #8f4039; box-shadow: 0 2px 0 color-mix(in srgb,#8f4039,#322742 25%); }
 .management-classroom-record-icon { display: grid; width: 44px; height: 44px; flex: 0 0 auto; place-items: center; border: 1px solid color-mix(in srgb,var(--mw-accent),transparent 78%); border-radius: 13px 13px 13px 5px; color: var(--mw-accent-dark); background: var(--mw-accent-soft); }
 .management-classroom-record-icon svg { width: 21px; height: 21px; }
 .management-classroom-account-strip { grid-template-columns: repeat(3,minmax(0,1fr)); }
@@ -1121,7 +1210,7 @@ html[data-theme="dark"] .management-toast-success > div > strong { color: #9ed8b
   cursor: pointer;
   font: inherit;
   font-size: 12px !important;
-  font-weight: 700;
+  font-weight: 750 !important;
   text-decoration: none;
   transition: transform .15s ease,box-shadow .15s ease;
 }
@@ -1250,4 +1339,93 @@ html[data-theme="dark"] .management-toast-success > div > strong { color: #9ed8b
 @media (prefers-reduced-motion: reduce) {
   .management-announcement-mascot > img,
   .management-announcement-mascot > span { transition-duration: .01ms !important; }
+}
+
+/* Superadmin school management: classes below are used only by Superadmin screens. */
+.management-school-button { width: 100%; border: 0; border-top: 1px solid var(--mw-line); color: inherit; background: transparent; cursor: pointer; font: inherit; text-align: left; transition: background .15s ease; }
+.management-school-button:hover { background: var(--mw-accent-soft); }
+.management-school-button:focus-visible { outline: 2px solid var(--mw-accent); outline-offset: -2px; }
+.management-superadmin-school-fields .management-superadmin-wide-field { grid-column: 1 / -1; }
+.management-superadmin-school-tools { align-items: end; }
+.management-superadmin-school-tools .management-student-tabs { flex-wrap: wrap; row-gap: 0; }
+.management-superadmin-school-page { display: grid; justify-items: stretch; gap: 15px; width: min(100%, 1120px); }
+.management-superadmin-school-page > .management-student-back-link { justify-self: start; }
+.management-superadmin-school-record { width: 100%; }
+.management-superadmin-school-record .management-student-record-form .management-form-field textarea { min-height: 76px; border-radius: 5px 10px 5px 10px; padding: 9px 11px; background: var(--mw-panel); font-size: 10px; }
+.management-superadmin-school-record .management-student-record-form .management-form-field textarea:disabled { color: var(--mw-muted); background: color-mix(in srgb,var(--mw-panel),var(--mw-line) 22%); cursor: not-allowed; }
+.management-superadmin-admins-head { align-items: center; }
+.management-superadmin-admins-head > div { display: grid; gap: 4px; }
+.management-superadmin-admins-head h3 { margin: 0; color: var(--mw-ink); font-family: Georgia,"Times New Roman",serif; font-size: 20px; font-weight: 500; letter-spacing: -.025em; }
+.management-superadmin-assigned-list { display: grid; gap: 9px; margin: 0; padding: 0; list-style: none; }
+.management-superadmin-note-button { justify-self: start; margin-top: 4px; }
+.management-superadmin-levels ul { display: grid; gap: 15px; margin: 0; padding: 0; list-style: none; }
+.management-superadmin-levels li { display: grid; gap: 7px; }
+.management-superadmin-levels li > div { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; color: var(--mw-muted); font-size: 10px; }
+.management-superadmin-levels li strong { color: var(--mw-ink); font-family: Georgia,"Times New Roman",serif; font-size: 20px; font-weight: 500; }
+.management-superadmin-level-track { display: block; height: 6px; overflow: hidden; border-radius: 99px; background: var(--mw-accent-soft); }
+.management-superadmin-level-track > i { display: block; height: 100%; border-radius: inherit; background: var(--mw-accent); }
+.management-superadmin-admins { display: grid; gap: 15px; }
+.management-superadmin-admins .management-section-heading { margin-bottom: 0; }
+.management-superadmin-credentials { margin: 0; border-radius: 0 9px 9px 0; }
+.management-superadmin-credentials > p:not(.management-eyebrow) { margin: 0; color: var(--mw-muted); font-size: 9px; line-height: 1.5; }
+.management-superadmin-credentials > .management-superadmin-credentials-hide { justify-self: start; display: inline-flex; min-height: 38px; align-items: center; justify-content: center; gap: 8px; border: 1px solid var(--mw-accent-dark); border-radius: 5px 12px 5px 12px; padding: 0 15px; color: var(--mw-surface) !important; background: var(--mw-accent-dark); box-shadow: 0 4px 0 color-mix(in srgb,var(--mw-accent-dark),#322742 25%); cursor: pointer; font: inherit; font-size: 11px !important; font-weight: 750 !important; line-height: 1.2; transition: transform .15s ease,box-shadow .15s ease,background-color .15s ease; }
+.management-superadmin-credentials > .management-superadmin-credentials-hide:hover:not(:disabled) { transform: translateY(2px); box-shadow: 0 2px 0 color-mix(in srgb,var(--mw-accent-dark),#322742 25%); }
+.management-superadmin-credentials > .management-superadmin-credentials-hide:focus-visible { outline: 2px solid color-mix(in srgb,var(--mw-accent),transparent 25%); outline-offset: 3px; }
+.management-superadmin-created-list { display: grid; gap: 8px; border-top: 1px solid var(--mw-line); padding-top: 14px; }
+.management-superadmin-created-list ul { display: grid; margin: 0; padding: 0; list-style: none; }
+.management-superadmin-created-list li { display: flex; align-items: center; justify-content: space-between; gap: 12px; border-top: 1px solid var(--mw-line); padding: 10px 0; }
+.management-superadmin-created-list li:first-child { border-top: 0; }
+.management-superadmin-created-list li > span:first-child { display: grid; min-width: 0; gap: 3px; }
+.management-superadmin-created-list strong { overflow-wrap: anywhere; color: var(--mw-ink); font-size: 10px; }
+.management-superadmin-created-list small { overflow-wrap: anywhere; color: var(--mw-muted); font-size: 8px; }
+.management-superadmin-confirm { display: inline-flex; align-items: center; gap: 10px; }
+.management-superadmin-note { margin: 0; color: var(--mw-faint); font-size: 9px; line-height: 1.5; }
+@media (max-width: 600px) {
+  .management-superadmin-created-list li { align-items: flex-start; flex-direction: column; }
+  .management-superadmin-confirm { flex-wrap: wrap; }
+}
+
+/* Superadmin administrators and overview additions (Superadmin-only classes). */
+.management-superadmin-stats { grid-template-columns: repeat(2,minmax(0,1fr)); }
+.management-superadmin-stats .management-stat-card { text-align: left; }
+.management-superadmin-stat-lion { display: block; width: 100%; height: 100%; border-radius: inherit; background-repeat: no-repeat; }
+.management-superadmin-school-cell { display: grid; min-width: 150px; gap: 3px; }
+.management-superadmin-school-cell strong { color: var(--mw-ink); font-size: 9px; font-weight: 750; }
+.management-superadmin-school-cell small { color: var(--mw-faint); font-size: 8px; }
+.management-superadmin-admin-directory .is-refreshing { opacity: .6; transition: opacity .15s ease; }
+.management-superadmin-admin-directory .management-empty p { margin: 0 0 10px; }
+.management-superadmin-admin-facts { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 14px 18px; }
+.management-superadmin-admin-facts > div { display: grid; gap: 4px; min-width: 0; }
+.management-superadmin-admin-facts small { color: var(--mw-muted); font-size: 8px; font-weight: 800; letter-spacing: .1em; }
+.management-superadmin-admin-facts strong { overflow-wrap: anywhere; color: var(--mw-ink); font-size: 11px; font-weight: 700; }
+.management-superadmin-admins .management-superadmin-confirm { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.management-superadmin-assign-panel { display: grid; gap: 14px; border: 1px solid var(--mw-line); border-radius: 10px 10px 10px 4px; padding: 16px 17px; background: var(--mw-panel); }
+.management-superadmin-assign-head { display: flex; align-items: start; justify-content: space-between; gap: 14px; }
+.management-superadmin-assign-head > .management-superadmin-assign-close { min-width: 72px; min-height: 36px; padding: 0 18px; font-size: 10px; }
+.management-superadmin-assign-head h3,
+.management-superadmin-assign-head h4 { margin: 5px 0 4px; color: var(--mw-ink); font-family: Georgia,"Times New Roman",serif; font-size: 17px; font-weight: 500; letter-spacing: -.02em; }
+.management-superadmin-assign-head p:not(.management-eyebrow) { margin: 0; color: var(--mw-muted); font-size: 9px; line-height: 1.5; }
+.management-superadmin-assign-tools { margin-bottom: 0; }
+.management-superadmin-mascot-note b { color: var(--mw-ink); font-weight: 700; }
+.management-superadmin-inline-link { justify-self: start; margin-top: 2px; padding: 0; font-size: 9px; }
+.management-superadmin-row-actions { display: inline-flex; align-items: center; justify-content: flex-end; gap: 10px; flex-wrap: wrap; }
+.management-superadmin-row-actions > .management-parent-inline-button.is-danger { min-height: 36px; padding: 0 12px; font-size: 10px; }
+.management-superadmin-admin-school-row { display: flex; min-height: 54px; align-items: center; justify-content: space-between; gap: 14px; border: 1px solid var(--mw-line); border-radius: 5px 10px 5px 10px; padding: 11px 14px; background: var(--mw-panel); }
+.management-superadmin-admin-school-row > div { display: grid; min-width: 0; gap: 4px; }
+.management-superadmin-admin-school-row strong { overflow-wrap: anywhere; color: var(--mw-ink); font-size: 11px; font-weight: 700; }
+.management-superadmin-admin-school-row small { overflow-wrap: anywhere; color: var(--mw-muted); font-size: 9px; }
+@media (max-width: 600px) {
+  .management-school-list.is-detailed .management-school-row { grid-template-columns: 34px minmax(0,1fr) auto; gap: 8px; }
+  .management-school-list.is-detailed .management-school-level-badge { display: inline-flex; }
+  .management-school-list.is-detailed .management-teacher-detail-button { grid-column: 2 / 4; justify-self: start; margin: 0 0 4px; }
+  .management-superadmin-admins-head { align-items: flex-start; flex-direction: column; }
+  .management-superadmin-admins-head > .management-teacher-add-button { align-self: flex-end; }
+  .management-superadmin-row-actions { width: 100%; justify-content: space-between; }
+  .management-superadmin-admin-school-row { align-items: flex-start; flex-direction: column; }
+  .management-superadmin-admin-school-row > .management-teacher-detail-button { align-self: flex-end; }
+}
+@media (max-width: 430px) {
+  .management-superadmin-stats { grid-template-columns: 1fr; }
+  .management-superadmin-admin-facts { grid-template-columns: 1fr; }
+  .management-superadmin-assign-head { flex-direction: column; }
 }
