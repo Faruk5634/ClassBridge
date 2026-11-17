@@ -129,6 +129,8 @@ Direct-message attachments use the same private storage and validation service. 
 - Avoid claiming security properties such as tenant isolation until they are implemented and verified.
 - Deployment and public publishing are deferred; local development comes first.
 
-## 10. Decisions for detailed design
+## 10. Confirmed detailed-design decisions
 
-- The exact profile fields each role may view and edit.
+- Primary- and middle-school `StudentProfile` records have no linked student `UserAccount`; high-school students do.
+- Parent association is required for primary- and middle-school `StudentProfile` records and optional for high-school records, with at most one linked parent account per student in the first version.
+- The role-specific profile fields and editing permissions are defined in `PROJECT_SCOPE.md` and `DATA_MODEL.md`.

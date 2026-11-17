@@ -228,9 +228,9 @@ Relationship rules for student profiles:
 8. A parent's message must preserve the parent as sender and record the selected child context.
 9. Announcement read receipts are absent; direct messages support in-app read/unread state. A parent's read-only view of high-school student conversations does not change the student's unread state.
 
-## 4. Open modeling decisions
+## 4. Modeling decision status
 
-- The exact profile fields each role may view and edit.
+No open data-model decisions remain for the first version. Profile fields, school-level constraints, student login rules, and parent-linking rules are specified in the entity descriptions and constraints below.
 
 ## 5. School level, grade, and uniqueness constraints
 

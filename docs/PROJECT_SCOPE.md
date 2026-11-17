@@ -30,7 +30,7 @@ The platform carries forward the existing project's main capabilities: school an
 - Lists and updates teacher names and branches for their own school, resets teacher passwords, and archives or restores teacher accounts. Homeroom assignments must be moved to another active teacher or left unassigned before a teacher account can be archived.
 - Maintains the school's parent directory: creates parent accounts when needed, links existing parent accounts to students, corrects parent names, resets passwords for parents with an active linked student in that school, and restores archived accounts. A single parent account can be linked to children across multiple schools. Contact details remain parent-managed.
 - Communicates with the Superadmin about platform or system issues.
-- Can communicate with teachers and vice-administrators in the same school.
+- Can communicate with teachers and vice-administrators in the same school, and with active students or their linked parents through the selected student's context.
 
 ### 3.3 Teacher
 
@@ -72,7 +72,7 @@ The platform carries forward the existing project's main capabilities: school an
 | Teacher | Any active student and their linked parent through that student context, plus teachers and school administrators or vice-administrators in the teacher's school |
 | High-school student | Teachers and school administrators or vice-administrators in the student's school |
 | Parent | Teachers and school administrators or vice-administrators at the selected child's school |
-| School administrator or vice-administrator | Superadmin for platform/system support; teachers and active students in the same school |
+| School administrator or vice-administrator | Superadmin for platform/system support; teachers in the same school; active students or their linked parents through the matching student context |
 | Superadmin | School administrators and vice-administrators, for platform or system issues |
 
 Messaging is asynchronous and in-app, not real email or live chat. A conversation has no subject; replies remain in that conversation, and the same participants may start another separate conversation. Messages are loaded when the user opens or refreshes the inbox. The first version has in-app read/unread status only, with no email or push notifications. Direct messages can include file attachments for permitted non-teacher senders; teachers send text-only direct messages. Attachment downloads remain authorized against the conversation and selected child context.
@@ -140,9 +140,9 @@ Direct messages support in-app read/unread status. This is separate from announc
 - Automatic student promotion, student school transfer workflows, and academic-year processing.
 - Collection of student date of birth, home address, or national identity number.
 
-## 9. Decisions to confirm during detailed design
+## 9. Confirmed profile policy
 
-- No open profile self-service decisions remain for the first version: names and account identifiers are read-only to users; users may update their own phone number and change their email through the verification flow.
+For the first version, names and account identifiers are read-only to users. Users may update their own phone number and change their email through the verification flow. School administrators and vice-administrators may correct school-managed student, teacher, and parent names within the documented school scope.
 
 ## 10. Language
 
