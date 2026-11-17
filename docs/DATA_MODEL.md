@@ -14,6 +14,7 @@ Represents one school using ClassBridge.
 - A school owns its school administrators, teachers, classes, and students.
 - A school has one or more administrator accounts, each assigned to that school.
 - School-owned data must always be isolated from other schools.
+- A school archive is reversible and cascades inactive state to its classrooms, teaching assignments, student profiles, parent-school registrations, announcements, conversations, and school-linked login accounts. Each affected record tracks whether the school archive changed its state, so restoration does not reactivate records that were inactive beforehand. A shared parent account remains active if it still has an active child or active registration in another school.
 
 ### UserAccount
 
@@ -24,7 +25,7 @@ Represents login credentials and shared identity information.
 - Passwords are never stored or logged in plain text in the database, project files, or any other persistent storage; only the one-way BCrypt hash is persisted.
 - Whenever an authorized administrator creates a login-enabled account, the system generates a cryptographically secure random initial password.
 - The generated initial password is returned only once in the successful creation response to the administrator who created the account (the Superadmin for school administrator and vice-administrator accounts; the school administrator or vice-administrator for teacher, parent, and high-school student accounts). It cannot be retrieved after that response is lost; an authorized password-reset flow is required for recovery.
-- Newly created teachers and high-school students must change their generated initial password before using the rest of the application. Administrator resets for teachers and high-school students also require a password change before navigation; the requirement is stored on the account and enforced by the API as well as the interface. Parent accounts follow their role-specific credential policy.
+- Every newly created non-Superadmin account must change its generated initial password before using the rest of the application. Any password reset for a non-Superadmin account, including administrator-assisted and self-service recovery, also requires another password change before navigation; the requirement is stored on the account and enforced by the API as well as the interface. Superadmin accounts are excluded.
 - Users may change their password after signing in through an authenticated account flow.
 - Password changes verify the current password and store only a new BCrypt hash. New passwords must contain 8–20 characters and fit BCrypt's 72-byte UTF-8 maximum; successful changes increment `credentialVersion` and immediately revoke existing JWTs.
 - Email and phone number remain optional account contact fields. A contact method can be used for self-service password recovery only after ownership has been verified.
@@ -90,7 +91,7 @@ Represents profile information for parents and guardians.
 
 ### ParentSchoolRegistration
 
-Represents that a school administrator registered a shared parent account in a school's directory. It records the school, parent profile, creating administrator, and timestamp. Registration supports local directory management and enrollment; it does not grant parent access to children or announcements without an active student-to-parent link. The school can correct the parent's name. A password reset initiated by a school applies to the shared account and should be limited to an account associated with that school through a registration or active student link.
+Represents that a school administrator registered a shared parent account in a school's directory. It records the school, parent profile, creating administrator, timestamp, and active state. The same parent profile can be registered at multiple schools. Registration supports local directory management and enrollment; it does not grant parent access to children or announcements without an active student-to-parent link. A school archive deactivates this school's registration and a restore reactivates it only if the archive operation did so.
 
 ### StudentProfile
 

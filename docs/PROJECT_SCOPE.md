@@ -20,6 +20,7 @@ The platform carries forward the existing project's main capabilities: school an
 
 - Manages schools across the platform.
 - Creates school administrator and vice-administrator accounts and assigns them to a school.
+- Can archive and restore a school. Archiving deactivates that school's classrooms, teaching assignments, student profiles, parent-school registrations, announcements, conversations, and school-linked accounts in one reversible operation. A parent account remains active when it still has a child in another active school. Restoring a school reactivates only records that the school archive operation itself deactivated.
 - Communicates with school administrators about platform or system issues.
 
 ### 3.2 School administrator and vice-administrator
@@ -27,7 +28,7 @@ The platform carries forward the existing project's main capabilities: school an
 - Manages users, classes, and announcements for their own school.
 - Creates teacher, student, and parent accounts for their school.
 - Lists and updates teacher names and branches for their own school, resets teacher passwords, and archives or restores teacher accounts. Homeroom assignments must be moved to another active teacher or left unassigned before a teacher account can be archived.
-- Maintains the school's parent directory: creates a separate parent account for the school, corrects parent names, resets passwords for parents with an active linked student in that school, and restores archived accounts. A parent account can be linked to multiple students within that school. Reusing an account across schools is currently unavailable; families with children in different schools need a separate account for each school. Contact details remain parent-managed.
+- Maintains the school's parent directory: creates parent accounts when needed, links existing parent accounts to students, corrects parent names, resets passwords for parents with an active linked student in that school, and restores archived accounts. A single parent account can be linked to children across multiple schools. Contact details remain parent-managed.
 - Communicates with the Superadmin about platform or system issues.
 - Can communicate with teachers and vice-administrators in the same school.
 
@@ -50,9 +51,9 @@ The platform carries forward the existing project's main capabilities: school an
 
 ### 3.5 Parent
 
-- Signs in with a parent account and can access one or more linked children across one or multiple schools.
+- Signs in with one parent account and can access active linked children across one or more schools. Selecting a child establishes that child's school context for announcements and messages.
 - Parent accounts have no direct school membership; access to a school is derived exclusively through linked student profiles.
-- When enrolling a student, school staff create or select a parent account registered with that school, then link the student profile to it. An authorized school administrator or vice-administrator can create a new parent account; cross-school account reuse is not available in the current version.
+- When enrolling a student, school staff can select a parent in that school's directory, enter the username of an existing parent account from another school, or create a new parent account. The server verifies the account is active and has the `PARENT` role, then links its existing profile without creating duplicate credentials. A separate parent-school directory registration is recorded for each school.
 - Newly created parent accounts receive a securely generated initial password under the one-time credential policy.
 - A student may be linked to at most one parent account in the first version. Parent linking is required for primary- and middle-school students, and optional for high-school students (configured only upon parent request).
 - Can select a child to enter that child's view, return to the parent's own profile, or switch to another linked child without signing out.
@@ -105,13 +106,13 @@ Recipient search and message submission must both enforce these rules. Staff sea
 - That initial password is returned exactly once in the successful account-creation response to the administrator who created the account (the Superadmin for school administrator and vice-administrator accounts; the school administrator or vice-administrator for teacher, parent, and high-school student accounts).
 - The plain-text password is never logged or stored in the database, project files, or any other persistent storage; only the BCrypt hash is stored.
 - A generated initial password cannot be retrieved after the creation response is lost; an authorized password-reset flow will be needed for recovery.
-- Teachers and high-school students must replace generated initial or administrator-reset passwords before entering the workspace. Other account types follow their role-specific credential policy.
+- Every newly created non-`SUPERADMIN` account (school administrator, vice-administrator, teacher, student, or parent) must replace its generated initial password before entering the workspace. After any password reset, including administrator-assisted and self-service recovery, every non-`SUPERADMIN` user must change the reset password before continuing. `SUPERADMIN` accounts are excluded.
 - Users may change their password after signing in through an authenticated account flow.
 - Authenticated password changes require the current password; the new password must contain 8–20 characters and fit BCrypt's 72-byte UTF-8 limit. A successful change invalidates already-issued JWTs immediately.
 - Email and phone number remain optional. The first self-service recovery channel is a verified email address; SMS may be added later. Users without a verified email use an authorized administrator-assisted reset.
 - Signed-in users can add or change their email address; a changed address must be verified again before it can be used for recovery.
 - Email verification and password recovery use generic responses where account existence must remain private, single-use six-digit codes that expire after 30 minutes, and rate limits. Codes are stored as BCrypt hashes and each code allows at most five confirmation attempts. A successful reset invalidates previously issued access tokens.
-- Authorized fallback: `SUPERADMIN` can reset active `SCHOOL_ADMIN` and `SCHOOL_VICE_ADMIN` accounts; a school administrator or vice-administrator can reset eligible active teacher, student, or parent accounts associated with their own school. The API returns a cryptographically generated temporary password once to the authorized administrator. Teacher and high-school student accounts must change it before continuing. Resetting a shared parent account changes that parent's credentials across all linked schools.
+- Authorized fallback: `SUPERADMIN` can reset active `SCHOOL_ADMIN` and `SCHOOL_VICE_ADMIN` accounts; a school administrator or vice-administrator can reset eligible active teacher, student, or parent accounts associated with their own school. The API returns a cryptographically generated temporary password once to the authorized administrator. Every reset non-`SUPERADMIN` account must change it before continuing. Resetting a shared parent account changes that parent's credentials across all linked schools.
 - Signed-in users can view their own profile through `GET /api/auth/user` and update their own nonblank phone number through `PUT /api/auth/phone`. Email is changed only through `PUT /api/auth/email` and must be verified again before recovery can use it.
 - Users cannot change their own first name, last name, username, role, or school association. Names are set during account/profile creation. School administrators and vice-administrators may correct active student details and teacher names and branches within their school; archived records remain read-only.
 - School administrators and vice-administrators may correct the name on a parent account registered with their school. This changes the shared parent profile everywhere that account is used; parent contact details remain editable only by the parent.
@@ -123,7 +124,7 @@ Recipient search and message submission must both enforce these rules. Staff sea
 - When a student leaves a school, an authorized administrator can soft-archive their student profile (`active = false`). Any linked high-school student login account is deactivated in the same transaction so it can no longer authenticate. The linked parent account remains active. Enrolling at another school creates a new student profile under that school and links the existing parent account when applicable.
 - An authorized administrator can restore an archived profile for the same school. This reactivates its linked high-school student login account, preserves the existing password, and advances the credential version so previously issued tokens cannot be reused. Parent accounts are unaffected.
 - Every user account has exactly one role. A single account cannot combine roles. If one person needs both teacher and parent access, they use two separate accounts with separate usernames and credentials. A student login account cannot also be a parent account.
-- A parent account may be linked to multiple students within the same school. A student has at most one linked parent account in the first version. Cross-school account reuse is not available in the current version.
+- A parent account may be linked to students across multiple schools. A student has at most one linked parent account. Parent credentials and profile identity are shared; school registrations and student records remain school-scoped.
 
 ## 7. Message status
 
@@ -155,7 +156,7 @@ The platform treats school level as one of three distinct values. Each school re
 - **Middle school:** grades 5–8. Students do not sign in; their parent accesses their view. Parent association is required.
 - **High school:** grades 9–12. Every student receives a student login account upon enrollment. A parent may also be linked to the student profile if requested by the parent.
 
-A student's current grade is derived from their assigned classroom and must be valid for the school's level. A student number is unique within its school, modeled as text up to 50 characters to preserve leading zeros. A username is unique across the whole platform. In the current version, each school has its own parent account record; a parent account can be linked to multiple children within that school and switches to a child's view after selecting that child.
+A student's current grade is derived from their assigned classroom and must be valid for the school's level. A student number is unique within its school, modeled as text up to 50 characters to preserve leading zeros. A username is unique across the whole platform. Parent accounts are platform-wide identities and may link to children at multiple schools; selecting a child switches the parent into that child's school context.
 
 ## 12. School identification
 
