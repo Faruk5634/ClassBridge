@@ -150,7 +150,7 @@ public class StudentService {
     }
 
     private void registerParentForSchool(Long actorAccountId, School school, ParentProfile parentProfile) {
-        if (parentSchoolRegistrationRepository.existsBySchoolIdAndParentProfileId(school.getId(), parentProfile.getId())) {
+        if (parentSchoolRegistrationRepository.existsBySchoolIdAndParentProfileIdAndIsActiveTrue(school.getId(), parentProfile.getId())) {
             return;
         }
         SchoolMembership membership = schoolMembershipRepository.findByUserAccountId(actorAccountId)
@@ -202,11 +202,6 @@ public class StudentService {
                 .orElseThrow(() -> new InvalidStudentEnrollmentException(
                         "Parent profile not found for account: " + trimmedUsername
                 ));
-        boolean registeredForSchool = parentSchoolRegistrationRepository.existsBySchoolIdAndParentProfileId(schoolId, parentProfile.getId());
-        boolean alreadyLinkedToSchool = studentProfileRepository.existsByParentProfileIdAndSchoolIdAndIsActiveTrue(parentProfile.getId(), schoolId);
-        if (!registeredForSchool && !alreadyLinkedToSchool) {
-            throw new InvalidStudentEnrollmentException("Select a parent account registered with this school.");
-        }
         return parentProfile;
     }
 

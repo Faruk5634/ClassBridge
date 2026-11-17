@@ -68,7 +68,7 @@ public class ParentService {
 
         String username = request.getUsername().trim();
         if (userAccountRepository.existsByUsername(username)) {
-            throw new DuplicateUsernameException("Username is already taken: " + username);
+            throw new DuplicateUsernameException("This username already belongs to an account. Link the existing parent account while enrolling the student instead of creating a duplicate.");
         }
 
         String initialPassword = initialPasswordGenerator.generatePassword();
@@ -105,6 +105,7 @@ public class ParentService {
         }
 
         for (ParentSchoolRegistration registration : parentSchoolRegistrationRepository.findBySchoolIdOrderByCreatedAtDesc(schoolId)) {
+            if (!registration.isActive()) continue;
             ParentProfile parent = registration.getParentProfile();
             if (parent.getUserAccount() != null) {
                 parents.computeIfAbsent(parent.getId(), ignored -> toSchoolParentResponse(parent));
@@ -167,7 +168,7 @@ public class ParentService {
     }
 
     private void ensureParentRegisteredForSchool(Long actorAccountId, Long schoolId, ParentProfile parent) {
-        if (parentSchoolRegistrationRepository.existsBySchoolIdAndParentProfileId(schoolId, parent.getId())) return;
+        if (parentSchoolRegistrationRepository.existsBySchoolIdAndParentProfileIdAndIsActiveTrue(schoolId, parent.getId())) return;
         SchoolMembership membership = schoolMembershipRepository.findByUserAccountId(actorAccountId)
                 .filter(candidate -> candidate.getSchool().getId().equals(schoolId))
                 .orElseThrow(() -> new ForbiddenOperationException("Authenticated administrator is not associated with this school."));
