@@ -8,7 +8,6 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -27,9 +26,12 @@ public class SchoolMembership {
     @JoinColumn(name = "school_id", nullable = false)
     private School school;
 
-    @OneToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "user_account_id", nullable = false, unique = true)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "user_account_id", nullable = false)
     private UserAccount userAccount;
+
+    @Column(length = 100)
+    private String branch;
 
     @Column(name = "is_active", nullable = false)
     private boolean isActive = true;
@@ -68,6 +70,9 @@ public class SchoolMembership {
     public void setUserAccount(UserAccount userAccount) {
         this.userAccount = userAccount;
     }
+
+    public String getBranch() { return branch; }
+    public void setBranch(String branch) { this.branch = branch; }
 
     public boolean isActive() { return isActive; }
     public void setActive(boolean active) { this.isActive = active; }

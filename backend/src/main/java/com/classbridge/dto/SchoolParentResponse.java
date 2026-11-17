@@ -6,12 +6,14 @@ import java.time.Instant;
 public class SchoolParentResponse {
     private Long parentProfileId;
     private Long userAccountId;
+    private String publicId;
     private String username;
     private String firstName;
     private String lastName;
     private String email;
     private String phoneNumber;
     private boolean active;
+    private boolean registeredInSchool;
     private boolean emailVerified;
     private boolean mustChangePassword;
     private Instant createdAt;
@@ -21,6 +23,8 @@ public class SchoolParentResponse {
     public void setParentProfileId(Long parentProfileId) { this.parentProfileId = parentProfileId; }
     public Long getUserAccountId() { return userAccountId; }
     public void setUserAccountId(Long userAccountId) { this.userAccountId = userAccountId; }
+    public String getPublicId() { return publicId; }
+    public void setPublicId(String publicId) { this.publicId = publicId; }
     public String getUsername() { return username; }
     public void setUsername(String username) { this.username = username; }
     public String getFirstName() { return firstName; }
@@ -33,6 +37,8 @@ public class SchoolParentResponse {
     public void setPhoneNumber(String phoneNumber) { this.phoneNumber = phoneNumber; }
     public boolean isActive() { return active; }
     public void setActive(boolean active) { this.active = active; }
+    public boolean isRegisteredInSchool() { return registeredInSchool; }
+    public void setRegisteredInSchool(boolean registeredInSchool) { this.registeredInSchool = registeredInSchool; }
     public boolean isEmailVerified() { return emailVerified; }
     public void setEmailVerified(boolean emailVerified) { this.emailVerified = emailVerified; }
     public boolean isMustChangePassword() { return mustChangePassword; }

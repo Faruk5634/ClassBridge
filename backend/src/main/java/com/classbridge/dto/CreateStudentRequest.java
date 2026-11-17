@@ -4,6 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Pattern;
 
 public class CreateStudentRequest {
 
@@ -21,6 +22,10 @@ public class CreateStudentRequest {
 
     @NotNull(message = "Classroom ID is required.")
     private Long classroomId;
+
+    @Size(max = 12, message = "Student ID must not exceed 12 characters.")
+    @Pattern(regexp = "[0-9]{12}", message = "Student ID must contain 12 digits.")
+    private String studentPublicId;
 
     @Size(max = 255, message = "Parent username must not exceed 255 characters.")
     private String parentUsername;
@@ -62,6 +67,10 @@ public class CreateStudentRequest {
     public Long getClassroomId() {
         return classroomId;
     }
+
+    public String getStudentPublicId() { return studentPublicId; }
+
+    public void setStudentPublicId(String studentPublicId) { this.studentPublicId = studentPublicId; }
 
     public void setClassroomId(Long classroomId) {
         this.classroomId = classroomId;

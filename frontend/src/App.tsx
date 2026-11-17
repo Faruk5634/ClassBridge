@@ -10,6 +10,7 @@ import { fetchDeduplicated, invalidateCachedGetRequests } from './apiClient'
 type LoginResponse = { accessToken: string }
 type AccountProfile = {
   userAccountId: number
+  publicId?: string
   username: string
   role: 'SUPERADMIN' | 'SCHOOL_ADMIN' | 'SCHOOL_VICE_ADMIN' | 'TEACHER' | 'PARENT' | 'STUDENT'
   firstName: string

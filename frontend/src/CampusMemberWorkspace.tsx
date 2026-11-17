@@ -5,7 +5,7 @@ import { fetchCached } from './apiClient'
 import './CampusMemberWorkspace.css'
 
 type Role = 'PARENT' | 'STUDENT'
-type Profile = { userAccountId: number; username: string; role: Role; firstName: string | null; lastName: string | null; email?: string | null; emailVerified?: boolean; phoneNumber?: string | null }
+type Profile = { userAccountId: number; publicId?: string; username: string; role: Role; firstName: string | null; lastName: string | null; email?: string | null; emailVerified?: boolean; phoneNumber?: string | null }
 type AvatarType = 'INITIALS' | 'ANIMAL' | 'PHOTO'
 type Appearance = { avatarType: AvatarType; animal: string | null; imageDataUrl: string | null }
 type View = 'today' | 'announcements' | 'profile'
@@ -277,7 +277,7 @@ export default function CampusMemberWorkspace({ theme, token, profile, onToggleT
         <div className="member-profile-layout">
           <div className="member-profile-main">
             <section className="member-panel member-account-panel"><div className="member-profile-panel-heading"><div><p className="member-kicker">ACCOUNT DETAILS</p><h2>Your information</h2></div><span className="member-readonly-mark">School managed</span></div>
-              <div className="member-profile-facts"><div><small>FULL NAME</small><strong>{fullName}</strong></div><div><small>USERNAME</small><strong>{profile.username}</strong></div><div><small>ROLE</small><strong>{profile.role === 'PARENT' ? 'Parent' : 'Student'}</strong></div></div>
+              <div className="member-profile-facts"><div><small>FULL NAME</small><strong>{fullName}</strong></div><div><small>USERNAME</small><strong>{profile.username}</strong></div>{profile.publicId && <div><small>CLASSBRIDGE ID</small><strong>{profile.publicId}</strong></div>}<div><small>ROLE</small><strong>{profile.role === 'PARENT' ? 'Parent' : 'Student'}</strong></div></div>
               <p className="member-school-managed-note">Your name, username, and role are managed by your school and cannot be changed here.</p>
             </section>
 

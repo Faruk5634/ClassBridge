@@ -14,8 +14,11 @@ import java.util.Optional;
 @Repository
 public interface SchoolMembershipRepository extends JpaRepository<SchoolMembership, Long> {
     List<SchoolMembership> findAllBySchoolId(Long schoolId);
-    Optional<SchoolMembership> findByUserAccountId(Long userAccountId);
+    List<SchoolMembership> findAllByUserAccountId(Long userAccountId);
+    @Query("SELECT sm FROM SchoolMembership sm WHERE sm.userAccount.id = :userAccountId AND sm.isActive = true")
+    Optional<SchoolMembership> findByUserAccountId(@Param("userAccountId") Long userAccountId);
 
+    @org.springframework.data.jpa.repository.EntityGraph(attributePaths = {"school", "userAccount", "userAccount.memberIdentity"})
     Optional<SchoolMembership> findBySchoolIdAndUserAccountId(Long schoolId, Long userAccountId);
 
     boolean existsBySchoolIdAndUserAccountRole(Long schoolId, UserRole role);

@@ -6,6 +6,7 @@ public class StudentProfileResponse {
 
     private Long id;
     private String schoolNumber;
+    private String studentPublicId;
     private String firstName;
     private String lastName;
     private Long schoolId;
@@ -39,6 +40,10 @@ public class StudentProfileResponse {
     public String getSchoolNumber() {
         return schoolNumber;
     }
+
+    public String getStudentPublicId() { return studentPublicId; }
+
+    public void setStudentPublicId(String studentPublicId) { this.studentPublicId = studentPublicId; }
 
     public void setSchoolNumber(String schoolNumber) {
         this.schoolNumber = schoolNumber;

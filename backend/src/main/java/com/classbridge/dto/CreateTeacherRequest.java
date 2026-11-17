@@ -3,12 +3,16 @@ package com.classbridge.dto;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.Pattern;
 
 public class CreateTeacherRequest {
 
-    @NotBlank
     @Size(max = 255)
     private String username;
+
+    @Size(max = 12)
+    @Pattern(regexp = "[0-9]{12}")
+    private String publicId;
 
     @NotBlank
     @Size(max = 100)
@@ -31,6 +35,9 @@ public class CreateTeacherRequest {
     public String getUsername() {
         return username;
     }
+
+    public String getPublicId() { return publicId; }
+    public void setPublicId(String publicId) { this.publicId = publicId; }
 
     public void setUsername(String username) {
         this.username = username;

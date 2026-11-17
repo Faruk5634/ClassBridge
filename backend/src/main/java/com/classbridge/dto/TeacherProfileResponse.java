@@ -10,6 +10,7 @@ public class TeacherProfileResponse {
     private Long schoolMembershipId;
     private Long schoolId;
     private String username;
+    private String publicId;
     private String firstName;
     private String lastName;
     private String branch;
@@ -31,6 +32,8 @@ public class TeacherProfileResponse {
     public void setSchoolId(Long schoolId) { this.schoolId = schoolId; }
     public String getUsername() { return username; }
     public void setUsername(String username) { this.username = username; }
+    public String getPublicId() { return publicId; }
+    public void setPublicId(String publicId) { this.publicId = publicId; }
     public String getFirstName() { return firstName; }
     public void setFirstName(String firstName) { this.firstName = firstName; }
     public String getLastName() { return lastName; }

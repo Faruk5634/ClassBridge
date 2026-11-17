@@ -21,6 +21,7 @@ Represents one school using ClassBridge.
 Represents login credentials and shared identity information.
 
 - Stores shared identity and account information, including the globally unique username, securely stored password hash, exactly one role, shared contact details, and account status.
+- Each account has exactly one immutable `MemberIdentity` with a role-specific, randomly generated 12-digit `publicId` (for example, parent IDs begin with `300`, student IDs with `400`, and teacher IDs with `500`). A person who has two roles uses separate accounts and therefore separate IDs. IDs are lookup keys, not credentials.
 - Email and phone remain optional; `emailVerified` records whether ownership of the current email address has been confirmed. `credentialVersion` is incremented on password changes and password recovery to invalidate previously issued JWTs.
 - Passwords are never stored or logged in plain text in the database, project files, or any other persistent storage; only the one-way BCrypt hash is persisted.
 - Whenever an authorized administrator creates a login-enabled account, the system generates a cryptographically secure random initial password.
@@ -54,7 +55,8 @@ Represents a one-time challenge for email verification or password recovery.
 
 Represents the explicit association of a user account with a specific school.
 
-- School administrators, vice-administrators, and teachers each belong to one school through this membership.
+- School administrators and vice-administrators have one school membership. Teachers may have retained inactive historical memberships, but at most one active school membership at a time. A transfer reuses or creates the destination school's membership and preserves the same account and credentials.
+- The teacher's subject/branch is stored on the school membership because it can differ by school.
 - Superadmins do not have a school membership.
 - Parents do not have a direct school membership; they access students across multiple schools through parent-to-student links.
 
@@ -64,7 +66,7 @@ Represents profile information for school staff members.
 
 - Has a one-to-one relationship with `UserAccount`.
 - Stores the staff member's required `firstName` and `lastName`.
-- Stores the teacher's optional `branch` (subject/discipline).
+- Teacher branch is school-specific and stored on `SchoolMembership`.
 - Applies to `SCHOOL_ADMIN`, `SCHOOL_VICE_ADMIN`, and `TEACHER` accounts.
 - School administrators and vice-administrators can list, create, update teacher names and branch, archive, and restore teacher accounts in their own school. Teacher profile edits do not change the login username, contact details, or school membership.
 - A teacher with homeroom classrooms cannot be archived until each classroom is assigned to another active teacher or left unassigned. Archived teachers cannot be assigned as homeroom teachers.
@@ -87,11 +89,17 @@ Represents profile information for parents and guardians.
 - A parent account may be linked to multiple students across multiple schools. A student may have at most one linked parent account in the first version.
 - **Enrollment workflow:** When enrolling a student, school staff can select an existing parent account by its globally unique username or create a new parent account, then link the student profile to it. The same parent account can be linked to children at different schools. An authorized school administrator or vice-administrator creates any new parent `UserAccount` and `ParentProfile` before linking the student.
   - Newly created parent accounts follow the standard initial-password policy: the system generates a cryptographically secure password, stores only the BCrypt hash, and returns the plain-text password once to the creating administrator (never logged or persisted). Parents must replace this temporary password before navigating the workspace.
-  - When a parent already has a ClassBridge account, the school can register that exact username in its local parent directory after confirming the account name with the family. This directory registration alone grants no student access; the parent must still be explicitly linked to each student.
+  - When a parent already has a ClassBridge account, the school looks it up by immutable parent public ID and registers that existing profile in its local directory. The same parent identity can be registered at more than one school. The local registration alone grants no student access; the parent must still be linked to a student in that school.
 
 ### ParentSchoolRegistration
 
-Represents that a school administrator registered a shared parent account in a school's directory. It records the school, parent profile, creating administrator, timestamp, and active state. The same parent profile can be registered at multiple schools. Registration supports local directory management and enrollment; it does not grant parent access to children or announcements without an active student-to-parent link. A school archive deactivates this school's registration and a restore reactivates it only if the archive operation did so.
+Represents that a school administrator registered a shared parent account in a school's directory. It records the school, parent profile, creating administrator, timestamp, and active state. The same parent profile can be registered at multiple schools. A parent can access a school’s child records only when both the local registration and student-to-parent link are active. Archiving the registration removes access in that school only; the account and other schools' registrations remain active. A school archive deactivates this school's registration and restoration reactivates it only if the archive operation did so.
+
+### MemberIdentity and StudentIdentity
+
+- `MemberIdentity` stores the immutable, role-scoped public ID used for account lookup. IDs are generated randomly by the system and cannot be edited by users or administrators.
+- `StudentIdentity` stores a student's shared name and student ID independently of a login account. This allows primary- and middle-school students to have an ID without credentials and lets the same identity have an archived enrollment in one school and a current enrollment in another.
+- A high-school login account, when present, is attached to the same student identity. A student who later moves to another high school keeps the same username, password, and account.
 
 ### StudentProfile
 
@@ -99,15 +107,15 @@ Represents an enrolled student at a specific school.
 
 - Every enrolled student has a `StudentProfile`, including primary-, middle-, and high-school students.
 - A `StudentProfile` is not itself a login account.
-- **Data minimization:** Stores only the student's required `firstName`, `lastName`, `schoolNumber`, `school`, current `classroom`, parent association (required for primary/middle school, optional for high school), student login account reference (for high-school students), and active/inactive enrollment status (`active`). Date of birth, home address, and national identity number are not collected in the first version.
+- **Data minimization:** Stores only the student's `StudentIdentity`, school-specific `schoolNumber`, `school`, current `classroom`, parent association (required for primary/middle school, optional for high school), and active/inactive enrollment status (`active`). Date of birth, home address, and national identity number are not collected in the first version.
 - High-school student email and phone are optional fields on the linked `UserAccount`. They are returned in the school administrator's student detail response and omitted from roster-list responses.
 - The student's current grade level is derived from the assigned classroom's `gradeLevel`; it is not duplicated in `StudentProfile`.
 - `schoolNumber` is modeled as text up to 50 characters to preserve leading zeros, and is unique within a school (enforced by a composite unique constraint on `(school_id, school_number)`).
-- Student profiles are retained as inactive/archived records when a student leaves a school. A new school enrollment creates a separate `StudentProfile`. Only the current classroom assignment is stored on an active profile; class membership history, academic-year tracking, and automatic promotion/transfer processing remain out of scope for the first version. Archived school enrollment profiles are explicitly retained rather than being out of scope.
+- Student profiles are retained as inactive/archived records when a student leaves a school. A new school enrollment creates a separate `StudentProfile` under the same `StudentIdentity`, found using the student's public ID. Names are shared and corrected across the identity; school number and classroom remain local to each enrollment. Only one active enrollment is allowed at a time. Only the current classroom assignment is stored; class membership history, academic-year tracking, and automatic promotion remain out of scope.
 - **Enrollment rules:**
   - School administrators and vice-administrators enroll students only for their own school, deriving the school from the administrator's membership. The assigned classroom must belong to that school and have a grade level valid for the school's level.
   - For primary- and middle-school students: student login accounts are prohibited; linking a valid, active parent account with an existing `ParentProfile` is required. The parent account may already be linked to children at other schools.
-  - For high-school students: a student login account (`UserAccount` with `STUDENT` role) is created with a globally unique username, optional email and phone, and a one-time generated initial password. The account must change that password before using the workspace; linking an existing parent account is optional.
+  - For high-school students with no existing login: create a `STUDENT` account with a globally unique username, optional email and phone, and a one-time initial password. If the transferred student already has a login, retain its username and password and reactivate the account after the previous school archives the enrollment. The account must change a newly issued temporary password before using the workspace; linking an existing parent account is optional.
   - The student profile and (for high-school students) student login account are created atomically in a single transaction.
 - **Student login and parent association rules:**
   - **Primary- and middle-school students:** Primary- and middle-school `StudentProfile` records have no linked student `UserAccount` and no login credentials. Their parent association is required.

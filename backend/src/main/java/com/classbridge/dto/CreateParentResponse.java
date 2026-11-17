@@ -8,6 +8,7 @@ public class CreateParentResponse {
 
     private Long userAccountId;
     private Long parentProfileId;
+    private String publicId;
     private String username;
     private String firstName;
     private String lastName;
@@ -33,6 +34,9 @@ public class CreateParentResponse {
     public void setParentProfileId(Long parentProfileId) {
         this.parentProfileId = parentProfileId;
     }
+
+    public String getPublicId() { return publicId; }
+    public void setPublicId(String publicId) { this.publicId = publicId; }
 
     public String getUsername() {
         return username;

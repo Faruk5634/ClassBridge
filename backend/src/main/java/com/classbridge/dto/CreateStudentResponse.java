@@ -10,6 +10,7 @@ public class CreateStudentResponse {
     private Integer gradeLevel;
     private String sectionName;
     private String schoolNumber;
+    private String studentPublicId;
     private String firstName;
     private String lastName;
     private boolean active;
@@ -66,6 +67,10 @@ public class CreateStudentResponse {
     public String getSchoolNumber() {
         return schoolNumber;
     }
+
+    public String getStudentPublicId() { return studentPublicId; }
+
+    public void setStudentPublicId(String studentPublicId) { this.studentPublicId = studentPublicId; }
 
     public void setSchoolNumber(String schoolNumber) {
         this.schoolNumber = schoolNumber;

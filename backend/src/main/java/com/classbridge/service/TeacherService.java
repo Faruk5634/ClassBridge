@@ -11,6 +11,7 @@ import com.classbridge.dto.CreateTeacherResponse;
 import com.classbridge.dto.PageResponse;
 import com.classbridge.dto.TeacherHomeroomClassroomResponse;
 import com.classbridge.dto.TeacherProfileResponse;
+import com.classbridge.dto.TeacherIdentityLookupResponse;
 import com.classbridge.dto.UpdateTeacherRequest;
 import com.classbridge.exception.DuplicateUsernameException;
 import com.classbridge.exception.ForbiddenOperationException;
@@ -62,38 +63,70 @@ public class TeacherService {
     @Transactional
     public CreateTeacherResponse createTeacher(Long actorAccountId, CreateTeacherRequest request) {
         School school = getActorSchool(actorAccountId);
-        String username = request.getUsername().trim();
         String firstName = request.getFirstName().trim();
         String lastName = request.getLastName().trim();
-
-        if (userAccountRepository.existsByUsername(username)) {
-            throw new DuplicateUsernameException("Username is already taken: " + username);
+        boolean transfer = StringUtils.hasText(request.getPublicId());
+        String initialPassword = null;
+        UserAccount savedAccount;
+        StaffProfile savedProfile;
+        SchoolMembership savedMembership;
+        if (transfer) {
+            savedAccount = userAccountRepository.findByMemberIdentityPublicId(request.getPublicId().trim())
+                    .filter(account -> account.getRole() == UserRole.TEACHER)
+                    .orElseThrow(() -> new ResourceNotFoundException("Teacher ID was not found."));
+            if (savedAccount.isActive() || schoolMembershipRepository.findByUserAccountId(savedAccount.getId()).isPresent()) {
+                throw new IllegalStateException("This teacher is still active at another school. The previous school must archive the teacher before transfer.");
+            }
+            if (StringUtils.hasText(request.getUsername()) && !request.getUsername().trim().equals(savedAccount.getUsername())) {
+                throw new IllegalArgumentException("An existing teacher's username cannot be changed during transfer.");
+            }
+            savedProfile = staffProfileRepository.findByUserAccountId(savedAccount.getId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Teacher profile was not found."));
+            savedProfile.setFirstName(firstName);
+            savedProfile.setLastName(lastName);
+            savedProfile = staffProfileRepository.save(savedProfile);
+            if (StringUtils.hasText(request.getEmail())) savedAccount.setEmail(request.getEmail().trim());
+            if (StringUtils.hasText(request.getPhoneNumber())) savedAccount.setPhoneNumber(request.getPhoneNumber().trim());
+            savedAccount.setActive(true);
+            savedAccount.setCredentialVersion(savedAccount.getCredentialVersion() + 1);
+            savedAccount = userAccountRepository.save(savedAccount);
+            savedMembership = schoolMembershipRepository.findBySchoolIdAndUserAccountId(school.getId(), savedAccount.getId())
+                    .orElseGet(SchoolMembership::new);
+            savedMembership.setSchool(school);
+            savedMembership.setUserAccount(savedAccount);
+            savedMembership.setActive(true);
+            savedMembership.setArchivedBySchool(false);
+            savedMembership.setBranch(StringUtils.hasText(request.getBranch()) ? request.getBranch().trim() : null);
+            savedMembership = schoolMembershipRepository.save(savedMembership);
+        } else {
+            if (!StringUtils.hasText(request.getUsername())) {
+                throw new IllegalArgumentException("Username is required for a new teacher account.");
+            }
+            String username = request.getUsername().trim();
+            if (userAccountRepository.existsByUsername(username)) {
+                throw new DuplicateUsernameException("Username is already taken: " + username);
+            }
+            initialPassword = initialPasswordGenerator.generatePassword();
+            UserAccount account = new UserAccount();
+            account.setUsername(username);
+            account.setPasswordHash(passwordEncoder.encode(initialPassword));
+            account.setRole(UserRole.TEACHER);
+            account.setEmail(StringUtils.hasText(request.getEmail()) ? request.getEmail().trim() : null);
+            account.setPhoneNumber(StringUtils.hasText(request.getPhoneNumber()) ? request.getPhoneNumber().trim() : null);
+            account.setMustChangePassword(true);
+            account.setActive(true);
+            savedAccount = userAccountRepository.save(account);
+            StaffProfile profile = new StaffProfile();
+            profile.setUserAccount(savedAccount);
+            profile.setFirstName(firstName);
+            profile.setLastName(lastName);
+            savedProfile = staffProfileRepository.save(profile);
+            SchoolMembership membership = new SchoolMembership();
+            membership.setSchool(school);
+            membership.setUserAccount(savedAccount);
+            membership.setBranch(StringUtils.hasText(request.getBranch()) ? request.getBranch().trim() : null);
+            savedMembership = schoolMembershipRepository.save(membership);
         }
-
-        String initialPassword = initialPasswordGenerator.generatePassword();
-        String passwordHash = passwordEncoder.encode(initialPassword);
-
-        UserAccount account = new UserAccount();
-        account.setUsername(username);
-        account.setPasswordHash(passwordHash);
-        account.setRole(UserRole.TEACHER);
-        account.setEmail(StringUtils.hasText(request.getEmail()) ? request.getEmail().trim() : null);
-        account.setPhoneNumber(StringUtils.hasText(request.getPhoneNumber()) ? request.getPhoneNumber().trim() : null);
-        account.setMustChangePassword(true);
-        account.setActive(true);
-        UserAccount savedAccount = userAccountRepository.save(account);
-
-        StaffProfile profile = new StaffProfile();
-        profile.setUserAccount(savedAccount);
-        profile.setFirstName(firstName);
-        profile.setLastName(lastName);
-        profile.setBranch(StringUtils.hasText(request.getBranch()) ? request.getBranch().trim() : null);
-        StaffProfile savedProfile = staffProfileRepository.save(profile);
-
-        SchoolMembership membership = new SchoolMembership();
-        membership.setSchool(school);
-        membership.setUserAccount(savedAccount);
-        SchoolMembership savedMembership = schoolMembershipRepository.save(membership);
 
         CreateTeacherResponse response = new CreateTeacherResponse();
         response.setUserAccountId(savedAccount.getId());
@@ -103,7 +136,8 @@ public class TeacherService {
         response.setUsername(savedAccount.getUsername());
         response.setFirstName(savedProfile.getFirstName());
         response.setLastName(savedProfile.getLastName());
-        response.setBranch(savedProfile.getBranch());
+        response.setBranch(savedMembership.getBranch());
+        response.setPublicId(savedAccount.getMemberIdentity().getPublicId());
         response.setRole(savedAccount.getRole());
         response.setEmail(savedAccount.getEmail());
         response.setPhoneNumber(savedAccount.getPhoneNumber());
@@ -152,7 +186,36 @@ public class TeacherService {
                 .findHomeroomClassrooms(school.getId(), teacherAccountId).stream()
                 .map(this::toHomeroomResponse)
                 .toList();
-        return toResponse(profile, homerooms);
+        return toResponse(profile, homerooms, schoolMembershipRepository.findBySchoolIdAndUserAccountId(school.getId(), teacherAccountId)
+                .orElseThrow(() -> new ResourceNotFoundException("Teacher not found with id: " + teacherAccountId)));
+    }
+
+    @Transactional(readOnly = true)
+    public TeacherIdentityLookupResponse lookupTeacherIdentity(Long actorAccountId, String publicId) {
+        getActorSchool(actorAccountId);
+        UserAccount account = userAccountRepository.findByMemberIdentityPublicId(publicId.trim())
+                .filter(value -> value.getRole() == UserRole.TEACHER)
+                .orElseThrow(() -> new ResourceNotFoundException("Teacher ID was not found."));
+        if (account.isActive() || schoolMembershipRepository.findByUserAccountId(account.getId()).isPresent()) {
+            throw new IllegalStateException("This teacher is still active at another school. The previous school must archive the teacher before transfer.");
+        }
+        StaffProfile profile = staffProfileRepository.findByUserAccountId(account.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Teacher profile was not found."));
+        TeacherIdentityLookupResponse response = new TeacherIdentityLookupResponse();
+        response.setPublicId(account.getMemberIdentity().getPublicId());
+        response.setFirstName(profile.getFirstName());
+        response.setLastName(profile.getLastName());
+        response.setUsername(account.getUsername());
+        response.setEmail(account.getEmail());
+        response.setPhoneNumber(account.getPhoneNumber());
+        SchoolMembership previous = schoolMembershipRepository.findAllByUserAccountId(account.getId()).stream()
+                .max(java.util.Comparator.comparing(SchoolMembership::getUpdatedAt,
+                        java.util.Comparator.nullsFirst(java.util.Comparator.naturalOrder()))).orElse(null);
+        if (previous != null) {
+            response.setPreviousBranch(previous.getBranch());
+            response.setPreviousSchoolName(previous.getSchool().getName());
+        }
+        return response;
     }
 
     @Transactional
@@ -165,10 +228,13 @@ public class TeacherService {
 
         profile.setFirstName(request.getFirstName().trim());
         profile.setLastName(request.getLastName().trim());
-        profile.setBranch(StringUtils.hasText(request.getBranch()) ? request.getBranch().trim() : null);
+        SchoolMembership membership = schoolMembershipRepository.findBySchoolIdAndUserAccountId(school.getId(), teacherAccountId)
+                .orElseThrow(() -> new ResourceNotFoundException("Teacher not found with id: " + teacherAccountId));
+        membership.setBranch(StringUtils.hasText(request.getBranch()) ? request.getBranch().trim() : null);
+        schoolMembershipRepository.save(membership);
         StaffProfile saved = staffProfileRepository.saveAndFlush(profile);
         return toResponse(saved, classroomRepository.findHomeroomClassrooms(school.getId(), teacherAccountId).stream()
-                .map(this::toHomeroomResponse).toList());
+                .map(this::toHomeroomResponse).toList(), membership);
     }
 
     @Transactional
@@ -180,11 +246,14 @@ public class TeacherService {
             throw new IllegalStateException("Reassign this teacher’s homeroom classrooms before archiving the account.");
         }
         if (account.isActive()) {
+            schoolMembershipRepository.findBySchoolIdAndUserAccountId(school.getId(), teacherAccountId)
+                    .ifPresent(membership -> { membership.setActive(false); membership.setArchivedBySchool(true); schoolMembershipRepository.save(membership); });
             account.setActive(false);
             account.setCredentialVersion(account.getCredentialVersion() + 1);
             userAccountRepository.saveAndFlush(account);
         }
-        return toResponse(profile, List.of());
+        return toResponse(profile, List.of(), schoolMembershipRepository.findBySchoolIdAndUserAccountId(school.getId(), teacherAccountId)
+                .orElseThrow(() -> new ResourceNotFoundException("Teacher not found with id: " + teacherAccountId)));
     }
 
     @Transactional
@@ -193,6 +262,11 @@ public class TeacherService {
         StaffProfile profile = findTeacherInSchool(school.getId(), teacherAccountId);
         UserAccount account = profile.getUserAccount();
         if (!account.isActive()) {
+            if (schoolMembershipRepository.findByUserAccountId(account.getId()).isPresent()) {
+                throw new IllegalStateException("This teacher is already active at another school.");
+            }
+            schoolMembershipRepository.findBySchoolIdAndUserAccountId(school.getId(), teacherAccountId)
+                    .ifPresent(membership -> { membership.setActive(true); membership.setArchivedBySchool(false); schoolMembershipRepository.save(membership); });
             account.setActive(true);
             account.setCredentialVersion(account.getCredentialVersion() + 1);
             userAccountRepository.saveAndFlush(account);
@@ -200,7 +274,8 @@ public class TeacherService {
         List<TeacherHomeroomClassroomResponse> homerooms = classroomRepository
                 .findHomeroomClassrooms(school.getId(), teacherAccountId).stream()
                 .map(this::toHomeroomResponse).toList();
-        return toResponse(profile, homerooms);
+        return toResponse(profile, homerooms, schoolMembershipRepository.findBySchoolIdAndUserAccountId(school.getId(), teacherAccountId)
+                .orElseThrow(() -> new ResourceNotFoundException("Teacher not found with id: " + teacherAccountId)));
     }
 
     private School getActorSchool(Long actorAccountId) {
@@ -216,8 +291,7 @@ public class TeacherService {
     }
 
     private StaffProfile findTeacherInSchool(Long schoolId, Long teacherAccountId) {
-        SchoolMembership membership = schoolMembershipRepository.findByUserAccountId(teacherAccountId)
-                .filter(value -> value.getSchool().getId().equals(schoolId))
+        SchoolMembership membership = schoolMembershipRepository.findBySchoolIdAndUserAccountId(schoolId, teacherAccountId)
                 .orElseThrow(() -> new ResourceNotFoundException("Teacher not found with id: " + teacherAccountId));
         StaffProfile profile = staffProfileRepository.findByUserAccountId(teacherAccountId)
                 .orElseThrow(() -> new ResourceNotFoundException("Teacher not found with id: " + teacherAccountId));
@@ -242,13 +316,6 @@ public class TeacherService {
         return new TeacherHomeroomClassroomResponse(classroom.getId(), classroom.getGradeLevel(), classroom.getSectionName());
     }
 
-    private TeacherProfileResponse toResponse(StaffProfile profile, List<TeacherHomeroomClassroomResponse> homerooms) {
-        UserAccount account = profile.getUserAccount();
-        SchoolMembership membership = schoolMembershipRepository.findByUserAccountId(account.getId())
-                .orElseThrow(() -> new ResourceNotFoundException("Teacher not found with id: " + account.getId()));
-        return toResponse(profile, homerooms, membership);
-    }
-
     private TeacherProfileResponse toResponse(StaffProfile profile,
                                               List<TeacherHomeroomClassroomResponse> homerooms,
                                               SchoolMembership membership) {
@@ -264,7 +331,8 @@ public class TeacherService {
         response.setUsername(account.getUsername());
         response.setFirstName(profile.getFirstName());
         response.setLastName(profile.getLastName());
-        response.setBranch(profile.getBranch());
+        response.setBranch(membership.getBranch());
+        response.setPublicId(account.getMemberIdentity().getPublicId());
         response.setEmail(account.getEmail());
         response.setEmailVerified(account.isEmailVerified());
         response.setPhoneNumber(account.getPhoneNumber());

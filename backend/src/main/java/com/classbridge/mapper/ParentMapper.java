@@ -36,6 +36,7 @@ public class ParentMapper {
     public CreateParentResponse toResponse(UserAccount userAccount, ParentProfile parentProfile, String initialPassword) {
         CreateParentResponse response = new CreateParentResponse();
         response.setUserAccountId(userAccount.getId());
+        response.setPublicId(userAccount.getMemberIdentity().getPublicId());
         response.setParentProfileId(parentProfile.getId());
         response.setUsername(userAccount.getUsername());
         response.setFirstName(parentProfile.getFirstName());

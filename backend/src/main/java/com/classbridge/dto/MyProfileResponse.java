@@ -5,6 +5,7 @@ import com.classbridge.domain.UserRole;
 public class MyProfileResponse {
 
     private final Long userAccountId;
+    private final String publicId;
     private final String username;
     private final UserRole role;
     private final String firstName;
@@ -15,10 +16,11 @@ public class MyProfileResponse {
     private final String schoolName;
     private final boolean mustChangePassword;
 
-    public MyProfileResponse(Long userAccountId, String username, UserRole role,
+    public MyProfileResponse(Long userAccountId, String publicId, String username, UserRole role,
                              String firstName, String lastName, String email,
                              boolean emailVerified, String phoneNumber, String schoolName, boolean mustChangePassword) {
         this.userAccountId = userAccountId;
+        this.publicId = publicId;
         this.username = username;
         this.role = role;
         this.firstName = firstName;
@@ -31,6 +33,7 @@ public class MyProfileResponse {
     }
 
     public Long getUserAccountId() { return userAccountId; }
+    public String getPublicId() { return publicId; }
     public String getUsername() { return username; }
     public UserRole getRole() { return role; }
     public String getFirstName() { return firstName; }

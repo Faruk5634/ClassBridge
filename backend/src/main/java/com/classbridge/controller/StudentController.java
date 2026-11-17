@@ -5,6 +5,7 @@ import com.classbridge.dto.CreateStudentResponse;
 import com.classbridge.dto.ErrorResponse;
 import com.classbridge.dto.PageResponse;
 import com.classbridge.dto.StudentProfileResponse;
+import com.classbridge.dto.StudentIdentityLookupResponse;
 import com.classbridge.dto.UpdateStudentRequest;
 import com.classbridge.exception.ArchivedStudentProfileException;
 import com.classbridge.exception.DuplicateSchoolNumberException;
@@ -63,6 +64,14 @@ public class StudentController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/identity-lookup/{publicId}")
+    public ResponseEntity<StudentIdentityLookupResponse> lookupStudentIdentity(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable String publicId) {
+        Long actorAccountId = Long.valueOf(jwt.getSubject());
+        return ResponseEntity.ok(studentService.lookupStudentIdentity(actorAccountId, publicId));
+    }
+
     @GetMapping("/{studentProfileId}")
     public ResponseEntity<StudentProfileResponse> getStudent(
             @AuthenticationPrincipal Jwt jwt,
@@ -108,6 +117,11 @@ public class StudentController {
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErrorResponse> handleIllegalArgument(IllegalArgumentException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse(ex.getMessage()));
+    }
+
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<ErrorResponse> handleConflict(IllegalStateException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorResponse(ex.getMessage()));
     }
 
     @ExceptionHandler(DuplicateSchoolNumberException.class)

@@ -7,12 +7,14 @@ import com.classbridge.domain.School;
 import com.classbridge.domain.SchoolLevel;
 import com.classbridge.domain.SchoolMembership;
 import com.classbridge.domain.StudentProfile;
+import com.classbridge.domain.StudentIdentity;
 import com.classbridge.domain.UserAccount;
 import com.classbridge.domain.UserRole;
 import com.classbridge.dto.CreateStudentRequest;
 import com.classbridge.dto.CreateStudentResponse;
 import com.classbridge.dto.PageResponse;
 import com.classbridge.dto.StudentProfileResponse;
+import com.classbridge.dto.StudentIdentityLookupResponse;
 import com.classbridge.dto.UpdateStudentRequest;
 import com.classbridge.exception.ArchivedStudentProfileException;
 import com.classbridge.exception.DuplicateSchoolNumberException;
@@ -27,6 +29,7 @@ import com.classbridge.repository.ParentProfileRepository;
 import com.classbridge.repository.ParentSchoolRegistrationRepository;
 import com.classbridge.repository.SchoolMembershipRepository;
 import com.classbridge.repository.StudentProfileRepository;
+import com.classbridge.repository.StudentIdentityRepository;
 import com.classbridge.repository.UserAccountRepository;
 import com.classbridge.security.InitialPasswordGenerator;
 import org.springframework.data.domain.Page;
@@ -50,6 +53,7 @@ public class StudentService {
     private final ParentProfileRepository parentProfileRepository;
     private final ParentSchoolRegistrationRepository parentSchoolRegistrationRepository;
     private final StudentProfileRepository studentProfileRepository;
+    private final StudentIdentityRepository studentIdentityRepository;
     private final InitialPasswordGenerator initialPasswordGenerator;
     private final PasswordEncoder passwordEncoder;
     private final StudentMapper studentMapper;
@@ -60,6 +64,7 @@ public class StudentService {
                           ParentProfileRepository parentProfileRepository,
                           ParentSchoolRegistrationRepository parentSchoolRegistrationRepository,
                           StudentProfileRepository studentProfileRepository,
+                          StudentIdentityRepository studentIdentityRepository,
                           InitialPasswordGenerator initialPasswordGenerator,
                           PasswordEncoder passwordEncoder,
                           StudentMapper studentMapper) {
@@ -69,6 +74,7 @@ public class StudentService {
         this.parentProfileRepository = parentProfileRepository;
         this.parentSchoolRegistrationRepository = parentSchoolRegistrationRepository;
         this.studentProfileRepository = studentProfileRepository;
+        this.studentIdentityRepository = studentIdentityRepository;
         this.initialPasswordGenerator = initialPasswordGenerator;
         this.passwordEncoder = passwordEncoder;
         this.studentMapper = studentMapper;
@@ -90,11 +96,35 @@ public class StudentService {
             );
         }
 
+        StudentIdentity studentIdentity;
+        boolean transferred = StringUtils.hasText(request.getStudentPublicId());
+        if (transferred) {
+            studentIdentity = studentIdentityRepository.findByMemberIdentityPublicId(request.getStudentPublicId().trim())
+                    .orElseThrow(() -> new ResourceNotFoundException("Student ID was not found."));
+            if (studentProfileRepository.existsByStudentIdentityIdAndIsActiveTrue(studentIdentity.getId())) {
+                throw new IllegalStateException("This student is still active at another school. The previous school must end the enrollment before transfer.");
+            }
+            studentIdentity.setFirstName(request.getFirstName().trim());
+            studentIdentity.setLastName(request.getLastName().trim());
+        } else {
+            studentIdentity = new StudentIdentity(com.classbridge.domain.MemberIdentity.forStudent(),
+                    request.getFirstName().trim(), request.getLastName().trim());
+            studentIdentity = studentIdentityRepository.save(studentIdentity);
+        }
+
         ParentProfile parentProfile = null;
-        UserAccount studentAccount = null;
+        StudentProfile previousEnrollment = transferred
+                ? studentProfileRepository.findFirstByStudentIdentityIdOrderByCreatedAtDesc(studentIdentity.getId()).orElse(null)
+                : null;
+        UserAccount studentAccount = studentIdentity.getMemberIdentity().getUserAccount();
         String initialPassword = null;
 
         if (school.getEducationLevel() == SchoolLevel.PRIMARY || school.getEducationLevel() == SchoolLevel.MIDDLE) {
+            if (studentAccount != null && studentAccount.isActive()) {
+                studentAccount.setActive(false);
+                studentAccount.setCredentialVersion(studentAccount.getCredentialVersion() + 1);
+                userAccountRepository.save(studentAccount);
+            }
             if (StringUtils.hasText(request.getEmail()) || StringUtils.hasText(request.getPhoneNumber())) {
                 throw new InvalidStudentEnrollmentException("Primary- and middle-school students do not have individual login contact details.");
             }
@@ -103,43 +133,72 @@ public class StudentService {
                         "Student accounts are not permitted for " + school.getEducationLevel() + " school students."
                 );
             }
-            if (!StringUtils.hasText(request.getParentUsername())) {
-                throw new InvalidStudentEnrollmentException(
-                        "A parent username is required for " + school.getEducationLevel() + " school students."
-                );
-            }
-            parentProfile = validateAndGetParentProfile(request.getParentUsername(), school.getId());
-        } else if (school.getEducationLevel() == SchoolLevel.HIGH_SCHOOL) {
-            if (!StringUtils.hasText(request.getStudentUsername())) {
-                throw new InvalidStudentEnrollmentException(
-                        "Student username is required for high-school students."
-                );
-            }
-            String studentUsername = request.getStudentUsername().trim();
-            if (userAccountRepository.existsByUsername(studentUsername)) {
-                throw new DuplicateUsernameException("Username is already taken: " + studentUsername);
-            }
-
             if (StringUtils.hasText(request.getParentUsername())) {
                 parentProfile = validateAndGetParentProfile(request.getParentUsername(), school.getId());
+            } else if (previousEnrollment != null) {
+                parentProfile = previousEnrollment.getParentProfile();
             }
-
-            initialPassword = initialPasswordGenerator.generatePassword();
-            String passwordHash = passwordEncoder.encode(initialPassword);
-
-            UserAccount account = new UserAccount();
-            account.setUsername(studentUsername);
-            account.setPasswordHash(passwordHash);
-            account.setRole(UserRole.STUDENT);
-            account.setActive(true);
-            account.setMustChangePassword(true);
-            account.setEmail(StringUtils.hasText(request.getEmail()) ? request.getEmail().trim() : null);
-            account.setPhoneNumber(StringUtils.hasText(request.getPhoneNumber()) ? request.getPhoneNumber().trim() : null);
-            studentAccount = userAccountRepository.save(account);
+            if (parentProfile == null) {
+                throw new InvalidStudentEnrollmentException("A parent account is required for " + school.getEducationLevel() + " school students.");
+            }
+        } else if (school.getEducationLevel() == SchoolLevel.HIGH_SCHOOL) {
+            if (StringUtils.hasText(request.getParentUsername())) {
+                parentProfile = validateAndGetParentProfile(request.getParentUsername(), school.getId());
+            } else if (previousEnrollment != null) {
+                parentProfile = previousEnrollment.getParentProfile();
+            }
+            if (studentAccount == null) {
+                if (!StringUtils.hasText(request.getStudentUsername())) {
+                    throw new InvalidStudentEnrollmentException("Student username is required for a high-school student who has no existing login account.");
+                }
+                String studentUsername = request.getStudentUsername().trim();
+                if (userAccountRepository.existsByUsername(studentUsername)) {
+                    throw new DuplicateUsernameException("Username is already taken: " + studentUsername);
+                }
+                initialPassword = initialPasswordGenerator.generatePassword();
+                UserAccount account = new UserAccount();
+                account.setUsername(studentUsername);
+                account.setPasswordHash(passwordEncoder.encode(initialPassword));
+                account.setRole(UserRole.STUDENT);
+                account.setMemberIdentity(studentIdentity.getMemberIdentity());
+                account.setActive(true);
+                account.setMustChangePassword(true);
+                account.setEmail(StringUtils.hasText(request.getEmail()) ? request.getEmail().trim() : null);
+                account.setPhoneNumber(StringUtils.hasText(request.getPhoneNumber()) ? request.getPhoneNumber().trim() : null);
+                studentAccount = userAccountRepository.save(account);
+            } else {
+                if (studentAccount.getRole() != UserRole.STUDENT) {
+                    throw new InvalidStudentEnrollmentException("This student identity is linked to an incompatible login account.");
+                }
+                if (StringUtils.hasText(request.getStudentUsername())
+                        && !request.getStudentUsername().trim().equals(studentAccount.getUsername())) {
+                    throw new InvalidStudentEnrollmentException("An existing student's username cannot be changed during transfer.");
+                }
+                studentAccount.setActive(true);
+                studentAccount.setCredentialVersion(studentAccount.getCredentialVersion() + 1);
+                studentAccount = userAccountRepository.save(studentAccount);
+            }
+        } else {
+            if (StringUtils.hasText(request.getStudentUsername())) {
+                throw new InvalidStudentEnrollmentException("Student accounts are not permitted for " + school.getEducationLevel() + " school students.");
+            }
+            if (studentAccount != null && studentAccount.isActive()) {
+                studentAccount.setActive(false);
+                studentAccount.setCredentialVersion(studentAccount.getCredentialVersion() + 1);
+                userAccountRepository.save(studentAccount);
+            }
+            if (StringUtils.hasText(request.getParentUsername())) {
+                parentProfile = validateAndGetParentProfile(request.getParentUsername(), school.getId());
+            } else if (previousEnrollment != null) {
+                parentProfile = previousEnrollment.getParentProfile();
+            }
+            if (school.getEducationLevel() != SchoolLevel.HIGH_SCHOOL && parentProfile == null) {
+                throw new InvalidStudentEnrollmentException("A parent account is required for primary- and middle-school students.");
+            }
         }
 
         StudentProfile studentProfile = studentMapper.toEntity(
-                request, school, classroom, parentProfile, studentAccount
+                request, school, classroom, parentProfile, studentIdentity
         );
         StudentProfile savedProfile = studentProfileRepository.save(studentProfile);
         if (parentProfile != null) {
@@ -147,6 +206,39 @@ public class StudentService {
         }
 
         return studentMapper.toResponse(savedProfile, initialPassword);
+    }
+
+    @Transactional(readOnly = true)
+    public StudentIdentityLookupResponse lookupStudentIdentity(Long actorAccountId, String publicId) {
+        getActorSchool(actorAccountId);
+        StudentIdentity identity = studentIdentityRepository.findByMemberIdentityPublicId(publicId.trim())
+                .orElseThrow(() -> new ResourceNotFoundException("Student ID was not found."));
+        if (identity.getMemberIdentity().getIdentityType() == null
+                || !UserRole.STUDENT.name().equals(identity.getMemberIdentity().getIdentityType())) {
+            throw new ResourceNotFoundException("Student ID was not found.");
+        }
+        if (studentProfileRepository.existsByStudentIdentityIdAndIsActiveTrue(identity.getId())) {
+            throw new IllegalStateException("This student is still active at another school. The previous school must archive the enrollment before transfer.");
+        }
+        StudentProfile previous = studentProfileRepository.findFirstByStudentIdentityIdOrderByCreatedAtDesc(identity.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Student enrollment record was not found."));
+        StudentIdentityLookupResponse response = new StudentIdentityLookupResponse();
+        response.setStudentPublicId(identity.getMemberIdentity().getPublicId());
+        response.setFirstName(identity.getFirstName());
+        response.setLastName(identity.getLastName());
+        response.setPreviousSchoolNumber(previous.getSchoolNumber());
+        response.setPreviousSchoolName(previous.getSchool().getName());
+        if (identity.getMemberIdentity().getUserAccount() != null) {
+            UserAccount account = identity.getMemberIdentity().getUserAccount();
+            response.setHasStudentAccount(account.getRole() == UserRole.STUDENT);
+            response.setStudentUsername(account.getUsername());
+            response.setEmail(account.getEmail());
+            response.setPhoneNumber(account.getPhoneNumber());
+        }
+        if (previous.getParentProfile() != null && previous.getParentProfile().getUserAccount() != null) {
+            response.setParentUsername(previous.getParentProfile().getUserAccount().getUsername());
+        }
+        return response;
     }
 
     private void registerParentForSchool(Long actorAccountId, School school, ParentProfile parentProfile) {
@@ -282,10 +374,15 @@ public class StudentService {
         }
 
         profile.setSchoolNumber(schoolNumber);
-        profile.setFirstName(request.getFirstName().trim());
-        profile.setLastName(request.getLastName().trim());
+        profile.getStudentIdentity().setFirstName(request.getFirstName().trim());
+        profile.getStudentIdentity().setLastName(request.getLastName().trim());
+        for (StudentProfile enrollment : studentProfileRepository.findAllByStudentIdentityId(profile.getStudentIdentity().getId())) {
+            enrollment.setFirstName(request.getFirstName().trim());
+            enrollment.setLastName(request.getLastName().trim());
+        }
         profile.setClassroom(classroom);
 
+        studentProfileRepository.saveAll(studentProfileRepository.findAllByStudentIdentityId(profile.getStudentIdentity().getId()));
         StudentProfile updatedProfile = studentProfileRepository.saveAndFlush(profile);
         return studentMapper.toProfileResponse(updatedProfile);
     }
@@ -302,6 +399,7 @@ public class StudentService {
         if (profile.getUserAccount() != null) {
             UserAccount studentAccount = profile.getUserAccount();
             studentAccount.setActive(false);
+            studentAccount.setCredentialVersion(studentAccount.getCredentialVersion() + 1);
             userAccountRepository.save(studentAccount);
         }
 
@@ -317,6 +415,9 @@ public class StudentService {
                 .orElseThrow(() -> new ResourceNotFoundException("Student profile not found with id: " + studentProfileId));
 
         boolean restoringArchivedProfile = !profile.isActive();
+        if (restoringArchivedProfile && studentProfileRepository.existsByStudentIdentityIdAndIsActiveTrue(profile.getStudentIdentity().getId())) {
+            throw new IllegalStateException("This student is active at another school. Archive that enrollment before restoring this one.");
+        }
         profile.setActive(true);
 
         if (profile.getUserAccount() != null) {

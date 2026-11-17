@@ -99,8 +99,9 @@ Recipient search and message submission must both enforce these rules. Staff sea
 ## 6. Accounts and profiles
 
 - There is no public self-registration in the normal user flow.
-- The Superadmin creates school administrator and vice-administrator accounts; school administrators and vice-administrators create teacher, parent (when enrolling a student if not already registered), and high-school student accounts for their school. Primary- and middle-school students do not have login accounts.
-- When enrolling a student, school staff check if the parent already has an account by globally unique username and link the student profile to that account, or provision a new parent account if none exists.
+- The Superadmin creates school administrator and vice-administrator accounts; school administrators and vice-administrators create or register existing teacher and parent accounts, and enroll students. Primary- and middle-school students do not have login accounts.
+- Every account has a separate immutable, randomly generated 12-digit ClassBridge ID with a role-specific prefix. A person with multiple roles receives a separate ID for each role. The ID identifies an account but does not authenticate the user.
+- School staff can register an existing parent account into their school's parent directory by the parent's ClassBridge ID, or create a new parent account. A parent ID can be registered at multiple schools. Registration is school-local and does not itself grant access to student data; an active local registration and a student link are both required.
 - Every high-school student receives a `UserAccount` with the `STUDENT` role upon enrollment. Primary- and middle-school students have no login credentials; their parent link is required. Linking a parent account to a high-school student's profile is optional and configured only upon parent request.
 - Whenever an authorized administrator creates a login-enabled account, the system generates a cryptographically secure random initial password.
 - That initial password is returned exactly once in the successful account-creation response to the administrator who created the account (the Superadmin for school administrator and vice-administrator accounts; the school administrator or vice-administrator for teacher, parent, and high-school student accounts).
@@ -121,10 +122,11 @@ Recipient search and message submission must both enforce these rules. Staff sea
 - Parent profiles store the parent's first and last name, referencing a `UserAccount` with the `PARENT` role. Shared contact details remain in `UserAccount`.
 - Student profiles store minimal student data: first name, last name, school number (modeled as text up to 50 characters preserving leading zeros, unique within the school), school, classroom, active/inactive enrollment status, parent association, and student login account reference (for high-school students). Date of birth, home address, and national identity numbers are not collected. Grade level is derived from the assigned classroom.
 - School administrators and vice-administrators can update an active student's profile (school number, first name, last name, and classroom) within their school. Editing archived student profiles is prohibited.
-- When a student leaves a school, an authorized administrator can soft-archive their student profile (`active = false`). Any linked high-school student login account is deactivated in the same transaction so it can no longer authenticate. The linked parent account remains active. Enrolling at another school creates a new student profile under that school and links the existing parent account when applicable.
-- An authorized administrator can restore an archived profile for the same school. This reactivates its linked high-school student login account, preserves the existing password, and advances the credential version so previously issued tokens cannot be reused. Parent accounts are unaffected.
+- When a student leaves a school, an authorized administrator can soft-archive that school's student enrollment (`active = false`). Any linked high-school login is deactivated in the same transaction. The student's stable ID and identity remain. A new school can look up that ID, review the student's name and previous school number, edit school-specific information, and create a new enrollment. Only one school enrollment may be active at a time.
+- When a student moves between high schools, the existing student account, username, and password are retained; no new password is issued. A student moving from primary/middle school to high school receives a login the first time they enter high school. Primary/middle students have no login, even after school transfer. The previously linked parent is carried forward unless the receiving school selects another registered parent.
+- An authorized administrator can restore an archived profile for the same school only if the student has no active enrollment elsewhere. Restoration preserves any existing student password and advances its credential version so previously issued tokens cannot be reused. Parent accounts are unaffected.
 - Every user account has exactly one role. A single account cannot combine roles. If one person needs both teacher and parent access, they use two separate accounts with separate usernames and credentials. A student login account cannot also be a parent account.
-- A parent account may be linked to students across multiple schools. A student has at most one linked parent account. Parent credentials and profile identity are shared; school registrations and student records remain school-scoped.
+- A parent account may be linked to students across multiple schools. Archiving the parent's registration at one school removes only that school's parent access; the account and other schools remain active. A student has at most one linked parent account. Parent credentials and profile identity are shared; school registrations and student records remain school-scoped.
 
 ## 7. Message status
 
@@ -137,7 +139,7 @@ Direct messages support in-app read/unread status. This is separate from announc
 - Student-to-student, parent-to-parent, or student-to-parent direct messaging.
 - Grades, attendance, exams, and timetables.
 - Academic-year tracking and multi-year classroom history.
-- Automatic student promotion, student school transfer workflows, and academic-year processing.
+- Automatic student promotion and academic-year processing.
 - Collection of student date of birth, home address, or national identity number.
 
 ## 9. Confirmed profile policy
@@ -157,6 +159,15 @@ The platform treats school level as one of three distinct values. Each school re
 - **High school:** grades 9–12. Every student receives a student login account upon enrollment. A parent may also be linked to the student profile if requested by the parent.
 
 A student's current grade is derived from their assigned classroom and must be valid for the school's level. A student number is unique within its school, modeled as text up to 50 characters to preserve leading zeros. A username is unique across the whole platform. Parent accounts are platform-wide identities and may link to children at multiple schools; selecting a child switches the parent into that child's school context.
+
+## 12. ClassBridge IDs and school transfers
+
+- IDs are generated by the system, randomly, are at least six digits (currently 12 digits), and cannot be changed. Prefixes identify roles: parent `300`, student `400`, and teacher `500`; administrator roles use their own prefixes. Role IDs are separate: a teacher who also has a parent account receives two IDs.
+- A teacher transfer starts after the former school archives the teacher. The receiving school looks up the teacher by ID, reviews shared name and contact details, chooses a branch for its own school, and activates a membership. The teacher keeps the existing username and password. No second active school membership is allowed.
+- A student transfer starts after the former school archives the student's enrollment. The receiving school looks up the stable student ID, receives the shared name and previous school number as editable suggestions, and sets the new school's number/classroom. Student names belong to the shared identity; school number and classroom belong to each enrollment.
+- A transferred high-school student keeps their existing login credentials. A student entering high school for the first time receives a username and one-time temporary password. Primary- and middle-school students never receive login accounts; parent access continues through an active parent registration and local student link.
+- A parent can register the same account in multiple school directories by parent ID. School registration and child links are managed per school. Archiving a registration at one school does not deactivate the shared account or affect other schools.
+- Authenticated school administrators may see full email and phone details returned by an ID lookup. Looking up an ID does not grant membership or student-record access; a separate authorized registration/enrollment action is required.
 
 ## 12. School identification
 

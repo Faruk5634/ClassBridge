@@ -8,8 +8,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import jakarta.persistence.UniqueConstraint;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -20,8 +20,7 @@ import java.time.Instant;
 @Table(
     name = "student_profiles",
     uniqueConstraints = {
-        @UniqueConstraint(name = "uq_student_profiles_school_school_number", columnNames = {"school_id", "school_number"}),
-        @UniqueConstraint(name = "uq_student_profiles_user_account", columnNames = {"user_account_id"})
+        @UniqueConstraint(name = "uq_student_profiles_school_school_number", columnNames = {"school_id", "school_number"})
     }
 )
 public class StudentProfile {
@@ -35,16 +34,16 @@ public class StudentProfile {
     private School school;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "student_identity_id", nullable = false)
+    private StudentIdentity studentIdentity;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "classroom_id", nullable = false)
     private Classroom classroom;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_profile_id")
     private ParentProfile parentProfile;
-
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_account_id", unique = true)
-    private UserAccount userAccount;
 
     @Column(name = "school_number", nullable = false, length = 50)
     private String schoolNumber;
@@ -81,6 +80,27 @@ public class StudentProfile {
         return school;
     }
 
+    public StudentIdentity getStudentIdentity() { return studentIdentity; }
+
+    public void setStudentIdentity(StudentIdentity studentIdentity) { this.studentIdentity = studentIdentity; }
+
+    @Transient
+    public UserAccount getUserAccount() {
+        return studentIdentity == null || studentIdentity.getMemberIdentity() == null
+                ? null : studentIdentity.getMemberIdentity().getUserAccount();
+    }
+
+    /** Compatibility helper for older fixtures; production persistence uses StudentIdentity. */
+    public void setUserAccount(UserAccount account) {
+        if (account == null) return;
+        com.classbridge.domain.MemberIdentity identity = account.getMemberIdentity();
+        if (identity == null) {
+            identity = com.classbridge.domain.MemberIdentity.forRole(UserRole.STUDENT);
+            account.setMemberIdentity(identity);
+        }
+        setStudentIdentity(new StudentIdentity(identity, firstName, lastName));
+    }
+
     public void setSchool(School school) {
         this.school = school;
     }
@@ -99,14 +119,6 @@ public class StudentProfile {
 
     public void setParentProfile(ParentProfile parentProfile) {
         this.parentProfile = parentProfile;
-    }
-
-    public UserAccount getUserAccount() {
-        return userAccount;
-    }
-
-    public void setUserAccount(UserAccount userAccount) {
-        this.userAccount = userAccount;
     }
 
     public String getSchoolNumber() {

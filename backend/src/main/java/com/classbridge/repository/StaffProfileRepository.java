@@ -22,14 +22,14 @@ public interface StaffProfileRepository extends JpaRepository<StaffProfile, Long
 
     @EntityGraph(attributePaths = {"userAccount"})
     @Query(value = "SELECT sp FROM StaffProfile sp JOIN SchoolMembership sm ON sm.userAccount.id = sp.userAccount.id " +
-            "WHERE sm.school.id = :schoolId AND sp.userAccount.role = :role AND sp.userAccount.isActive = :active " +
+            "WHERE sm.school.id = :schoolId AND sm.isActive = :active AND sp.userAccount.role = :role AND sp.userAccount.isActive = :active " +
             "AND (LOWER(sp.firstName) LIKE LOWER(CONCAT('%', :query, '%')) " +
             "OR LOWER(sp.lastName) LIKE LOWER(CONCAT('%', :query, '%')) " +
             "OR LOWER(CONCAT(sp.firstName, ' ', sp.lastName)) LIKE LOWER(CONCAT('%', :query, '%')) " +
             "OR LOWER(sp.userAccount.username) LIKE LOWER(CONCAT('%', :query, '%')) " +
             "OR LOWER(COALESCE(sp.userAccount.email, '')) LIKE LOWER(CONCAT('%', :query, '%')))",
             countQuery = "SELECT COUNT(sp) FROM StaffProfile sp JOIN SchoolMembership sm ON sm.userAccount.id = sp.userAccount.id " +
-                    "WHERE sm.school.id = :schoolId AND sp.userAccount.role = :role AND sp.userAccount.isActive = :active " +
+                    "WHERE sm.school.id = :schoolId AND sm.isActive = :active AND sp.userAccount.role = :role AND sp.userAccount.isActive = :active " +
                     "AND (LOWER(sp.firstName) LIKE LOWER(CONCAT('%', :query, '%')) " +
                     "OR LOWER(sp.lastName) LIKE LOWER(CONCAT('%', :query, '%')) " +
                     "OR LOWER(CONCAT(sp.firstName, ' ', sp.lastName)) LIKE LOWER(CONCAT('%', :query, '%')) " +
@@ -59,7 +59,7 @@ public interface StaffProfileRepository extends JpaRepository<StaffProfile, Long
                                               @Param("query") String query,
                                               Pageable pageable);
 
-    @Query(value = "SELECT new com.classbridge.dto.SchoolAdministratorSummaryResponse(ua.id, sp.firstName, sp.lastName, ua.username, ua.role, ua.isActive, s.id, s.name, s.educationLevel) " +
+    @Query(value = "SELECT new com.classbridge.dto.SchoolAdministratorSummaryResponse(ua.id, ua.memberIdentity.publicId, sp.firstName, sp.lastName, ua.username, ua.role, ua.isActive, s.id, s.name, s.educationLevel) " +
             "FROM StaffProfile sp JOIN sp.userAccount ua LEFT JOIN SchoolMembership sm ON sm.userAccount.id = ua.id LEFT JOIN sm.school s " +
             "WHERE ua.role IN :roles AND (:anyLevel = true OR s.educationLevel IN :levels) AND (:anySchool = true OR s.id = :schoolId) " +
             "AND (:query = '' OR LOWER(sp.firstName) LIKE LOWER(CONCAT('%', :query, '%')) " +
@@ -81,14 +81,14 @@ public interface StaffProfileRepository extends JpaRepository<StaffProfile, Long
                                                                       @Param("query") String query,
                                                                       Pageable pageable);
 
-    @Query("SELECT new com.classbridge.dto.SchoolAdministratorSummaryResponse(ua.id, sp.firstName, sp.lastName, ua.username, ua.role, ua.isActive, s.id, s.name, s.educationLevel) " +
+    @Query("SELECT new com.classbridge.dto.SchoolAdministratorSummaryResponse(ua.id, ua.memberIdentity.publicId, sp.firstName, sp.lastName, ua.username, ua.role, ua.isActive, s.id, s.name, s.educationLevel) " +
             "FROM StaffProfile sp JOIN sp.userAccount ua JOIN SchoolMembership sm ON sm.userAccount.id = ua.id JOIN sm.school s " +
             "WHERE s.id = :schoolId AND ua.role IN :roles " +
             "ORDER BY CASE WHEN ua.role = com.classbridge.domain.UserRole.SCHOOL_ADMIN THEN 0 ELSE 1 END, sp.lastName ASC, sp.firstName ASC, ua.id ASC")
     List<SchoolAdministratorSummaryResponse> findAssignedSchoolAdministrators(@Param("schoolId") Long schoolId,
                                                                               @Param("roles") Collection<UserRole> roles);
 
-    @Query("SELECT new com.classbridge.dto.SchoolAdministratorSummaryResponse(ua.id, sp.firstName, sp.lastName, ua.username, ua.role, ua.isActive, s.id, s.name, s.educationLevel) " +
+    @Query("SELECT new com.classbridge.dto.SchoolAdministratorSummaryResponse(ua.id, ua.memberIdentity.publicId, sp.firstName, sp.lastName, ua.username, ua.role, ua.isActive, s.id, s.name, s.educationLevel) " +
             "FROM StaffProfile sp JOIN sp.userAccount ua LEFT JOIN SchoolMembership sm ON sm.userAccount.id = ua.id LEFT JOIN sm.school s " +
             "WHERE ua.role IN :roles AND ua.isActive = true AND sm.id IS NULL " +
             "ORDER BY CASE WHEN ua.role = com.classbridge.domain.UserRole.SCHOOL_ADMIN THEN 0 ELSE 1 END, sp.lastName ASC, sp.firstName ASC, ua.id ASC")

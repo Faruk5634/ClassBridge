@@ -134,3 +134,6 @@ Direct-message attachments use the same private storage and validation service. 
 - Primary- and middle-school `StudentProfile` records have no linked student `UserAccount`; high-school students do.
 - Parent association is required for primary- and middle-school `StudentProfile` records and optional for high-school records, with at most one linked parent account per student in the first version.
 - The role-specific profile fields and editing permissions are defined in `PROJECT_SCOPE.md` and `DATA_MODEL.md`.
+- Every user role has a separate, immutable 12-digit public member ID. IDs are random, role-prefixed, and used for authorized school-side lookup, never as an authentication secret.
+- `StudentIdentity` is independent from a student's school enrollment and login. School transfers retain one student identity and create a new school enrollment after the old enrollment is archived. Teachers retain their global account and credentials while school-specific memberships (including branch) change.
+- Teacher and student identities can have only one active school enrollment at a time. Parent registrations and student links are school-local; archiving one school's parent registration does not disable the shared parent account or remove its registrations elsewhere.

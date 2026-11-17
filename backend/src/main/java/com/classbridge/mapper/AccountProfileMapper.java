@@ -10,6 +10,7 @@ public class AccountProfileMapper {
     public MyProfileResponse toResponse(UserAccount account, String firstName, String lastName, String schoolName) {
         return new MyProfileResponse(
                 account.getId(),
+                account.getMemberIdentity().getPublicId(),
                 account.getUsername(),
                 account.getRole(),
                 firstName,

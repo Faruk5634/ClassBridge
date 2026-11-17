@@ -119,6 +119,7 @@ public class SchoolAdministratorService {
         response.setSchoolMembershipId(savedMembership != null ? savedMembership.getId() : null);
         response.setSchoolId(school != null ? school.getId() : null);
         response.setUsername(savedAccount.getUsername());
+        response.setPublicId(savedAccount.getMemberIdentity().getPublicId());
         response.setFirstName(savedProfile.getFirstName());
         response.setLastName(savedProfile.getLastName());
         response.setRole(savedAccount.getRole());
@@ -198,6 +199,7 @@ public class SchoolAdministratorService {
 
         return new SchoolAdministratorSummaryResponse(
                 account.getId(),
+                account.getMemberIdentity().getPublicId(),
                 profile.getFirstName(),
                 profile.getLastName(),
                 account.getUsername(),
@@ -350,6 +352,7 @@ public class SchoolAdministratorService {
         response.setSchoolName(school != null ? school.getName() : null);
         response.setSchoolEducationLevel(school != null ? school.getEducationLevel() : null);
         response.setUsername(account.getUsername());
+        response.setPublicId(account.getMemberIdentity().getPublicId());
         response.setFirstName(profile.getFirstName());
         response.setLastName(profile.getLastName());
         response.setRole(account.getRole());

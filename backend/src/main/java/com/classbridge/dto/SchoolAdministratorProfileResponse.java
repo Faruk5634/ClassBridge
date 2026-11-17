@@ -14,6 +14,7 @@ public class SchoolAdministratorProfileResponse {
     private String schoolName;
     private SchoolLevel schoolEducationLevel;
     private String username;
+    private String publicId;
     private String firstName;
     private String lastName;
     private UserRole role;
@@ -39,6 +40,8 @@ public class SchoolAdministratorProfileResponse {
     public void setSchoolEducationLevel(SchoolLevel schoolEducationLevel) { this.schoolEducationLevel = schoolEducationLevel; }
     public String getUsername() { return username; }
     public void setUsername(String username) { this.username = username; }
+    public String getPublicId() { return publicId; }
+    public void setPublicId(String publicId) { this.publicId = publicId; }
     public String getFirstName() { return firstName; }
     public void setFirstName(String firstName) { this.firstName = firstName; }
     public String getLastName() { return lastName; }

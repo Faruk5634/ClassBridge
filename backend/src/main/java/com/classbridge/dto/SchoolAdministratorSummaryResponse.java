@@ -10,6 +10,7 @@ import com.classbridge.domain.UserRole;
 public class SchoolAdministratorSummaryResponse {
 
     private final Long userAccountId;
+    private final String publicId;
     private final String firstName;
     private final String lastName;
     private final String username;
@@ -19,10 +20,11 @@ public class SchoolAdministratorSummaryResponse {
     private final String schoolName;
     private final SchoolLevel schoolEducationLevel;
 
-    public SchoolAdministratorSummaryResponse(Long userAccountId, String firstName, String lastName, String username,
+    public SchoolAdministratorSummaryResponse(Long userAccountId, String publicId, String firstName, String lastName, String username,
                                               UserRole role, boolean active, Long schoolId, String schoolName,
                                               SchoolLevel schoolEducationLevel) {
         this.userAccountId = userAccountId;
+        this.publicId = publicId;
         this.firstName = firstName;
         this.lastName = lastName;
         this.username = username;
@@ -36,6 +38,8 @@ public class SchoolAdministratorSummaryResponse {
     public Long getUserAccountId() {
         return userAccountId;
     }
+
+    public String getPublicId() { return publicId; }
 
     public String getFirstName() {
         return firstName;

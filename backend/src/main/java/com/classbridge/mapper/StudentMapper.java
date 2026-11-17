@@ -4,6 +4,7 @@ import com.classbridge.domain.Classroom;
 import com.classbridge.domain.ParentProfile;
 import com.classbridge.domain.School;
 import com.classbridge.domain.StudentProfile;
+import com.classbridge.domain.StudentIdentity;
 import com.classbridge.domain.UserAccount;
 import com.classbridge.dto.CreateStudentRequest;
 import com.classbridge.dto.CreateStudentResponse;
@@ -17,12 +18,12 @@ public class StudentMapper {
                                   School school,
                                   Classroom classroom,
                                   ParentProfile parentProfile,
-                                  UserAccount studentAccount) {
+                                  StudentIdentity studentIdentity) {
         StudentProfile profile = new StudentProfile();
         profile.setSchool(school);
         profile.setClassroom(classroom);
         profile.setParentProfile(parentProfile);
-        profile.setUserAccount(studentAccount);
+        profile.setStudentIdentity(studentIdentity);
         profile.setSchoolNumber(request.getSchoolNumber().trim());
         profile.setFirstName(request.getFirstName().trim());
         profile.setLastName(request.getLastName().trim());
@@ -38,8 +39,9 @@ public class StudentMapper {
         response.setGradeLevel(profile.getClassroom().getGradeLevel());
         response.setSectionName(profile.getClassroom().getSectionName());
         response.setSchoolNumber(profile.getSchoolNumber());
-        response.setFirstName(profile.getFirstName());
-        response.setLastName(profile.getLastName());
+        response.setFirstName(profile.getStudentIdentity().getFirstName());
+        response.setLastName(profile.getStudentIdentity().getLastName());
+        response.setStudentPublicId(profile.getStudentIdentity().getMemberIdentity().getPublicId());
         response.setActive(profile.isActive());
 
         if (profile.getParentProfile() != null) {
@@ -63,8 +65,9 @@ public class StudentMapper {
         StudentProfileResponse response = new StudentProfileResponse();
         response.setId(profile.getId());
         response.setSchoolNumber(profile.getSchoolNumber());
-        response.setFirstName(profile.getFirstName());
-        response.setLastName(profile.getLastName());
+        response.setFirstName(profile.getStudentIdentity().getFirstName());
+        response.setLastName(profile.getStudentIdentity().getLastName());
+        response.setStudentPublicId(profile.getStudentIdentity().getMemberIdentity().getPublicId());
         response.setSchoolId(profile.getSchool().getId());
         response.setClassroomId(profile.getClassroom().getId());
         response.setGradeLevel(profile.getClassroom().getGradeLevel());

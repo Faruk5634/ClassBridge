@@ -11,6 +11,7 @@ public class CreateSchoolAdministratorResponse {
     private Long schoolMembershipId;
     private Long schoolId;
     private String username;
+    private String publicId;
     private String firstName;
     private String lastName;
     private UserRole role;
@@ -55,6 +56,10 @@ public class CreateSchoolAdministratorResponse {
     public String getUsername() {
         return username;
     }
+
+    public String getPublicId() { return publicId; }
+
+    public void setPublicId(String publicId) { this.publicId = publicId; }
 
     public void setUsername(String username) {
         this.username = username;

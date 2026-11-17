@@ -89,6 +89,21 @@ public class ParentService {
         return parentMapper.toResponse(savedAccount, savedProfile, initialPassword);
     }
 
+    @Transactional
+    public SchoolParentResponse registerExistingParent(Long actorAccountId, String publicId) {
+        Long schoolId = getActorSchoolId(actorAccountId);
+        UserAccount account = userAccountRepository.findByMemberIdentityPublicId(publicId.trim())
+                .filter(candidate -> candidate.getRole() == UserRole.PARENT)
+                .orElseThrow(() -> new ResourceNotFoundException("Parent ID was not found."));
+        if (!account.isActive()) {
+            throw new ForbiddenOperationException("This parent account is inactive. Restore it before registering it with another school.");
+        }
+        ParentProfile profile = parentProfileRepository.findByUserAccountId(account.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Parent profile was not found."));
+        ensureParentRegisteredForSchool(actorAccountId, schoolId, profile);
+        return toSchoolParentResponse(profile, schoolId);
+    }
+
     @Transactional(readOnly = true)
     public List<SchoolParentResponse> getSchoolParents(Long actorAccountId) {
         Long schoolId = schoolMembershipRepository.findByUserAccountId(actorAccountId)
@@ -96,19 +111,10 @@ public class ParentService {
                 .orElseThrow(() -> new ForbiddenOperationException("Authenticated administrator is not associated with any school."));
 
         Map<Long, SchoolParentResponse> parents = new LinkedHashMap<>();
-        for (StudentProfile student : studentProfileRepository.findActiveBySchoolId(schoolId)) {
-            ParentProfile parent = student.getParentProfile();
-            if (parent == null || parent.getUserAccount() == null) continue;
-            SchoolParentResponse response = parents.computeIfAbsent(parent.getId(), ignored -> toSchoolParentResponse(parent));
-            response.getChildren().add(student.getFirstName() + " " + student.getLastName() + " · Grade "
-                    + student.getClassroom().getGradeLevel() + " · " + student.getClassroom().getSectionName());
-        }
-
         for (ParentSchoolRegistration registration : parentSchoolRegistrationRepository.findBySchoolIdOrderByCreatedAtDesc(schoolId)) {
-            if (!registration.isActive()) continue;
             ParentProfile parent = registration.getParentProfile();
             if (parent.getUserAccount() != null) {
-                parents.computeIfAbsent(parent.getId(), ignored -> toSchoolParentResponse(parent));
+                parents.computeIfAbsent(parent.getId(), ignored -> toSchoolParentResponse(parent, schoolId));
             }
         }
         return List.copyOf(parents.values());
@@ -168,7 +174,14 @@ public class ParentService {
     }
 
     private void ensureParentRegisteredForSchool(Long actorAccountId, Long schoolId, ParentProfile parent) {
-        if (parentSchoolRegistrationRepository.existsBySchoolIdAndParentProfileIdAndIsActiveTrue(schoolId, parent.getId())) return;
+        ParentSchoolRegistration existing = parentSchoolRegistrationRepository
+                .findBySchoolIdAndParentProfileId(schoolId, parent.getId()).orElse(null);
+        if (existing != null) {
+            existing.setActive(true);
+            existing.setArchivedBySchool(false);
+            parentSchoolRegistrationRepository.save(existing);
+            return;
+        }
         SchoolMembership membership = schoolMembershipRepository.findByUserAccountId(actorAccountId)
                 .filter(candidate -> candidate.getSchool().getId().equals(schoolId))
                 .orElseThrow(() -> new ForbiddenOperationException("Authenticated administrator is not associated with this school."));
@@ -210,28 +223,11 @@ public class ParentService {
     public SchoolParentResponse archiveSchoolParent(Long actorAccountId, Long parentProfileId) {
         Long schoolId = getActorSchoolId(actorAccountId);
         ParentProfile profile = findSchoolParent(schoolId, parentProfileId);
-        UserAccount account = profile.getUserAccount();
-        if (!account.isActive()) return toSchoolParentResponse(profile, schoolId);
-
-        // A parent account is shared by all linked children. Never disable it while it
-        // is still in use or registered with another school.
-        if (studentProfileRepository.existsByParentProfileIdAndIsActiveTrue(profile.getId())
-                || parentSchoolRegistrationRepository.existsByParentProfileIdAndSchoolIdNot(profile.getId(), schoolId)) {
-            throw new ForbiddenOperationException("This shared parent account is still linked to an active student or another school. Update those links before archiving it.");
-        }
-
-        SchoolMembership membership = schoolMembershipRepository.findByUserAccountId(actorAccountId)
-                .orElseThrow(() -> new ForbiddenOperationException("Authenticated administrator is not associated with any school."));
-        if (!parentSchoolRegistrationRepository.existsBySchoolIdAndParentProfileId(schoolId, profile.getId())) {
-            ParentSchoolRegistration registration = new ParentSchoolRegistration();
-            registration.setSchool(membership.getSchool());
-            registration.setParentProfile(profile);
-            registration.setRegisteredBy(membership.getUserAccount());
-            parentSchoolRegistrationRepository.save(registration);
-        }
-        account.setActive(false);
-        account.setCredentialVersion(account.getCredentialVersion() + 1);
-        userAccountRepository.save(account);
+        ParentSchoolRegistration registration = parentSchoolRegistrationRepository.findBySchoolIdAndParentProfileId(schoolId, profile.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Parent is not registered with this school."));
+        registration.setActive(false);
+        registration.setArchivedBySchool(true);
+        parentSchoolRegistrationRepository.save(registration);
         return toSchoolParentResponse(profile, schoolId);
     }
 
@@ -239,12 +235,8 @@ public class ParentService {
     public SchoolParentResponse restoreSchoolParent(Long actorAccountId, Long parentProfileId) {
         Long schoolId = getActorSchoolId(actorAccountId);
         ParentProfile profile = findSchoolParent(schoolId, parentProfileId);
-        UserAccount account = profile.getUserAccount();
-        if (!account.isActive()) {
-            account.setActive(true);
-            account.setCredentialVersion(account.getCredentialVersion() + 1);
-            userAccountRepository.save(account);
-        }
+        if (!profile.getUserAccount().isActive()) throw new ForbiddenOperationException("This parent account is disabled. Restore its sign-in access before restoring this school registration.");
+        ensureParentRegisteredForSchool(actorAccountId, schoolId, profile);
         return toSchoolParentResponse(profile, schoolId);
     }
 
@@ -267,6 +259,7 @@ public class ParentService {
 
     private SchoolParentResponse toSchoolParentResponse(ParentProfile profile, Long schoolId) {
         SchoolParentResponse response = toSchoolParentResponse(profile);
+        response.setRegisteredInSchool(parentSchoolRegistrationRepository.existsBySchoolIdAndParentProfileIdAndIsActiveTrue(schoolId, profile.getId()));
         for (StudentProfile student : studentProfileRepository.findActiveBySchoolId(schoolId)) {
             if (student.getParentProfile() != null && student.getParentProfile().getId().equals(profile.getId())) {
                 response.getChildren().add(student.getFirstName() + " " + student.getLastName() + " · Grade "
@@ -281,12 +274,14 @@ public class ParentService {
         SchoolParentResponse response = new SchoolParentResponse();
         response.setParentProfileId(profile.getId());
         response.setUserAccountId(account.getId());
+        response.setPublicId(account.getMemberIdentity().getPublicId());
         response.setUsername(account.getUsername());
         response.setFirstName(profile.getFirstName());
         response.setLastName(profile.getLastName());
         response.setEmail(account.getEmail());
         response.setPhoneNumber(account.getPhoneNumber());
         response.setActive(account.isActive());
+        response.setRegisteredInSchool(true);
         response.setEmailVerified(account.isEmailVerified());
         response.setMustChangePassword(account.isMustChangePassword());
         response.setCreatedAt(account.getCreatedAt());

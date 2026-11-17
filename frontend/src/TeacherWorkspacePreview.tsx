@@ -5,7 +5,7 @@ import SchoolSuppliesPattern from './SchoolSuppliesPattern'
 import WorkspaceTransition from './WorkspaceTransition'
 import './TeacherWorkspacePreview.css'
 
-type Profile = { userAccountId: number; username: string; firstName: string; lastName: string; email?: string | null; emailVerified?: boolean; role?: string; phoneNumber?: string | null }
+type Profile = { userAccountId: number; publicId?: string; username: string; firstName: string; lastName: string; email?: string | null; emailVerified?: boolean; role?: string; phoneNumber?: string | null }
 type TargetClassroom = { id?: number; classroomId?: number; gradeLevel: number; sectionName: string }
 type AnnouncementType = 'GENERAL' | 'HOMEWORK' | 'EXAM' | 'EVENT' | 'EXAM_RESULTS'
 type Attachment = { id: number; displayFilename: string; contentType: string; size: number; createdAt?: string }
@@ -623,7 +623,7 @@ export default function TeacherWorkspacePreview({ theme, token, profile, onToggl
         <div className="teacher-profile-layout">
           <div className="teacher-profile-main-column">
             <section className="teacher-account-panel"><div className="teacher-profile-panel-heading"><div><p className="teacher-overline">ACCOUNT DETAILS</p><h2>Your information</h2></div><span className="teacher-readonly-mark">School managed</span></div>
-              <div className="teacher-account-fields"><div><small>FULL NAME</small><strong>{fullName}</strong></div><div><small>USERNAME</small><strong>{profile.username}</strong></div><div><small>ROLE</small><strong>Teacher</strong></div></div>
+              <div className="teacher-account-fields"><div><small>FULL NAME</small><strong>{fullName}</strong></div><div><small>USERNAME</small><strong>{profile.username}</strong></div>{profile.publicId && <div><small>CLASSBRIDGE ID</small><strong>{profile.publicId}</strong></div>}<div><small>ROLE</small><strong>Teacher</strong></div></div>
               <p className="teacher-profile-note">Your name, username, and role are managed by your school and can’t be changed here.</p>
             </section>
 

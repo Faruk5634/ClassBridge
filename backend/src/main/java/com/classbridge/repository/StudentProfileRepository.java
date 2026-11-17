@@ -15,7 +15,7 @@ import java.util.Optional;
 @Repository
 public interface StudentProfileRepository extends JpaRepository<StudentProfile, Long> {
 
-    @EntityGraph(attributePaths = {"userAccount", "parentProfile", "parentProfile.userAccount"})
+    @EntityGraph(attributePaths = {"studentIdentity", "studentIdentity.memberIdentity", "studentIdentity.memberIdentity.userAccount", "parentProfile", "parentProfile.userAccount"})
     List<StudentProfile> findAllBySchoolId(Long schoolId);
 
     boolean existsBySchoolIdAndSchoolNumber(Long schoolId, String schoolNumber);
@@ -28,14 +28,23 @@ public interface StudentProfileRepository extends JpaRepository<StudentProfile, 
 
     Optional<StudentProfile> findBySchoolIdAndSchoolNumber(Long schoolId, String schoolNumber);
 
-    Optional<StudentProfile> findByUserAccountId(Long userAccountId);
+    boolean existsByStudentIdentityIdAndIsActiveTrue(Long studentIdentityId);
 
-    @EntityGraph(attributePaths = {"school", "classroom", "classroom.homeroomTeacher"})
-    @Query("SELECT sp FROM StudentProfile sp WHERE sp.userAccount.id = :userAccountId AND sp.isActive = true")
+    List<StudentProfile> findAllByStudentIdentityId(Long studentIdentityId);
+
+    @EntityGraph(attributePaths = {"school", "studentIdentity", "studentIdentity.memberIdentity", "studentIdentity.memberIdentity.userAccount", "parentProfile", "parentProfile.userAccount"})
+    Optional<StudentProfile> findFirstByStudentIdentityIdOrderByCreatedAtDesc(Long studentIdentityId);
+
+    @EntityGraph(attributePaths = {"school", "classroom", "classroom.homeroomTeacher", "studentIdentity", "studentIdentity.memberIdentity", "studentIdentity.memberIdentity.userAccount"})
+    @Query("SELECT sp FROM StudentProfile sp WHERE sp.studentIdentity.memberIdentity.userAccount.id = :userAccountId AND sp.isActive = true")
     Optional<StudentProfile> findActiveByUserAccountId(@Param("userAccountId") Long userAccountId);
 
-    @EntityGraph(attributePaths = {"school", "classroom", "parentProfile", "parentProfile.userAccount", "userAccount"})
-    @Query("SELECT sp FROM StudentProfile sp LEFT JOIN sp.userAccount studentAccount " +
+    @EntityGraph(attributePaths = {"school", "classroom", "studentIdentity", "studentIdentity.memberIdentity", "studentIdentity.memberIdentity.userAccount", "parentProfile", "parentProfile.userAccount"})
+    @Query("SELECT sp FROM StudentProfile sp WHERE sp.studentIdentity.memberIdentity.userAccount.id = :userAccountId AND sp.isActive = true")
+    Optional<StudentProfile> findByUserAccountId(@Param("userAccountId") Long userAccountId);
+
+    @EntityGraph(attributePaths = {"school", "classroom", "studentIdentity", "studentIdentity.memberIdentity", "studentIdentity.memberIdentity.userAccount", "parentProfile", "parentProfile.userAccount"})
+    @Query("SELECT sp FROM StudentProfile sp LEFT JOIN sp.studentIdentity.memberIdentity.userAccount studentAccount " +
            "LEFT JOIN sp.parentProfile parent LEFT JOIN parent.userAccount parentAccount " +
            "WHERE sp.school.id = :schoolId AND sp.isActive = true " +
            "AND (LOWER(sp.firstName) LIKE LOWER(CONCAT('%', :query, '%')) " +
@@ -54,12 +63,12 @@ public interface StudentProfileRepository extends JpaRepository<StudentProfile, 
 
     List<StudentProfile> findByClassroomId(Long classroomId);
 
-    @EntityGraph(attributePaths = {"classroom", "userAccount", "parentProfile", "parentProfile.userAccount"})
+    @EntityGraph(attributePaths = {"classroom", "studentIdentity", "studentIdentity.memberIdentity", "studentIdentity.memberIdentity.userAccount", "parentProfile", "parentProfile.userAccount"})
     @Query("SELECT sp FROM StudentProfile sp WHERE sp.school.id = :schoolId AND sp.isActive = true " +
            "ORDER BY sp.lastName ASC, sp.firstName ASC, sp.id ASC")
     List<StudentProfile> findActiveBySchoolId(@Param("schoolId") Long schoolId);
 
-    @EntityGraph(attributePaths = {"classroom", "userAccount", "parentProfile", "parentProfile.userAccount"})
+    @EntityGraph(attributePaths = {"classroom", "studentIdentity", "studentIdentity.memberIdentity", "studentIdentity.memberIdentity.userAccount", "parentProfile", "parentProfile.userAccount"})
     @Query("SELECT sp FROM StudentProfile sp WHERE sp.school.id = :schoolId AND sp.classroom.id = :classroomId AND sp.isActive = true " +
            "ORDER BY sp.lastName ASC, sp.firstName ASC, sp.id ASC")
     List<StudentProfile> findActiveBySchoolIdAndClassroomId(@Param("schoolId") Long schoolId,
@@ -74,24 +83,26 @@ public interface StudentProfileRepository extends JpaRepository<StudentProfile, 
     boolean existsByParentProfileIdAndIsActiveTrue(Long parentProfileId);
 
     @EntityGraph(attributePaths = {"school", "classroom"})
-    @Query("SELECT sp FROM StudentProfile sp WHERE sp.parentProfile.id = :parentProfileId AND sp.isActive = true ORDER BY sp.id ASC")
+    @Query("SELECT sp FROM StudentProfile sp JOIN ParentSchoolRegistration psr ON psr.school.id = sp.school.id AND psr.parentProfile.id = sp.parentProfile.id " +
+           "WHERE sp.parentProfile.id = :parentProfileId AND sp.isActive = true AND psr.isActive = true ORDER BY sp.id ASC")
     List<StudentProfile> findActiveByParentProfileId(@Param("parentProfileId") Long parentProfileId);
 
     @EntityGraph(attributePaths = {"school", "classroom"})
-    @Query("SELECT sp FROM StudentProfile sp WHERE sp.id = :id AND sp.parentProfile.id = :parentProfileId AND sp.isActive = true")
+    @Query("SELECT sp FROM StudentProfile sp JOIN ParentSchoolRegistration psr ON psr.school.id = sp.school.id AND psr.parentProfile.id = sp.parentProfile.id " +
+           "WHERE sp.id = :id AND sp.parentProfile.id = :parentProfileId AND sp.isActive = true AND psr.isActive = true")
     Optional<StudentProfile> findActiveByIdAndParentProfileId(@Param("id") Long id, @Param("parentProfileId") Long parentProfileId);
 
-    @EntityGraph(attributePaths = {"classroom", "parentProfile", "parentProfile.userAccount", "userAccount"})
+    @EntityGraph(attributePaths = {"classroom", "studentIdentity", "studentIdentity.memberIdentity", "studentIdentity.memberIdentity.userAccount", "parentProfile", "parentProfile.userAccount"})
     @Query("SELECT sp FROM StudentProfile sp WHERE sp.id = :id AND sp.school.id = :schoolId")
     Optional<StudentProfile> findByIdAndSchoolId(@Param("id") Long id, @Param("schoolId") Long schoolId);
 
-    @EntityGraph(attributePaths = {"classroom", "parentProfile", "parentProfile.userAccount", "userAccount"})
+    @EntityGraph(attributePaths = {"classroom", "studentIdentity", "studentIdentity.memberIdentity", "studentIdentity.memberIdentity.userAccount", "parentProfile", "parentProfile.userAccount"})
     @Query("SELECT sp FROM StudentProfile sp WHERE sp.school.id = :schoolId AND sp.isActive = :isActive")
     Page<StudentProfile> findBySchoolIdAndIsActive(@Param("schoolId") Long schoolId,
                                                    @Param("isActive") boolean isActive,
                                                    Pageable pageable);
 
-    @EntityGraph(attributePaths = {"classroom", "parentProfile", "parentProfile.userAccount", "userAccount"})
+    @EntityGraph(attributePaths = {"classroom", "studentIdentity", "studentIdentity.memberIdentity", "studentIdentity.memberIdentity.userAccount", "parentProfile", "parentProfile.userAccount"})
     @Query("SELECT sp FROM StudentProfile sp WHERE sp.school.id = :schoolId AND sp.classroom.id = :classroomId AND sp.isActive = :isActive")
     Page<StudentProfile> findBySchoolIdAndClassroomIdAndIsActive(@Param("schoolId") Long schoolId,
                                                                  @Param("classroomId") Long classroomId,

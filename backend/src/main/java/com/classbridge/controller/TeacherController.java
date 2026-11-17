@@ -5,6 +5,7 @@ import com.classbridge.dto.CreateTeacherResponse;
 import com.classbridge.dto.ErrorResponse;
 import com.classbridge.dto.PageResponse;
 import com.classbridge.dto.TeacherProfileResponse;
+import com.classbridge.dto.TeacherIdentityLookupResponse;
 import com.classbridge.dto.UpdateTeacherRequest;
 import com.classbridge.exception.DuplicateUsernameException;
 import com.classbridge.exception.ForbiddenOperationException;
@@ -54,6 +55,14 @@ public class TeacherController {
             @RequestParam(defaultValue = "20") int size) {
         Long actorAccountId = Long.valueOf(jwt.getSubject());
         return ResponseEntity.ok(teacherService.getTeachers(actorAccountId, active, query, page, size));
+    }
+
+    @GetMapping("/identity-lookup/{publicId}")
+    public ResponseEntity<TeacherIdentityLookupResponse> lookupTeacherIdentity(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable String publicId) {
+        Long actorAccountId = Long.valueOf(jwt.getSubject());
+        return ResponseEntity.ok(teacherService.lookupTeacherIdentity(actorAccountId, publicId));
     }
 
     @GetMapping("/{teacherAccountId}")

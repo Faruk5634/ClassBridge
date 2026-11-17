@@ -6,6 +6,7 @@ import com.classbridge.dto.ErrorResponse;
 import com.classbridge.dto.SchoolParentResponse;
 import com.classbridge.dto.SchoolParentStudentResponse;
 import com.classbridge.dto.UpdateParentRequest;
+import com.classbridge.dto.MemberIdRequest;
 import com.classbridge.exception.DuplicateUsernameException;
 import com.classbridge.exception.ForbiddenOperationException;
 import com.classbridge.exception.ResourceNotFoundException;
@@ -116,6 +117,15 @@ public class ParentController {
         Long actorAccountId = Long.valueOf(jwt.getSubject());
         CreateParentResponse response = parentService.createParent(actorAccountId, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @PostMapping("/register-existing")
+    public ResponseEntity<SchoolParentResponse> registerExistingParent(
+            @AuthenticationPrincipal Jwt jwt,
+            @Valid @RequestBody MemberIdRequest request) {
+        Long actorAccountId = Long.valueOf(jwt.getSubject());
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(parentService.registerExistingParent(actorAccountId, request.getPublicId()));
     }
 
     @ExceptionHandler(DuplicateUsernameException.class)

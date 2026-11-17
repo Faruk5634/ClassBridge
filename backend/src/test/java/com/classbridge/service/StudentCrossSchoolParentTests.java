@@ -14,6 +14,7 @@ import com.classbridge.repository.ParentProfileRepository;
 import com.classbridge.repository.ParentSchoolRegistrationRepository;
 import com.classbridge.repository.SchoolMembershipRepository;
 import com.classbridge.repository.StudentProfileRepository;
+import com.classbridge.repository.StudentIdentityRepository;
 import com.classbridge.repository.UserAccountRepository;
 import com.classbridge.security.InitialPasswordGenerator;
 import org.junit.jupiter.api.Test;
@@ -37,10 +38,11 @@ class StudentCrossSchoolParentTests {
         ParentProfileRepository parents = mock(ParentProfileRepository.class);
         ParentSchoolRegistrationRepository registrations = mock(ParentSchoolRegistrationRepository.class);
         StudentProfileRepository students = mock(StudentProfileRepository.class);
+        StudentIdentityRepository identities = mock(StudentIdentityRepository.class);
         PasswordEncoder encoder = mock(PasswordEncoder.class);
 
         StudentService service = new StudentService(memberships, classrooms, accounts, parents, registrations,
-                students, new InitialPasswordGenerator(), encoder, new StudentMapper());
+                students, identities, new InitialPasswordGenerator(), encoder, new StudentMapper());
 
         School school = new School();
         school.setId(2L);
@@ -69,6 +71,7 @@ class StudentCrossSchoolParentTests {
         when(accounts.findByUsername("family.parent")).thenReturn(Optional.of(existingParentAccount));
         when(parents.findByUserAccountId(30L)).thenReturn(Optional.of(existingParentProfile));
         when(students.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        when(identities.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
         CreateStudentRequest request = new CreateStudentRequest();
         request.setSchoolNumber("P-003");
