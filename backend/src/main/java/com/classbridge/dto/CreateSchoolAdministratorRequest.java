@@ -30,6 +30,8 @@ public class CreateSchoolAdministratorRequest {
     @Size(max = 32)
     private String phoneNumber;
 
+    private Long schoolId;
+
     public String getUsername() {
         return username;
     }
@@ -76,5 +78,13 @@ public class CreateSchoolAdministratorRequest {
 
     public void setPhoneNumber(String phoneNumber) {
         this.phoneNumber = phoneNumber;
+    }
+
+    public Long getSchoolId() {
+        return schoolId;
+    }
+
+    public void setSchoolId(Long schoolId) {
+        this.schoolId = schoolId;
     }
 }

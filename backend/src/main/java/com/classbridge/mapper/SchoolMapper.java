@@ -37,6 +37,7 @@ public class SchoolMapper {
         response.setDistrict(school.getDistrict());
         response.setNeighborhood(school.getNeighborhood());
         response.setAddress(school.getAddress());
+        response.setActive(school.isActive());
         response.setCreatedAt(school.getCreatedAt());
         response.setUpdatedAt(school.getUpdatedAt());
         return response;

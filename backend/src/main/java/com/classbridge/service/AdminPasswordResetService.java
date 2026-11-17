@@ -63,8 +63,7 @@ public class AdminPasswordResetService {
     @Transactional
     public AdminPasswordResetResponse resetBySuperadmin(Long actorAccountId, Long targetAccountId) {
         UserAccount target = findActiveTarget(actorAccountId, targetAccountId);
-        if (!SUPERADMIN_RESETTABLE_ROLES.contains(target.getRole())
-                || schoolMembershipRepository.findByUserAccountId(targetAccountId).isEmpty()) {
+        if (!SUPERADMIN_RESETTABLE_ROLES.contains(target.getRole())) {
             throw new ResourceNotFoundException("Account not found with id: " + targetAccountId);
         }
         return reset(target);

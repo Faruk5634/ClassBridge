@@ -1,17 +1,20 @@
 package com.classbridge.controller;
 
+import com.classbridge.dto.ErrorResponse;
 import com.classbridge.dto.SchoolRequest;
 import com.classbridge.dto.SchoolResponse;
 import com.classbridge.service.SchoolService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -33,8 +36,8 @@ public class SchoolController {
     }
 
     @GetMapping
-    public ResponseEntity<List<SchoolResponse>> getSchools() {
-        return ResponseEntity.ok(schoolService.getSchools());
+    public ResponseEntity<List<SchoolResponse>> getSchools(@RequestParam(required = false) Boolean active) {
+        return ResponseEntity.ok(schoolService.getSchools(active));
     }
 
     @GetMapping("/{id}")
@@ -49,5 +52,24 @@ public class SchoolController {
         return schoolService.updateSchool(id, request)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PostMapping("/{id}/archive")
+    public ResponseEntity<SchoolResponse> archiveSchool(@PathVariable Long id) {
+        return schoolService.archiveSchool(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PostMapping("/{id}/restore")
+    public ResponseEntity<SchoolResponse> restoreSchool(@PathVariable Long id) {
+        return schoolService.restoreSchool(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<ErrorResponse> handleConflictState(IllegalStateException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorResponse(ex.getMessage()));
     }
 }

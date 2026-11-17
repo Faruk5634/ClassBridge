@@ -12,6 +12,7 @@ public class SchoolResponse {
     private String district;
     private String neighborhood;
     private String address;
+    private boolean active = true;
     private Instant createdAt;
     private Instant updatedAt;
 
@@ -69,6 +70,14 @@ public class SchoolResponse {
 
     public void setAddress(String address) {
         this.address = address;
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
     }
 
     public Instant getCreatedAt() {

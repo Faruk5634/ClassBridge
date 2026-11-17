@@ -40,6 +40,9 @@ public class School {
     @Column(columnDefinition = "TEXT")
     private String address;
 
+    @Column(name = "is_active", nullable = false)
+    private boolean isActive = true;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
@@ -102,6 +105,14 @@ public class School {
 
     public void setAddress(String address) {
         this.address = address;
+    }
+
+    public boolean isActive() {
+        return isActive;
+    }
+
+    public void setActive(boolean active) {
+        isActive = active;
     }
 
     public Instant getCreatedAt() {

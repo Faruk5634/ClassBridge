@@ -32,7 +32,13 @@ public class SchoolService {
 
     @Transactional(readOnly = true)
     public List<SchoolResponse> getSchools() {
+        return getSchools(null);
+    }
+
+    @Transactional(readOnly = true)
+    public List<SchoolResponse> getSchools(Boolean active) {
         return schoolRepository.findAll().stream()
+                .filter(school -> active == null || school.isActive() == active)
                 .map(schoolMapper::toResponse)
                 .collect(Collectors.toList());
     }
@@ -47,9 +53,30 @@ public class SchoolService {
     public Optional<SchoolResponse> updateSchool(Long id, SchoolRequest request) {
         return schoolRepository.findById(id)
                 .map(school -> {
+                    if (!school.isActive()) {
+                        throw new IllegalStateException("Archived schools are read-only until restored.");
+                    }
                     schoolMapper.updateEntity(school, request);
                     School updatedSchool = schoolRepository.save(school);
                     return schoolMapper.toResponse(updatedSchool);
+                });
+    }
+
+    @Transactional
+    public Optional<SchoolResponse> archiveSchool(Long id) {
+        return schoolRepository.findById(id)
+                .map(school -> {
+                    school.setActive(false);
+                    return schoolMapper.toResponse(schoolRepository.save(school));
+                });
+    }
+
+    @Transactional
+    public Optional<SchoolResponse> restoreSchool(Long id) {
+        return schoolRepository.findById(id)
+                .map(school -> {
+                    school.setActive(true);
+                    return schoolMapper.toResponse(schoolRepository.save(school));
                 });
     }
 }
