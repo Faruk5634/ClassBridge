@@ -14,7 +14,7 @@ Represents one school using ClassBridge.
 - A school owns its school administrators, teachers, classes, and students.
 - A school has one or more administrator accounts, each assigned to that school.
 - School-owned data must always be isolated from other schools.
-- A school archive is reversible and cascades inactive state to its classrooms, teaching assignments, student profiles, parent-school registrations, announcements, conversations, and school-linked login accounts. Each affected record tracks whether the school archive changed its state, so restoration does not reactivate records that were inactive beforehand. A shared parent account remains active if it still has an active child or active registration in another school.
+- A school archive is reversible and cascades inactive state to its classrooms, teaching assignments, student profiles, parent-school registrations, announcements, conversations, and school-linked login accounts. Each affected record tracks whether the school archive changed its state, so restoration does not reactivate records that were inactive beforehand. Parent accounts are global identities, not school-owned login accounts; they remain active while their archived student links prevent access to school data, so they can be linked to a future enrollment.
 
 ### UserAccount
 

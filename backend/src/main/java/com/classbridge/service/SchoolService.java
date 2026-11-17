@@ -1,7 +1,6 @@
 package com.classbridge.service;
 
 import com.classbridge.domain.School;
-import com.classbridge.domain.ParentProfile;
 import com.classbridge.domain.UserAccount;
 import com.classbridge.domain.UserRole;
 import com.classbridge.repository.AnnouncementRepository;
@@ -136,17 +135,6 @@ public class SchoolService {
                             registration.setArchivedBySchool(true);
                         }
                     });
-                    java.util.stream.Stream.concat(
-                                    studentRepository.findAllBySchoolId(id).stream().map(com.classbridge.domain.StudentProfile::getParentProfile),
-                                    registrations.stream().map(com.classbridge.domain.ParentSchoolRegistration::getParentProfile))
-                            .filter(java.util.Objects::nonNull)
-                            .distinct()
-                            .filter(parent -> parent.getUserAccount() != null && parent.getUserAccount().isActive())
-                            .filter(parent -> !studentRepository.existsByParentProfileIdAndIsActiveTrue(parent.getId()))
-                            .filter(parent -> parentRegistrationRepository.findAllByParentProfileId(parent.getId()).stream()
-                                    .noneMatch(registration -> registration.isActive() && registration.getSchool().isActive()))
-                            .map(ParentProfile::getUserAccount)
-                            .forEach(this::deactivateForSchool);
                     announcementRepository.findAllBySchoolId(id).forEach(announcement -> {
                         if (announcement.isActive()) {
                             announcement.setActive(false);
@@ -183,13 +171,6 @@ public class SchoolService {
                         }
                         if (student.getUserAccount() != null) restoreForSchool(student.getUserAccount());
                     });
-                    studentRepository.findAllBySchoolId(id).stream()
-                            .map(com.classbridge.domain.StudentProfile::getParentProfile)
-                            .filter(java.util.Objects::nonNull)
-                            .map(com.classbridge.domain.ParentProfile::getUserAccount)
-                            .filter(java.util.Objects::nonNull)
-                            .distinct()
-                            .forEach(this::restoreForSchool);
                     classroomRepository.findAllBySchoolId(id).forEach(classroom -> {
                         if (classroom.isArchivedBySchool()) {
                             classroom.setActive(true);
@@ -207,7 +188,6 @@ public class SchoolService {
                             registration.setActive(true);
                             registration.setArchivedBySchool(false);
                         }
-                        restoreForSchool(registration.getParentProfile().getUserAccount());
                     });
                     announcementRepository.findAllBySchoolId(id).forEach(announcement -> {
                         if (announcement.isArchivedBySchool()) {

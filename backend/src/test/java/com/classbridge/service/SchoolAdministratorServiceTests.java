@@ -231,7 +231,6 @@ class SchoolAdministratorServiceTests {
         schoolOnlyRegistration.setSchool(school);
         schoolOnlyRegistration.setParentProfile(schoolOnlyParent);
         when(parentSchoolRegistrationRepository.findAllBySchoolId(10L)).thenReturn(java.util.List.of(registration, schoolOnlyRegistration));
-        when(parentSchoolRegistrationRepository.findAllByParentProfileId(80L)).thenReturn(java.util.List.of(registration));
         Announcement announcement = new Announcement();
         announcement.setSchool(school);
         when(announcementRepository.findAllBySchoolId(10L)).thenReturn(java.util.List.of(announcement));
@@ -247,7 +246,7 @@ class SchoolAdministratorServiceTests {
         assertEquals(false, student.isActive());
         assertEquals(false, studentAccount.isActive());
         assertEquals(true, sharedParent.getUserAccount().isActive());
-        assertEquals(false, schoolOnlyParent.getUserAccount().isActive());
+        assertEquals(true, schoolOnlyParent.getUserAccount().isActive());
         assertEquals(false, alreadyArchivedStudent.isArchivedBySchool());
         assertEquals(false, classroom.isActive());
         assertEquals(false, teachingAssignment.isActive());

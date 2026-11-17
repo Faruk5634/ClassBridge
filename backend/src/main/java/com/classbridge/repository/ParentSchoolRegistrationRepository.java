@@ -8,7 +8,6 @@ import java.util.List;
 
 public interface ParentSchoolRegistrationRepository extends JpaRepository<ParentSchoolRegistration, Long> {
     List<ParentSchoolRegistration> findAllBySchoolId(Long schoolId);
-    List<ParentSchoolRegistration> findAllByParentProfileId(Long parentProfileId);
     boolean existsBySchoolIdAndParentProfileIdAndIsActiveTrue(Long schoolId, Long parentProfileId);
     boolean existsBySchoolIdAndParentProfileId(Long schoolId, Long parentProfileId);
     boolean existsByParentProfileIdAndSchoolIdNot(Long parentProfileId, Long schoolId);

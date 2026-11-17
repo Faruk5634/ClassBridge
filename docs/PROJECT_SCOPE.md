@@ -20,7 +20,7 @@ The platform carries forward the existing project's main capabilities: school an
 
 - Manages schools across the platform.
 - Creates school administrator and vice-administrator accounts and assigns them to a school.
-- Can archive and restore a school. Archiving deactivates that school's classrooms, teaching assignments, student profiles, parent-school registrations, announcements, conversations, and school-linked accounts in one reversible operation. A parent account remains active when it still has a child in another active school. Restoring a school reactivates only records that the school archive operation itself deactivated.
+- Can archive and restore a school. Archiving deactivates that school's classrooms, teaching assignments, student profiles, parent-school registrations, announcements, conversations, and school-linked accounts in one reversible operation. Parent accounts are platform-wide identities and remain active; without an active linked child, they have no school data access. Restoring a school reactivates only records that the school archive operation itself deactivated.
 - Communicates with school administrators about platform or system issues.
 
 ### 3.2 School administrator and vice-administrator
