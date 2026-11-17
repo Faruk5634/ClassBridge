@@ -3,6 +3,7 @@ package com.classbridge.service;
 import com.classbridge.domain.AccountRecoveryToken;
 import com.classbridge.domain.RecoveryTokenPurpose;
 import com.classbridge.domain.UserAccount;
+import com.classbridge.domain.UserRole;
 import com.classbridge.dto.CompletePasswordResetRequest;
 import com.classbridge.dto.UpdateEmailRequest;
 import com.classbridge.exception.InvalidRecoveryCodeException;
@@ -148,6 +149,9 @@ public class AccountRecoveryService {
         Instant now = Instant.now();
         challenge.setUsedAt(now);
         account.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
+        if (account.getRole() != UserRole.SUPERADMIN) {
+            account.setMustChangePassword(true);
+        }
         account.setCredentialVersion(account.getCredentialVersion() + 1);
         tokenRepository.save(challenge);
         tokenRepository.invalidateOutstanding(account.getId(), RecoveryTokenPurpose.PASSWORD_RESET, now);

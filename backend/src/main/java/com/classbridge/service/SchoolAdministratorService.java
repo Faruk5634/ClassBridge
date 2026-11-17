@@ -96,6 +96,7 @@ public class SchoolAdministratorService {
         account.setEmail(StringUtils.hasText(request.getEmail()) ? request.getEmail().trim() : null);
         account.setPhoneNumber(StringUtils.hasText(request.getPhoneNumber()) ? request.getPhoneNumber().trim() : null);
         account.setActive(true);
+        account.setMustChangePassword(true);
         UserAccount savedAccount = userAccountRepository.save(account);
 
         StaffProfile profile = new StaffProfile();

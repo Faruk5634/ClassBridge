@@ -113,7 +113,7 @@ public class AdminPasswordResetService {
         String temporaryPassword = initialPasswordGenerator.generatePassword();
         target.setPasswordHash(passwordEncoder.encode(temporaryPassword));
         target.setCredentialVersion(target.getCredentialVersion() + 1);
-        if (target.getRole() == UserRole.STUDENT || target.getRole() == UserRole.TEACHER || target.getRole() == UserRole.PARENT) {
+        if (target.getRole() != UserRole.SUPERADMIN) {
             target.setMustChangePassword(true);
         }
         userAccountRepository.save(target);
